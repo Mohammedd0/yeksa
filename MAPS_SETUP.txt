@@ -1,0 +1,13 @@
+نەخشەی Google لە Flutter (وێب)
+===============================
+
+فایلی web/index.html لە ناو پڕۆژەی yeksa بکەرەوە.
+ئەم دێڕە لە ناو <head> دابنێ، پێش </head>:
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjiamkor_esVx0GV7ZM7w1LEv4fyWZEHg&region=IQ"></script>
+
+پاشەکەوتی بکە و ئەپەکە دووبارە دەست پێبکەرەوە.
+
+تێبینی: ئەمە هەمان کلیلی وەشانی وێبە (mapsKey لە shared/firebase-config.js).
+ئەگەر لە Google Cloud ڕێگەت تەنها بە mohammedd0.github.io داوە، دەبێت
+localhost و 192.168.0.103 یش زیاد بکەیت (Websites → Add) تا لە کۆمپیوتەر و مۆبایل کار بکات.

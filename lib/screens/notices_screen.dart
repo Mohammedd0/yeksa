@@ -1,0 +1,161 @@
+// ئاگادارکردنەوەکان: وەک فەیسبووک (نوێ، ئەمڕۆ، دوێنێ، پێشتر) بە چوار تاب
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../core/actions.dart';
+import '../core/cloud.dart';
+import '../core/format.dart';
+import '../core/sel.dart';
+import '../ui/theme.dart';
+import '../ui/widgets.dart';
+import '../ui/yk_icon.dart';
+import 'nav.dart';
+
+/// ئایکۆن و ڕەنگی هەر جۆرێک (ui.noticeIcon)
+(String, String) noticeIcon(Object? kind) {
+  const m = {
+    'ride': ('car', 'ok'), 'drop': ('check', 'ok'), 'swap': ('swap', ''), 'pay': ('wallet', 'info'), 'info': ('bell', 'navy'),
+    'driver': ('route', ''), 'offer': ('tag', ''), 'chat': ('chat', 'info'), 'ok': ('check', 'ok'), 'self': ('check', 'navy'),
+  };
+  return m[kind] ?? ('bell', 'navy');
+}
+
+/// کاتی ئاگادارکردنەوە: ئێستا، ٥ خولەک، ٣ کاتژمێر، دوێنێ ٩:١٥ بەیانی، ٣ ڕۆژ، یان بەروار
+String noticeWhen(int at) {
+  final now = DateTime.now();
+  final mins = (now.millisecondsSinceEpoch - at) ~/ 60000;
+  final day0 = DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
+  if (mins < 1) return 'ئێستا';
+  if (mins < 60) return Fmt.n('$mins خولەک لەمەوبەر');
+  if (at >= day0) return Fmt.n('${mins ~/ 60} کاتژمێر لەمەوبەر');
+  if (at >= day0 - 86400000) return 'دوێنێ، ${Fmt.clock(Fmt.hhmm(at))}';
+  final days = ((day0 - at) / 86400000).ceil();
+  if (days < 7) return Fmt.n('$days ڕۆژ لەمەوبەر');
+  return Fmt.date(at);
+}
+
+class NoticesScreen extends StatefulWidget {
+  const NoticesScreen({super.key});
+  @override
+  State<NoticesScreen> createState() => _NoticesScreenState();
+}
+
+class _NoticesScreenState extends State<NoticesScreen> {
+  String _tab = 'all';
+  late num _readAt;
+  final Set<String> _opened = {};
+
+  @override
+  void initState() {
+    super.initState();
+    final cloud = context.read<Cloud>();
+    // ئەوەی لە کاتی کردنەوەدا نوێ بوو، تا داخستنی پەڕەکە بە نوێ دەمێنێتەوە
+    _readAt = cloud.readNoticesAt;
+    if (cloud.unreadNotices > 0) {
+      Future.delayed(const Duration(milliseconds: 400), () => cloud.markNoticesRead());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.yk;
+    final cloud = context.watch<Cloud>();
+    const groups = {
+      'trips': ['ride', 'drop', 'driver', 'swap'],
+      'offers': ['offer', 'info'],
+      'pay': ['pay'],
+    };
+    final all = cloud.myNotices;
+    final list = groups[_tab] == null ? all : all.where((n) => groups[_tab]!.contains(n['kind'])).toList();
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
+    final yest = today - 86400000;
+    final g = <String, List<Json>>{'نوێ': [], 'ئەمڕۆ': [], 'دوێنێ': [], 'پێشتر': []};
+    for (final n in list) {
+      final at = ((n['at'] as num?) ?? 0).toInt();
+      final fresh = at > _readAt && !_opened.contains(n['id']);
+      g[fresh ? 'نوێ' : at >= today ? 'ئەمڕۆ' : at >= yest ? 'دوێنێ' : 'پێشتر']!.add(n);
+    }
+
+    Widget row(Json n, bool fresh) {
+      final (ic, tone) = noticeIcon(n['kind']);
+      final link = str(n['link']);
+      final boxBg = tone == 'ok' ? t.okBg : t.silver;
+      return Material(
+        color: fresh ? t.infoBg : Colors.transparent,
+        child: InkWell(
+          onTap: link.isEmpty
+              ? null
+              : () {
+                  setState(() => _opened.add(str(n['id'])));
+                  openLink(context, link);
+                },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: boxBg, borderRadius: BorderRadius.circular(12)),
+                alignment: Alignment.center,
+                child: YkIcon(ic, size: 20, color: tone == 'ok' ? t.okText : t.act),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(Fmt.n(str(n['title'])), style: Ts.bold(context).copyWith(fontSize: 15.2)),
+                  if (str(n['body']).isNotEmpty) Text(Fmt.n(str(n['body'])), style: Ts.muted(context, size: 14)),
+                  const SizedBox(height: 3),
+                  Text(noticeWhen(((n['at'] as num?) ?? 0).toInt()),
+                      style: TextStyle(fontSize: 12.8, color: fresh ? t.infoText : t.muted, fontWeight: fresh ? FontWeight.w700 : FontWeight.w400)),
+                ]),
+              ),
+              if (fresh)
+                Padding(
+                  padding: const EdgeInsets.only(top: 14, right: 8),
+                  child: Container(width: 10, height: 10, decoration: BoxDecoration(shape: BoxShape.circle, color: t.infoText)),
+                ),
+            ]),
+          ),
+        ),
+      );
+    }
+
+    final body = <Widget>[];
+    g.forEach((title, items) {
+      if (items.isEmpty) return;
+      body.add(Padding(
+        padding: const EdgeInsets.fromLTRB(4, 6, 4, 0),
+        child: Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: t.text)),
+      ));
+      body.add(Container(
+        decoration: BoxDecoration(color: t.glass, borderRadius: BorderRadius.circular(Yk.rLg), border: Border.all(color: t.glassLine)),
+        clipBehavior: Clip.antiAlias,
+        child: Column(children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0) Divider(height: 1, thickness: 1, color: t.line),
+            row(items[i], title == 'نوێ'),
+          ],
+        ]),
+      ));
+    });
+
+    return Scaffold(
+      body: YkScreen(
+        onRefresh: context.read<Cloud>().refresh,
+        children: [
+          const YkHeader('ئاگادارکردنەوەکان'),
+          YkSeg<String>(
+            options: const [('all', 'هەمووی'), ('trips', 'گەشت'), ('offers', 'داواکاری'), ('pay', 'پارەدان')],
+            value: _tab,
+            onChanged: (v) => setState(() => _tab = v),
+          ),
+          if (list.isEmpty)
+            const YkEmpty(icon: 'bell', title: 'هیچ ئاگادارکردنەوەیەک نییە', text: 'کاتێک شتێکی نوێ ڕوو بدات لێرە دەردەکەوێت'),
+          ...body,
+        ],
+      ),
+    );
+  }
+}
