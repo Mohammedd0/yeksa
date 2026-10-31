@@ -112,7 +112,7 @@ class HomeScreen extends StatelessWidget {
         Row(children: [
           Expanded(child: _tile(context, 'wallet', cloud.walletOn ? 'جزدانەکەم' : 'پارەدان', () => openLink(context, cloud.walletOn ? 'wallet' : 'billing'))),
           const SizedBox(width: 10),
-          Expanded(child: _tile(context, 'tag', 'ئۆفەرەکان', () => openLink(context, 'offers'))),
+          Expanded(child: _tile(context, 'tag', 'ئۆفەرەکان', () => openLink(context, 'offers'), badge: offerList.length)),
         ]),
         if (swap != null && subs.isNotEmpty)
           YkCard(
@@ -160,18 +160,12 @@ class HomeScreen extends StatelessWidget {
               YkIcon('forward', size: 20, color: t.muted),
             ]),
           ),
-        if (offerList.isNotEmpty)
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('ئۆفەرەکان', style: Ts.h3(context).copyWith(fontSize: 16)),
-            YkLink('هەمووی', pill: true, onTap: () => openLink(context, 'offers')),
-          ]),
-        for (final n in offerList.take(3)) NewsCard(n, thumb: 72, onTap: () => openLink(context, 'news/${n['id']}')),
       ],
     );
   }
 
   /// کارتی بچووک (.qtile)
-  Widget _tile(BuildContext context, String icon, String label, VoidCallback onTap) {
+  Widget _tile(BuildContext context, String icon, String label, VoidCallback onTap, {int badge = 0}) {
     final t = context.yk;
     return YkCard(
       onTap: onTap,
@@ -179,6 +173,18 @@ class HomeScreen extends StatelessWidget {
         YkIcon(icon, size: 22, color: t.text),
         const SizedBox(width: 10),
         Expanded(child: Text(label, style: Ts.bold(context).copyWith(fontSize: 15))),
+        // ژمارەی سوور (وەک نامە) لە پێش تیرەکە
+        if (badge > 0) ...[
+          Container(
+            constraints: const BoxConstraints(minWidth: 22),
+            height: 22,
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: t.danger, borderRadius: BorderRadius.circular(11)),
+            child: Text(Fmt.n(badge), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700, height: 1)),
+          ),
+          const SizedBox(width: 6),
+        ],
         YkIcon('forward', size: 16, color: t.muted),
       ]),
     );

@@ -13,6 +13,7 @@ import '../core/images.dart';
 import '../core/sel.dart';
 import '../ui/help.dart';
 import '../ui/form_parts.dart';
+import '../ui/parts.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 import '../ui/yk_icon.dart';
@@ -484,6 +485,7 @@ class WalletScreen extends StatelessWidget {
             ),
           ],
         ),
+        _trust(context, 'پارەکەت لای یەکسا پارێزراوە. هەر جووڵەیەک لێرە تۆمار دەکرێت.'),
         // پارەدان: پارەی مانگانەی هەموو شۆفێرەکان (نەدراو و دراو)
         GestureDetector(
           onTap: () => push(context, const PaymentsScreen()),
@@ -513,7 +515,6 @@ class WalletScreen extends StatelessWidget {
             ]),
           ),
         ),
-        _trust(context, 'پارەکەت لای یەکسا پارێزراوە. هەر جووڵەیەک لێرە تۆمار دەکرێت.'),
         Row(children: [tile('plus', 'زیادکردن', const TopupScreen()), const SizedBox(width: 10), tile('download', 'ڕاکێشان', const WithdrawScreen())]),
         Row(children: [tile('send', 'ناردن', const SendMoneyScreen()), const SizedBox(width: 10), tile('receipt', 'مامەڵەکان', const TxsScreen())]),
         if (inv.lines.isNotEmpty)
@@ -667,42 +668,15 @@ class PaymentsScreen extends StatefulWidget {
 
 class _PaymentsScreenState extends State<PaymentsScreen> {
   String _tab = 'due';
-  String? _month; // مانگی هەڵبژێردراو (تەنها یەک مانگ لە یەک کاتدا)
-  final Set<String> _sel = {};
-  bool _busy = false;
-  bool _init = false;
 
   List<String> get _months {
     final now = DateTime.now();
     return [Fmt.monthKey(), Fmt.monthKey(DateTime(now.year, now.month + 1, 1))];
   }
 
-  void _toggle(String mk, String subId) {
-    setState(() {
-      if (_month != mk) {
-        _month = mk;
-        _sel.clear();
-      }
-      if (!_sel.remove(subId)) _sel.add(subId);
-      if (_sel.isEmpty) _month = null;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final cloud = context.watch<Cloud>();
-    // لە یەکەم جاردا هەموو بڕەکانی یەکەم مانگی نەدراو هەڵدەبژێردرێن
-    if (!_init) {
-      _init = true;
-      for (final mk in _months) {
-        final ls = cloud.dueLines(mk: mk);
-        if (ls.isNotEmpty) {
-          _month = mk;
-          _sel.addAll(ls.map((l) => l.subId));
-          break;
-        }
-      }
-    }
     final paid = cloud.myWallet.where((e) => e['type'] == 'monthpay' && e['incoming'] != true).toList();
     return Scaffold(
       body: YkScreen(onRefresh: cloud.refresh, children: [
@@ -717,6 +691,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     );
   }
 
+  /// هەر بەشدارییەکی نەدراو کارتێکە؛ بە کلیک کردن وردەکارییەکەی دەکرێتەوە و لەوێ دەدرێت
   List<Widget> _due(BuildContext context, Cloud cloud) {
     final t = context.yk;
     final groups = [for (final mk in _months) (mk, cloud.dueLines(mk: mk))].where((g) => g.$2.isNotEmpty).toList();
@@ -729,11 +704,6 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
         ),
       ];
     }
-    final mk = _month;
-    final inv = mk == null || _sel.isEmpty ? null : cloud.invoice(due: true, mk: mk, only: _sel);
-    final bal = cloud.balance;
-    final total = inv?.total ?? 0;
-    final need = _pos(total - bal);
     return [
       for (final (m, lines) in groups) ...[
         PLabel(_monthName(m)),
@@ -741,19 +711,15 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           Builder(builder: (context) {
             final s = cloud.sub(l.subId) ?? const {};
             final d = cloud.driver(s['driverId']) ?? const {};
-            final on = _month == m && _sel.contains(l.subId);
             return YkCard(
-              onTap: () => _toggle(m, l.subId),
+              onTap: () => push(context, PaymentDetailScreen(month: m, subId: l.subId)),
               child: Row(children: [
-                YkCheck(on),
-                const SizedBox(width: 10),
                 PersonAvatar(size: 46, imageId: str(d['photo']).isEmpty ? null : str(d['photo'])),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(str(d['name']), maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.bold(context)),
-                    Text('${str(s['riderNames'])} · ${fmtDays(asList(s['days']))}${l.note.isNotEmpty ? '، ${l.note}' : ''}',
-                        maxLines: 2, style: Ts.muted(context, size: 12.5)),
+                    Text('${str(s['riderNames'])} · ${fmtDays(asList(s['days']))}', maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.muted(context, size: 12.5)),
                   ]),
                 ),
                 const SizedBox(width: 8),
@@ -762,45 +728,12 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                   const SizedBox(height: 4),
                   const YkBadge('نەدراو', tone: BadgeTone.note),
                 ]),
+                const SizedBox(width: 6),
+                YkIcon('forward', size: 16, color: t.muted),
               ]),
             );
           }),
       ],
-      if (inv != null)
-        YkCard(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _row(context, Fmt.n('بڕی ${_monthName(mk!)} (${inv.lines.length} شۆفێر)'), _b(Fmt.money(inv.sub))),
-            if (inv.promo > 0) _row(context, 'داشکاندنی هاوبەش', _b('−${Fmt.n(Fmt.group(inv.promo))}', color: t.okText)),
-            for (final d in inv.discounts) _row(context, d.label, _b('−${Fmt.n(Fmt.group(d.amount))}', color: t.okText)),
-            const YkHr(),
-            _row(context, 'کۆی گشتی', _b(Fmt.money(total))),
-            _row(context, 'باڵانسی جزدان', _b(Fmt.money(bal), color: bal >= total ? t.okText : null)),
-            if (need > 0) _row(context, 'ماوە بۆ زیادکردن', _b(Fmt.money(need), color: t.dangerText)),
-            const SizedBox(height: 10),
-            if (need > 0)
-              YkButton('زیادکردنی ${Fmt.n(Fmt.group(need))} ی ماوە', icon: 'plus', block: true, large: true, onPressed: () => push(context, TopupScreen(amount: need)))
-            else
-              YkButton('پارەدان لە جزدان', icon: 'check', block: true, large: true, busy: _busy, onPressed: () async {
-                final ok = await askConfirm(context, '${Fmt.money(total)} لە جزدانەکەت بۆ ${_monthName(mk)} دەدرێت.', yes: 'پارەدان', danger: false);
-                if (!ok || !context.mounted) return;
-                setState(() => _busy = true);
-                final err = await cloud.payMonth(mk: mk, only: {..._sel});
-                if (!context.mounted) return;
-                setState(() => _busy = false);
-                if (err != null) return toast(context, err);
-                toast(context, 'پارەی ${_monthName(mk)} درا');
-                setState(() {
-                  _sel.clear();
-                  _month = null;
-                  _tab = 'paid';
-                });
-              }),
-            const SizedBox(height: 10),
-            _trust(context, 'پارەکە لای یەکسا دەمێنێتەوە و ڕۆژ بە ڕۆژ، تەنها دوای تەواوبوونی هەر گەشتێک، دەچێتە سەر حیسابی شۆفێر.'),
-          ]),
-        )
-      else
-        Text('ئەو شۆفێرانە هەڵبژێرە کە پارەکەیان دەدەیت', textAlign: TextAlign.center, style: Ts.muted(context, size: 13.4)),
     ];
   }
 
@@ -839,6 +772,113 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           ]),
         ),
     ];
+  }
+}
+
+/// وردەکاری پارەی مانگێکی یەک بەشداری: کێیە، بۆ کێیە، چ ڕێگایەک و چەند گەشت، پاشان پارەدان
+class PaymentDetailScreen extends StatefulWidget {
+  const PaymentDetailScreen({super.key, required this.month, required this.subId});
+  final String month;
+  final String subId;
+  @override
+  State<PaymentDetailScreen> createState() => _PaymentDetailScreenState();
+}
+
+class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
+  bool _busy = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.yk;
+    final cloud = context.watch<Cloud>();
+    final mk = widget.month;
+    final s = cloud.sub(widget.subId) ?? const {};
+    final d = cloud.driver(s['driverId']) ?? const {};
+    final inv = cloud.invoice(due: true, mk: mk, only: {widget.subId});
+    if (inv.lines.isEmpty) {
+      return Scaffold(
+        body: YkScreen(children: [
+          YkHeader('پارەی ${_monthName(mk)}'),
+          const YkEmpty(icon: 'receipt', title: 'ئەم پارەیە دراوە', text: 'لە «دراو» پسوولەکەی دەبینیت'),
+        ]),
+      );
+    }
+    final l = inv.lines.first;
+    final bal = cloud.balance;
+    final need = _pos(inv.total - bal);
+    String place(Object? x) => str(x).split('، ').first;
+    String time(Object? x) => str(x).isEmpty ? '—' : Fmt.clock(str(x));
+    // دێڕی زانیاری: نووسینی درێژ دەچێتە دێڕی دووەم، نەک لە شاشە دەربچێت
+    Widget info(String k, String v) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(k, style: Ts.muted(context, size: 14)),
+            const SizedBox(width: 12),
+            Expanded(child: Text(v, textAlign: TextAlign.end, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14))),
+          ]),
+        );
+    return Scaffold(
+      body: YkScreen(children: [
+        YkHeader('پارەی ${_monthName(mk)}'),
+        // شۆفێر
+        YkCard(
+          onTap: () => openLink(context, 'driver/${d['id']}'),
+          child: Row(children: [
+            PersonAvatar(size: 56, imageId: str(d['photo']).isEmpty ? null : str(d['photo'])),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(str(d['name']), style: Ts.bold(context).copyWith(fontSize: 16.5)),
+                Text(carText(d), maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.muted(context, size: 13)),
+              ]),
+            ),
+            if (str(d['plate']).isNotEmpty) Plate(str(d['plate']), type: str(d['plateType']).isEmpty ? 'taxi' : str(d['plateType']), small: true),
+          ]),
+        ),
+        // بەشداری
+        YkCard(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            info('سەرنشین', str(s['riderNames'])),
+            info('لە', place(s['from'])),
+            info('بۆ', place(s['to'])),
+            info('ڕۆژەکان', fmtDays(asList(s['days']))),
+            info('چوون / هاتنەوە', '${time(s['go'])} / ${time(s['back'])}'),
+            info('گەشتەکانی ${_monthName(mk)}', Fmt.n('${l.legs} گەشت')),
+            if (l.note.isNotEmpty) Text(l.note, style: Ts.muted(context, size: 12.8)),
+          ]),
+        ),
+        // بڕ و پارەدان
+        YkCard(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            _row(context, 'نرخی مانگانە', _b(Fmt.money(l.full))),
+            if (l.amount != l.full) _row(context, 'بڕی ئەم مانگە', _b(Fmt.money(l.amount))),
+            if (inv.promo > 0) _row(context, 'داشکاندنی هاوبەش', _b('−${Fmt.n(Fmt.group(inv.promo))}', color: t.okText)),
+            for (final x in inv.discounts) _row(context, x.label, _b('−${Fmt.n(Fmt.group(x.amount))}', color: t.okText)),
+            const YkHr(),
+            _row(context, 'کۆی پارە', _b(Fmt.money(inv.total), size: 18)),
+            _row(context, 'باڵانسی جزدان', _b(Fmt.money(bal), color: bal >= inv.total ? t.okText : null)),
+            if (need > 0) _row(context, 'ماوە بۆ زیادکردن', _b(Fmt.money(need), color: t.dangerText)),
+            const SizedBox(height: 12),
+            if (need > 0)
+              YkButton('زیادکردنی ${Fmt.n(Fmt.group(need))} ی ماوە', icon: 'plus', block: true, large: true, onPressed: () => push(context, TopupScreen(amount: need)))
+            else
+              YkButton('پارەدان لە جزدان', icon: 'check', block: true, large: true, busy: _busy, onPressed: () async {
+                final ok = await askConfirm(context, '${Fmt.money(inv.total)} لە جزدانەکەت بۆ ${str(d['name'])}، ${_monthName(mk)} دەدرێت.', yes: 'پارەدان', danger: false);
+                if (!ok || !context.mounted) return;
+                setState(() => _busy = true);
+                final err = await cloud.payMonth(mk: mk, only: {widget.subId});
+                if (!context.mounted) return;
+                setState(() => _busy = false);
+                if (err != null) return toast(context, err);
+                toastAfterNav(context, 'پارەی ${_monthName(mk)} درا');
+                Navigator.of(context).pop();
+              }),
+            const SizedBox(height: 10),
+            _trust(context, 'پارەکە لای یەکسا دەمێنێتەوە و ڕۆژ بە ڕۆژ، تەنها دوای تەواوبوونی هەر گەشتێک، دەچێتە سەر حیسابی شۆفێر.'),
+          ]),
+        ),
+      ]),
+    );
   }
 }
 

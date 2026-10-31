@@ -511,6 +511,9 @@ void toastAfterNav(BuildContext context, String text) {
   });
 }
 
+/// کلیککردنەوە لەسەر هەمان بەشی شریتی خوارەوە: پەڕەکە دەچێتەوە سەرەوە (وەک واتسئاپ)
+final ValueNotifier<int> ykScrollTop = ValueNotifier(0);
+
 /// شاشەیەکی ئاسایی بە بۆشایی هەمان وێب (.screen).
 /// کاتێک ناونیشانی گەورە بە سکرۆڵ دەڕوات، شریتێکی بچووکی ناونیشان لە سەرەوە دەردەکەوێت (#tbar ی وێب).
 /// ناونیشان لە [title]، یان لە یەکەم [YkHeader] وەردەگیرێت
@@ -595,10 +598,23 @@ class _YkScreenState extends State<YkScreen> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
     _scroll.addListener(_sync);
+    if (widget.withNav) ykScrollTop.addListener(_onTopSignal);
+  }
+
+  // تەنها پەڕەی دیار (بەشەکانی تری IndexedStack تیکەریان ناچالاکە)
+  void _onTopSignal() {
+    if (mounted && TickerMode.valuesOf(context).enabled) _toTop();
+  }
+
+  /// گەڕانەوە بۆ سەرەوەی پەڕە (کلیک لە شریتی کات لە ئایفۆن، لە ناونیشانی بچووک، یان لە بەشی چالاک)
+  void _toTop() {
+    if (!_scroll.hasClients || _scroll.offset <= 0) return;
+    _scroll.animateTo(0, duration: const Duration(milliseconds: 450), curve: Curves.easeOutCubic);
   }
 
   @override
   void dispose() {
+    if (widget.withNav) ykScrollTop.removeListener(_onTopSignal);
     _scroll.dispose();
     _spin.dispose();
     super.dispose();
@@ -686,8 +702,13 @@ class _YkScreenState extends State<YkScreen> with SingleTickerProviderStateMixin
             right: 0,
             child: IgnorePointer(child: _PtrIndicator(pull: _pull, busy: _busy, spin: _spin)),
           );
+    // لە ئەپی ئایفۆن: کلیک لەسەر شریتی کات (status bar) پەڕەکە دەباتەوە سەرەوە
+    final topPad = MediaQuery.paddingOf(context).top;
+    final statusTap = topPad <= 0
+        ? null
+        : Positioned(top: 0, left: 0, right: 0, height: topPad, child: GestureDetector(behavior: HitTestBehavior.translucent, onTap: _toTop));
     final title = _title;
-    if (title == null) return ptr == null ? body : Stack(children: [body, ptr]);
+    if (title == null) return ptr == null && statusTap == null ? body : Stack(children: [body, if (ptr != null) ptr, if (statusTap != null) statusTap]);
     final h = _header;
     return Stack(
       children: [
@@ -703,10 +724,15 @@ class _YkScreenState extends State<YkScreen> with SingleTickerProviderStateMixin
               opacity: _bar ? 1 : 0,
               duration: MediaQuery.of(context).disableAnimations ? Duration.zero : const Duration(milliseconds: 180),
               curve: Curves.ease,
-              child: _TitleBar(title: title, back: h != null && h.back && Navigator.of(context).canPop()),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _toTop,
+                child: _TitleBar(title: title, back: h != null && h.back && Navigator.of(context).canPop()),
+              ),
             ),
           ),
         ),
+        if (statusTap != null && !_bar) statusTap,
       ],
     );
   }

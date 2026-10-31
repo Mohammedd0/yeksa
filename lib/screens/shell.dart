@@ -9,6 +9,7 @@ import '../core/billing.dart';
 import '../core/cloud.dart';
 import '../core/request_actions.dart';
 import '../ui/bottom_nav.dart';
+import '../ui/widgets.dart';
 import 'home_screen.dart';
 import 'inbox_screen.dart';
 import 'nav.dart';
@@ -131,7 +132,14 @@ class _ShellState extends State<Shell> with SingleTickerProviderStateMixin {
       bottomNavigationBar: YkBottomNav(
         index: _tab,
         mini: _mini,
-        onTap: (i) => ShellTabs.index.value = i,
+        onTap: (i) {
+          // کلیک لەسەر بەشی ئێستا: دەچێتەوە سەرەوەی پەڕە
+          if (i == _tab) {
+            ykScrollTop.value++;
+          } else {
+            ShellTabs.index.value = i;
+          }
+        },
         items: [
           const NavItem('home', 'سەرەکی'),
           const NavItem('route', 'گەشتەکان'),
