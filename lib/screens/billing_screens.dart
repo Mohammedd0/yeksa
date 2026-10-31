@@ -1384,10 +1384,19 @@ class _RequestStatusScreenState extends State<RequestStatusScreen> {
       'cancelled' => 'هەڵوەشێنرایەوە',
       _ => widget.withdraw ? 'چاوەڕێی ناردنی یەکسا' : 'چاوەڕێی پشکنینی یەکسا',
     };
-    // هەنگاوەکان: نێردرا ← پشکنین/ناردن ← تەواو
+    // ژمارەی حەواڵە / هەژمار (لاتینی) لە دێڕێکی جیادا و بە LRI…PDI جیا دەکرێتەوە، تا لە ناو
+    // دەقی کوردیدا (RTL) لە نیوەدا نەشکێت و پیتەکانی تێکەڵ نەبن (بۆ نموونە TEST-CANCEL)
+    String ltr(Object? v) => '\u2066$v\u2069';
+    final when = at > 0 ? '${Fmt.date(at)}، ${Fmt.clock(Fmt.hhmm(at))}' : '';
+    final detail = !widget.withdraw
+        ? (str(x?['ref']).isNotEmpty ? 'حەواڵە ${ltr(x!['ref'])}' : '')
+        : (str(x?['account']).isNotEmpty ? '$method ${ltr(x!['account'])}' : '');
+    // هەنگاوەکان: نێردرا ← پشکنین/ناردن ← تەواو. هەڵوەشاندنەوە پێش پشکنینی یەکسا دەکرێت، بۆیە
+    // هەنگاوی ناوەڕاست تێپەڕ نابێت؛ ڕەتکردنەوە دوای پشکنینە، بۆیە ئەو هەنگاوە تەواوە
+    final reviewed = ok || st == 'rejected';
     final steps = <(String, String, int)>[
-      ('داواکاری نێردرا', '${at > 0 ? '${Fmt.date(at)}، ${Fmt.clock(Fmt.hhmm(at))}' : ''}${str(x?['ref']).isNotEmpty && !widget.withdraw ? ' · حەواڵە ${x!['ref']}' : ''}${widget.withdraw && str(x?['account']).isNotEmpty ? ' · $method ${x!['account']}' : ''}', 2),
-      (widget.withdraw ? 'یەکسا پارەکە دەنێرێت' : 'یەکسا دەیپشکنێت', st == 'pending' ? 'ئاسایی لە ماوەیەکی کورتدا' : '', ok || bad ? 2 : 1),
+      ('داواکاری نێردرا', [when, detail].where((s) => s.isNotEmpty).join('\n'), 2),
+      (widget.withdraw ? 'یەکسا پارەکە دەنێرێت' : 'یەکسا دەیپشکنێت', st == 'pending' ? 'ئاسایی لە ماوەیەکی کورتدا' : '', reviewed ? 2 : (st == 'pending' ? 1 : 0)),
       (bad ? sub : (widget.withdraw ? 'نێردرا بۆ هەژمارەکەت' : 'زیادکرا بۆ جزدان'), '', ok || bad ? 2 : 0),
     ];
     Widget dot(int s, bool last) {
@@ -1432,7 +1441,7 @@ class _RequestStatusScreenState extends State<RequestStatusScreen> {
                 child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   Column(children: [
                     dot(steps[i].$3, i == steps.length - 1),
-                    if (i < steps.length - 1) Expanded(child: Container(width: 2, margin: const EdgeInsets.symmetric(vertical: 2), color: steps[i + 1].$3 > 0 ? t.act : t.silverLine)),
+                    if (i < steps.length - 1) Expanded(child: Container(width: 2, margin: const EdgeInsets.symmetric(vertical: 2), color: steps[i].$3 > 0 && steps[i + 1].$3 > 0 ? t.act : t.silverLine)),
                   ]),
                   const SizedBox(width: 12),
                   Expanded(
