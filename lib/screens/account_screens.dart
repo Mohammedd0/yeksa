@@ -438,8 +438,12 @@ class SupportScreen extends StatelessWidget {
           Expanded(child: Text('سکاڵاکان', style: Ts.h3(context))),
           YkLink('نوێ', pill: true, onTap: () => _newTicket(context)),
         ]),
+        // وێنەی پەڕەی بەتاڵ لە ژێر «سکاڵاکان» (Padding: تا YkScreen نەیباتە ناوەڕاستی شاشە)
         if (tickets.isEmpty)
-          Text('هیچ سکاڵایەک نییە', style: Ts.muted(context, size: 14))
+          const Padding(
+            padding: EdgeInsets.only(top: 28),
+            child: YkEmpty(icon: 'tickets', title: 'هیچ سکاڵایەکی نێردراو نییە', text: 'هەر سکاڵایەک بنێریت لێرە دەردەکەوێت'),
+          )
         else
           YkList(children: [
             for (final tk in tickets)

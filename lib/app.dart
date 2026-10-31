@@ -55,7 +55,7 @@ class YeksaApp extends StatelessWidget {
             // قەبارەی نووسین لە ڕێکخستنەکانی ئەپەوە (لەگەڵ ڕێکخستنی مۆبایل)
             // لە وێبی ئایفۆن (شاشەی سەرەکی) بۆشایی هێڵی خوارەوە زیاد دەکرێت، وەک env(safe-area-inset-bottom)
             data: _withWebSafe(mq).copyWith(textScaler: TextScaler.linear(mq.textScaler.scale(1) * st.scale)),
-            child: child!,
+            child: _HomeEdgeGuard(child: child!),
           ),
         );
       },
@@ -114,4 +114,31 @@ class YkScrollBehavior extends MaterialScrollBehavior {
   // لەرینەوەی ئایفۆن جێگەی بازنەی شینی ئەندرۆید دەگرێتەوە
   @override
   Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) => child;
+}
+
+/// وێبی ئایفۆن (شاشەی سەرەکی): کاتێک پەنجە لە خوارترین بەشی شاشە بۆ سەرەوە ڕادەکێشرێت بۆ
+/// دەرچوون لە ئەپ، Flutter وەک سکرۆڵی پەڕە وەریدەگرێت. ئەم ناوچە باریکە (لە ژێر شریتی
+/// خوارەوە) ڕاکێشانی ستوونی دەخوات، بۆیە پەڕەکە ناجووڵێت. لە ئەپی ڕاستەقینە iOS خۆی دەیکات
+class _HomeEdgeGuard extends StatelessWidget {
+  const _HomeEdgeGuard({required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) {
+    if (!kIsWeb || _webSafe <= 0) return child;
+    return Stack(children: [
+      child,
+      Positioned(
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: 18,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onVerticalDragStart: (_) {},
+          onVerticalDragUpdate: (_) {},
+          onVerticalDragEnd: (_) {},
+        ),
+      ),
+    ]);
+  }
 }

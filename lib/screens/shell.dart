@@ -7,7 +7,10 @@ import 'package:provider/provider.dart';
 import '../core/auth.dart';
 import '../core/billing.dart';
 import '../core/cloud.dart';
+import '../core/format.dart';
 import '../core/request_actions.dart';
+import '../core/settings.dart';
+import '../core/web_notify_stub.dart' if (dart.library.js_interop) '../core/web_notify_web.dart';
 import '../ui/bottom_nav.dart';
 import '../ui/widgets.dart';
 import 'home_screen.dart';
@@ -29,6 +32,29 @@ class _ShellState extends State<Shell> with SingleTickerProviderStateMixin {
   int get _tab => ShellTabs.index.value;
 
   Timer? _tick;
+
+  // ئاگادارکردنەوەی مۆبایل: کاتێک ئەپەکە لە پشتەوەیە و ئاگادارکردنەوەیەکی نوێ دێت (watchNotices ـی وێب)
+  static const _watchKinds = {'offer', 'chat', 'ride', 'drop', 'driver', 'swap'};
+  Set<String>? _seen;
+  Cloud? _cloudRef;
+
+  void _watchNotices() {
+    final cloud = _cloudRef;
+    if (cloud == null || !cloud.ready || cloud.me == null) return;
+    final items = cloud.list('pnotices').where((n) => n['owner'] == cloud.me && _watchKinds.contains(n['kind'])).toList();
+    final ids = items.map((n) => '${n['id']}').toSet();
+    if (_seen == null) {
+      _seen = ids;
+      return;
+    }
+    final fresh = items.where((n) => !_seen!.contains('${n['id']}')).toList();
+    _seen!.addAll(ids);
+    if (fresh.isEmpty || !appHidden()) return;
+    if (context.read<LocalSettings>().notify['ride'] == false) return;
+    for (final n in fresh) {
+      showSystemNotice('${n['id']}', Fmt.n('${n['title'] ?? ''}'), Fmt.n('${n['body'] ?? ''}'));
+    }
+  }
 
   // nav ی بچووکبووەوە لە کاتی هاتنە خوارەوە (navMini ی وێب)
   bool _mini = false;
@@ -68,6 +94,7 @@ class _ShellState extends State<Shell> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     _tick?.cancel();
+    _cloudRef?.removeListener(_watchNotices);
     _enter.dispose();
     ShellTabs.index.removeListener(_onTab);
     super.dispose();
@@ -87,6 +114,9 @@ class _ShellState extends State<Shell> with SingleTickerProviderStateMixin {
       if (!mounted) return;
       // گەشتەکانی ئەمڕۆ (چوون و هاتنەوە) بۆ هەموو بەشدارییەکان، هەر ١٠ خولەک جارێک دەپشکنرێت
       final cloud = context.read<Cloud>();
+      _cloudRef = cloud;
+      cloud.addListener(_watchNotices);
+      _watchNotices();
       cloud.fixBilling();
       cloud.genTodayTrips();
       _tick = Timer.periodic(const Duration(minutes: 10), (_) => cloud.genTodayTrips());

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../core/auth.dart';
 import '../core/settings.dart';
+import '../core/web_notify_stub.dart' if (dart.library.js_interop) '../core/web_notify_web.dart';
 import '../ui/form_parts.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
@@ -48,17 +49,7 @@ class SettingsScreen extends StatelessWidget {
                 YkIcon('lock', size: 18, color: t.muted),
               ]),
               const YkHr(),
-              Row(children: [
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('ئاگادارکردنەوە لەسەر مۆبایل', style: Ts.body(context)),
-                    Text('بۆ ئاگادارکردنەوە کاتێک لە ئەپەکە نیت', style: Ts.muted(context, size: 12.8)),
-                  ]),
-                ),
-                const SizedBox(width: 10),
-                // ئاگادارکردنەوەی دەرەوەی ئەپ (push) پێویستی بە Firebase Cloud Messaging ـە، هێشتا دانەنراوە
-                YkButton('چالاککردن', small: true, kind: BtnKind.secondary, onPressed: () => toast(context, 'ئێستا تەنها ئاگادارکردنەوەی ناو ئەپ کار دەکات')),
-              ]),
+              const _NotifyRow(),
               const YkHr(),
               for (final (k, label) in const [('ride', 'ئاگادارکردنەوەی گەشت'), ('pay', 'ئاگادارکردنەوەی پارەدان'), ('news', 'هەواڵ و ئۆفەر')])
                 Padding(
@@ -110,4 +101,48 @@ void changePasswordSheet(BuildContext context) {
       ]);
     });
   });
+}
+
+/// هەمان دەقەکانی notifyText ـی وێب
+String _notifyText(String st) {
+  if (st == 'granted') return 'کاتێک ئەپەکە داخراوە ئاگادار دەکرێیتەوە';
+  if (st == 'denied') return 'ڕێگەپێدان ڕەتکرایەوە. لە ڕێکخستنی مۆبایل بیگۆڕە';
+  if (st == 'insecure' || st == 'unsupported') return 'ئەم مۆبایلە ئێستا پشتگیری ناکات. ئاگادارکردنەوەی ناو ئەپ کار دەکات';
+  return 'بۆ ئاگادارکردنەوە کاتێک لە ئەپەکە نیت';
+}
+
+/// ئاگادارکردنەوە لەسەر مۆبایل: دەق و دوگمەی «چالاککردن» (askNotify ـی وێب).
+/// لە ئایفۆن تەنها کاتێک ئەپەکە خراوەتە سەر شاشەی سەرەکی کار دەکات
+class _NotifyRow extends StatefulWidget {
+  const _NotifyRow();
+  @override
+  State<_NotifyRow> createState() => _NotifyRowState();
+}
+
+class _NotifyRowState extends State<_NotifyRow> {
+  @override
+  Widget build(BuildContext context) {
+    final st = notifyStatus();
+    return Row(children: [
+      Expanded(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('ئاگادارکردنەوە لەسەر مۆبایل', style: Ts.body(context)),
+          Text(_notifyText(st), style: Ts.muted(context, size: 12.8)),
+        ]),
+      ),
+      const SizedBox(width: 10),
+      YkButton(st == 'granted' ? 'چالاکە' : 'چالاککردن', small: true, kind: BtnKind.secondary, onPressed: () async {
+        final r = await askNotify();
+        if (!context.mounted) return;
+        const msg = {
+          'granted': 'ئاگادارکردنەوە چالاک کرا',
+          'denied': 'ڕێگەپێدان ڕەتکرایەوە',
+          'insecure': 'ئێستا تەنها ئاگادارکردنەوەی ناو ئەپ کار دەکات',
+          'unsupported': 'ئەم وێبگەڕە پشتگیری ناکات. ئەپەکە بخە سەر شاشەی سەرەکی',
+        };
+        if (msg[r] != null) toast(context, msg[r]!);
+        setState(() {});
+      }),
+    ]);
+  }
 }

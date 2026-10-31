@@ -2,6 +2,8 @@
 // ئەم فایلە خۆکار لە core.js دروست کراوە، دەستکاری مەکە.
 
 const Map<String, String> kIconPaths = {
+  'backspace': r'''<path d="M20 6H9l-6 6 6 6h11z"/><path d="m13 10 4 4M17 10l-4 4"/>''',
+  'external': r'''<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>''',
   'home': r'''<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>''',
   'calendar': r'''<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>''',
   'users': r'''<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c2 .7 3.2 2.6 3.6 5.2"/>''',

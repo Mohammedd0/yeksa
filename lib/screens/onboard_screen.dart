@@ -1,8 +1,10 @@
 // ناساندنی سەرەتا (سێ پەڕە)
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import '../core/settings.dart';
+import '../ui/empty_art.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 import '../ui/yk_icon.dart';
@@ -14,15 +16,15 @@ class _Onb {
 }
 
 const _pages = [
-  _Onb('تەکسی مانگانە بۆ هەموو خێزان', 'یەک جار بەشداری بکە. هەموو ڕۆژێک شۆفێرێکی ناسراو لەکاتی خۆیدا دێت.', 'calendar', [
+  _Onb('تەکسی مانگانە بۆ هەموو خێزان', 'یەک جار بەشداری بکە. هەموو ڕۆژێک شۆفێرێکی ناسراو لەکاتی خۆیدا دێت.', 'onbCal', [
     ['car', '٧:٣٠ بەیانی'],
     ['check', 'یەکشەممە تا پێنجشەممە'],
   ]),
-  _Onb('بە لایڤ ببینە لە کوێیە', 'کاتێک منداڵەکەت سوار دەبێت و دەگات ئاگادار دەکرێیتەوە، و ڕێگاکە لەسەر نەخشە دەبینیت.', 'route', [
+  _Onb('بە لایڤ ببینە لە کوێیە', 'کاتێک منداڵەکەت سوار دەبێت و دەگات ئاگادار دەکرێیتەوە، و ڕێگاکە لەسەر نەخشە دەبینیت.', 'onbLive', [
     ['bell', 'ئارام سوار بوو'],
     ['clock', '٥ خولەکی ماوە'],
   ]),
-  _Onb('شۆفێری پشکنراو، پیاو و ئافرەت', 'هەموو شۆفێرەکان پشکنینی پێشینەیان بۆ کراوە. بۆ ئافرەتان و منداڵان شۆفێری ئافرەت هەیە.', 'shield', [
+  _Onb('شۆفێری پشکنراو، پیاو و ئافرەت', 'هەموو شۆفێرەکان پشکنینی پێشینەیان بۆ کراوە. بۆ ئافرەتان و منداڵان شۆفێری ئافرەت هەیە.', 'onbSafe', [
     ['woman', 'شۆفێری ئافرەت'],
     ['star', '٤.٩ هەڵسەنگاندن'],
   ]),
@@ -82,11 +84,12 @@ class _OnboardScreenState extends State<OnboardScreen> {
   Widget _dots(BuildContext context) {
     final t = context.yk;
     return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   for (var k = 0; k < _pages.length; k++)
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 250),
-                      margin: const EdgeInsetsDirectional.only(end: 5),
+                      margin: const EdgeInsets.symmetric(horizontal: 2.5),
                       width: k == _i ? 20 : 6,
                       height: 6,
                       decoration: BoxDecoration(color: k == _i ? t.act : t.line, borderRadius: BorderRadius.circular(3)),
@@ -101,19 +104,15 @@ class _OnboardScreenState extends State<OnboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 30),
+          const SizedBox(height: 72),
+          // وێنەی خۆڵەمێشی (هەمان شێوازی پەڕە بەتاڵەکان)
           Center(
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: t.card,
-                border: Border.all(color: t.line),
-                boxShadow: const [BoxShadow(color: Color(0x1210203F), blurRadius: 30, offset: Offset(0, 10))],
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 240),
+              child: AspectRatio(
+                aspectRatio: 220 / 180,
+                child: SvgPicture.string('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 180">${YkEmpty.art(kEmptyBg + (kEmptyArt[o.icon] ?? ''), t.dark)}</svg>'),
               ),
-              alignment: Alignment.center,
-              child: YkIcon(o.icon, size: 64, color: t.text, stroke: 1.4),
             ),
           ),
           const SizedBox(height: 22),
@@ -135,9 +134,9 @@ class _OnboardScreenState extends State<OnboardScreen> {
             ],
           ),
           const SizedBox(height: 28),
-          Text(o.title, style: Ts.h1(context)),
+          Text(o.title, textAlign: TextAlign.center, style: Ts.h1(context)),
           const SizedBox(height: 6),
-          Text(o.sub, style: Ts.muted(context)),
+          Text(o.sub, textAlign: TextAlign.center, style: Ts.muted(context).copyWith(height: 1.8)),
           const SizedBox(height: 14),
           _dots(context),
         ],

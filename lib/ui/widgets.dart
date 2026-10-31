@@ -1155,6 +1155,8 @@ class YkEmpty extends StatelessWidget {
   final String? text;
   final Widget? button;
 
+  static String art(String body, bool dark) => _art(body, dark);
+
   static String _art(String body, bool dark) {
     final p = dark ? '#232833' : '#ECEEF2';
     final c1 = dark ? '#2A303B' : '#F2F4F7';

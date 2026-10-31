@@ -591,7 +591,8 @@ extension YkBilling on Cloud {
   Future<void> cancelTopup(String id) => update('topups/$id', {'status': 'cancelled'});
 
   /// داوای ڕاکێشانی پارە. هەڵە یان null
-  Future<String?> requestWithdraw(int amount, String method, String account) async {
+  /// [onId] ناسنامەی داواکارییەکە دوای ناردن (بۆ پەڕەی دۆخ)
+  Future<String?> requestWithdraw(int amount, String method, String account, {void Function(String id)? onId}) async {
     final min = ((config['withdrawMin'] as num?) ?? 0).toInt();
     final m = payMethod(method);
     if (amount <= 0) return 'بڕەکە بنووسە';
@@ -627,6 +628,7 @@ extension YkBilling on Cloud {
       'body': '${Fmt.money(amount)}، ${payName(method)}${acc.isNotEmpty && m['account'] != false ? ' $acc' : ''}',
       'link': 'wallet',
     });
+    onId?.call(id);
     return null;
   }
 

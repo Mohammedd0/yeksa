@@ -1,4 +1,6 @@
 // بەشدارییەکان: داواکارییە کراوەکان و کارتی هەر بەشدارییەک (شێوازی D)، و لیستی داواکارییەکانم
+import 'dart:collection'; // firstOrNull
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +8,7 @@ import '../core/billing.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
 import '../core/sel.dart';
+import '../ui/form_parts.dart';
 import '../ui/parts.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
@@ -13,15 +16,31 @@ import '../ui/yk_icon.dart';
 import 'nav.dart';
 import 'sub_actions.dart';
 
-class SubsScreen extends StatelessWidget {
+class SubsScreen extends StatefulWidget {
   const SubsScreen({super.key});
+  @override
+  State<SubsScreen> createState() => _SubsScreenState();
+}
+
+class _SubsScreenState extends State<SubsScreen> {
+  /// فلتەر بە پێی سەرنشین ('' = هەمووی)
+  String _who = '';
 
   @override
   Widget build(BuildContext context) {
     final t = context.yk;
     final cloud = context.watch<Cloud>();
     final open = cloud.openRequests;
-    final subs = cloud.mySubs;
+    final all = cloud.mySubs;
+    // سەرنشینەکان و ژمارەی بەشدارییەکانیان
+    final riders = <String, int>{};
+    for (final x in all) {
+      for (final id in asList(x['memberIds'])) {
+        riders[str(id)] = (riders[str(id)] ?? 0) + 1;
+      }
+    }
+    if (_who.isNotEmpty && !riders.containsKey(_who)) _who = '';
+    final subs = _who.isEmpty ? all : all.where((x) => asList(x['memberIds']).map(str).contains(_who)).toList();
     return YkScreen(
       withNav: true,
       title: 'بەشدارییەکان',
@@ -40,19 +59,18 @@ class SubsScreen extends StatelessWidget {
         ],
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text('بەشدارییە چالاکەکان', style: Ts.h3(context).copyWith(fontSize: 16)),
-          if (subs.isNotEmpty) CountPill(Fmt.n(subs.length), section: true),
+          if (all.isNotEmpty) CountPill(Fmt.n(all.length), section: true),
         ]),
-        if (subs.isEmpty)
+        // فلتەر بە پێی سەرنشین، تەنها ئەگەر زیاتر لە یەک سەرنشین هەبێت
+        if (riders.length > 1) _riderFilter(context, cloud, all.length, riders, _who, (v) => setState(() => _who = v)),
+        if (all.isEmpty)
           YkEmpty(
             icon: 'calendar',
             title: 'هێشتا هیچ بەشدارییەکت نییە',
             text: 'شوێن و کات دیاری بکە و شۆفێرەکان نرخت بۆ دەنێرن',
             button: YkButton('یەکەم بەشداری', onPressed: () => openLink(context, 'new')),
           ),
-        for (var i = 0; i < subs.length; i++) ...[
-          if (subs.length > 1) _SubSection(index: i, total: subs.length, names: Fmt.names(cloud.names(asList(subs[i]['memberIds'])))),
-          SubCard(subs[i]),
-        ],
+        for (final x in subs) SubTile(x),
         // گەڕان بەناو شۆفێرەکاندا (.sfind)
         GestureDetector(
           onTap: () => openLink(context, 'drivers'),
@@ -90,33 +108,112 @@ class SubsScreen extends StatelessWidget {
   }
 }
 
-class _SubSection extends StatelessWidget {
-  const _SubSection({required this.index, required this.total, required this.names});
-  final int index, total;
-  final String names;
+/// فلتەری سەرنشین: [pick] کاتێک یەکێک هەڵدەبژێردرێت
+Widget _riderFilter(BuildContext context, Cloud cloud, int total, Map<String, int> riders, String who, ValueChanged<String> pick) {
+    final opts = <(String, String)>[
+      ('', Fmt.n('هەمووی ($total)')),
+      for (final e in riders.entries) (e.key, Fmt.n('${cloud.names([e.key]).firstOrNull ?? ''} (${e.value})')),
+    ];
+    // تا ٣ هەڵبژاردن: کۆنترۆڵی بەشبەش؛ زیاتر: ڕیزێک چیپ کە بە لادا سکرۆڵ دەبێت
+    if (opts.length <= 3) {
+      return YkSeg<String>(options: opts, value: who, onChanged: pick);
+    }
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(children: [
+        for (final o in opts) ...[
+          YkChip(o.$2, on: who == o.$1, onTap: () => pick(o.$1)),
+          const SizedBox(width: 6),
+        ],
+      ]),
+    );
+}
+
+/// کارتی کورتی بەشداری: وێنەی شۆفێر، سەرنشین و دۆخ، ڕێگا، کاتەکان، ڕۆژەکان، شۆفێر و نرخ.
+/// بە کلیک کردن پەڕەی بەشدارییەکە دەکرێتەوە
+class SubTile extends StatelessWidget {
+  const SubTile(this.sub, {super.key});
+  final Json sub;
+
   @override
   Widget build(BuildContext context) {
     final t = context.yk;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 6, 4, 0),
-      child: LayoutBuilder(builder: (context, box) => Row(children: [
-        Container(
-          width: 26,
-          height: 26,
-          decoration: BoxDecoration(color: t.act, shape: BoxShape.circle),
-          alignment: Alignment.center,
-          child: Text(Fmt.n(index + 1), style: TextStyle(color: t.actText, fontSize: 12, fontWeight: FontWeight.w700, height: 1)),
-        ),
-        const SizedBox(width: 8),
-        ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: box.maxWidth * .45),
-          child: Text(names, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w700, color: t.text, fontSize: 14)),
-        ),
-        const SizedBox(width: 8),
-        Expanded(child: Container(height: 1, color: t.silverLine)),
-        const SizedBox(width: 8),
-        Text(Fmt.n('بەشداری ${index + 1} لە $total'), style: Ts.muted(context, size: 12.8)),
-      ])),
+    final cloud = context.watch<Cloud>();
+    final d = cloud.driver(sub['driverId']) ?? const <String, dynamic>{};
+    final paused = sub['status'] == 'paused';
+    final due = !paused && cloud.walletOn && !cloud.subPaid(sub);
+    String place(Object? x) => str(x).split('، ').first;
+    Widget tag(String text, {bool off = false}) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+          decoration: BoxDecoration(color: t.silver, borderRadius: BorderRadius.circular(10)),
+          child: Text(text, style: TextStyle(fontSize: 12.5, fontWeight: off ? FontWeight.w600 : FontWeight.w700, color: off ? t.muted : t.text)),
+        );
+    final per = hasPerDay(sub);
+    final go = str(sub['go']), back = str(sub['back']);
+    return Opacity(
+      opacity: paused ? .75 : 1,
+      child: YkCard(
+        onTap: () => push(context, SubDetailScreen(id: str(sub['id']))),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            DriverAvatar(d, size: 48, radius: 16),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  Expanded(child: Text(Fmt.names(cloud.names(asList(sub['memberIds']))), maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.bold(context).copyWith(fontSize: 16))),
+                  const SizedBox(width: 6),
+                  if (due)
+                    GestureDetector(onTap: () => openLink(context, 'paymonth'), child: const _StateBadge(paused: false, due: true))
+                  else
+                    _StateBadge(paused: paused),
+                ]),
+                const SizedBox(height: 2),
+                Text('${place(sub['from'])} ← ${place(sub['to'])}', maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.muted(context, size: 13.4)),
+              ]),
+            ),
+            const SizedBox(width: 6),
+            YkIcon('forward', size: 18, color: t.muted),
+          ]),
+          const SizedBox(height: 10),
+          Row(children: [
+            if (per)
+              tag('کاتی جیاواز بۆ هەر ڕۆژێک')
+            else ...[
+              go.isEmpty ? tag('بێ چوون', off: true) : tag('چوون ${Fmt.clock(go)}'),
+              const SizedBox(width: 6),
+              back.isEmpty ? tag('بێ هاتنەوە', off: true) : tag('هاتنەوە ${Fmt.clock(back)}'),
+            ],
+            const SizedBox(width: 8),
+            Expanded(child: Text(fmtDays(asList(sub['days'])), textAlign: TextAlign.end, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.muted(context, size: 12.5))),
+          ]),
+          const SizedBox(height: 8),
+          Row(children: [
+            Expanded(child: Text(str(d['name']), maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.muted(context, size: 13.4))),
+            Text(Fmt.money((sub['price'] as num?) ?? 0), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: t.text)),
+          ]),
+        ]),
+      ),
+    );
+  }
+}
+
+/// پەڕەی بەشدارییەک: کارتە تەواوەکە لەگەڵ هەموو کردارەکان (ڕاگرتن، گۆڕانکاری، نامە)
+class SubDetailScreen extends StatelessWidget {
+  const SubDetailScreen({super.key, required this.id});
+  final String id;
+  @override
+  Widget build(BuildContext context) {
+    final cloud = context.watch<Cloud>();
+    final sub = cloud.mySubs.where((x) => str(x['id']) == id).firstOrNull;
+    return Scaffold(
+      body: YkScreen(children: [
+        YkHeader(sub == null ? 'بەشداری' : 'بەشداری ${Fmt.names(cloud.names(asList(sub['memberIds'])))}'),
+        if (sub == null)
+          const YkEmpty(icon: 'calendar', title: 'ئەم بەشدارییە نەماوە', text: 'لەوانەیە هەڵوەشێنرابێتەوە')
+        else
+          SubCard(sub),
+      ]),
     );
   }
 }
