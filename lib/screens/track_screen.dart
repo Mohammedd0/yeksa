@@ -69,7 +69,29 @@ class TrackScreen extends StatelessWidget {
           if (tr['runId'] != null) const YkBadge('تەکسی هاوبەش', tone: BadgeTone.info),
         ]),
         TripMap(trip: tr, height: 330, live: active),
-        if (active)
+        // شۆفێر گەیشتووەتە وێستگەکەت: لە جیاتی کاتی گەیشتن، «لە بەردەم دەرگایە»
+        if (active && cloud.arrivedFor(tr) != null)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(Yk.rLg)),
+            child: Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('شۆفێر گەیشتووە', style: TextStyle(fontSize: 14, color: Colors.white70)),
+                  const Text('لە بەردەم دەرگا چاوەڕێت دەکات', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
+                  Text(Fmt.n('لە ${Fmt.clock(Fmt.hhmm(cloud.arrivedFor(tr)!))}ەوە'), style: const TextStyle(fontSize: 13, color: Colors.white70)),
+                ]),
+              ),
+              Container(
+                width: 46,
+                height: 46,
+                decoration: const BoxDecoration(shape: BoxShape.circle, color: kGreen),
+                alignment: Alignment.center,
+                child: const YkIcon('check', size: 24, color: Colors.white, stroke: 3),
+              ),
+            ]),
+          )
+        else if (active)
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(Yk.rLg)),

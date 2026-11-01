@@ -70,7 +70,18 @@ class LocalSettings extends ChangeNotifier {
     Fmt.digits = v;
     _p?.setString(_kDigits, v);
     notifyListeners();
+    // Fmt.n ـی هەموو پەڕەکان پەیوەست نییە بە ڕێکخستنەکانەوە، بۆیە هەموو پەڕە کراوەکان
+    // (لەوانە بەشەکانی تری شریتی خوارەوە) دووبارە دروست دەکرێنەوە تا ژمارەکان دەستبەجێ بگۆڕێن
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      void mark(Element e) {
+        e.markNeedsBuild();
+        e.visitChildren(mark);
+      }
+
+      WidgetsBinding.instance.rootElement?.visitChildren(mark);
+    });
   }
+
 
   void toggleNotify(String k) {
     notify[k] = !(notify[k] ?? true);

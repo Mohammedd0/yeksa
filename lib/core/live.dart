@@ -132,6 +132,16 @@ extension YkLive on Cloud {
     return pick >= 0 && stops[pick]['done'] != true;
   }
 
+  /// شۆفێر گەیشتووەتە وێستگەی سوارکردنی ئەم سەرنشینە و چاوەڕێی دەکات (کاتی گەیشتن)، ئەگەرنا null
+  int? arrivedFor(Json t) {
+    if (t['status'] != 'active') return null;
+    final stops = stopsOf(t);
+    final pick = stops.indexWhere((st) => st['kind'] == 'pickup' && ownStop(t, st));
+    if (pick < 0 || stops[pick]['done'] == true) return null;
+    final at = stops[pick]['arrivedAt'];
+    return at is num ? at.toInt() : null;
+  }
+
   /// کاتی گەیشتن «07:42»
   String eta(Json t) => Fmt.hhmm(nowMs() + minutesLeft(t) * 60000);
 

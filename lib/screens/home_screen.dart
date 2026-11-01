@@ -297,11 +297,14 @@ class _ActiveTripCard extends StatelessWidget {
                           TextSpan(text: str(stops[ni]['place']), style: const TextStyle(fontWeight: FontWeight.w700)),
                         ]), style: Ts.sm(context))
                       : Text('شۆفێر لای هاوڕێکانتە', style: Ts.sm(context)),
-                Text.rich(TextSpan(children: [
-                  TextSpan(text: '${cloud.waiting(trip) ? 'دەگاتە لات' : 'گەیشتن'}: '),
-                  TextSpan(text: Fmt.clock(cloud.eta(trip)), style: TextStyle(fontWeight: FontWeight.w700, color: t.brand)),
-                  TextSpan(text: Fmt.n('، ${cloud.minutesLeft(trip)} خولەک')),
-                ]), style: Ts.muted(context, size: 14)),
+                if (cloud.arrivedFor(trip) != null)
+                  Text('شۆفێر گەیشتووە، لە بەردەم دەرگا چاوەڕێت دەکات', style: Ts.sm(context).copyWith(fontWeight: FontWeight.w700, color: t.okText))
+                else
+                  Text.rich(TextSpan(children: [
+                    TextSpan(text: '${cloud.waiting(trip) ? 'دەگاتە لات' : 'گەیشتن'}: '),
+                    TextSpan(text: Fmt.clock(cloud.eta(trip)), style: TextStyle(fontWeight: FontWeight.w700, color: t.brand)),
+                    TextSpan(text: Fmt.n('، ${cloud.minutesLeft(trip)} خولەک')),
+                  ]), style: Ts.muted(context, size: 14)),
               ]);
             }),
           ),
