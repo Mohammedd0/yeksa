@@ -630,6 +630,9 @@ class _PayMonthScreenState extends State<PayMonthScreen> {
               _row(context, 'باڵانس دوای پارەدان', _b(Fmt.money(bal - inv.total))),
               const SizedBox(height: 10),
               YkButton('پارەدان لە جزدان', icon: 'check', block: true, large: true, busy: _busy, onPressed: () async {
+                // پرسیاری دووپاتکردنەوە پێش بڕینی پارە لە جزدان
+                final ok = await askConfirm(context, 'پارەی ${str(cloud.billing['month'])} (${Fmt.money(inv.total)}) لە جزدانەکەت دەدرێت؟', yes: 'پارەدان', danger: false);
+                if (!ok || !context.mounted) return;
                 setState(() => _busy = true);
                 final err = await cloud.payMonth();
                 if (!context.mounted) return;
