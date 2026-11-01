@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'actions.dart';
+import 'billing.dart';
 import 'cloud.dart';
 import 'format.dart';
 import 'sel.dart';
@@ -123,7 +124,12 @@ extension YkTrips on Cloud {
     await update('trips/$tripId', {'status': 'noshow'});
     final rid = 'r${shortId()}';
     if (walletOn) {
-      final legValue = s == null ? 0 : (((s['price'] as num?) ?? 0) / math.max(1, legsPerWeek(s) * 4.3)).round();
+      // بەهای گەشتێک بۆ شۆفێر (legValue ـی core.js): لە پارەی دراوی ئەو مانگە، دوای کۆمیسیۆن، بە سەر ژمارەی گەشتەکاندا
+      final rec = s == null ? null : payRec(s, monthOf(day));
+      final recLegs = ((rec?['legs'] as num?) ?? 0).toInt();
+      final legValue = rec == null || rec['legacy'] == true || recLegs <= 0
+          ? 0
+          : ((((rec['amt'] as num?) ?? 0) - ((rec['fee'] as num?) ?? 0)) / recLegs).round();
       await set('reports/$rid', {
         'id': rid, 'type': 'noshow', 'wallet': true, 'tripId': tripId, 'subId': t['subId'], 'day': day, 'dir': t['dir'],
         'driverId': did, 'by': name, 'phone': phone, 'note': note, 'penalty': penalty,
