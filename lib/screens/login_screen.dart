@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/auth.dart';
+import '../core/invite_link.dart';
 import '../ui/logo.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
@@ -19,6 +20,18 @@ class _LoginScreenState extends State<LoginScreen> {
   final _pass = TextEditingController();
   String? _err;
   bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // لینکی هاوبەش (#/register?ref=CODE): ڕاستەوخۆ پەڕەی تۆمارکردن بە کۆدەکەوە
+    final ref = takePendingRef();
+    if (ref != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.of(context).push(MaterialPageRoute(builder: (_) => RegisterScreen(refCode: ref)));
+      });
+    }
+  }
 
   @override
   void dispose() {

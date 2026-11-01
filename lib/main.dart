@@ -9,6 +9,7 @@ import 'app.dart';
 import 'core/auth.dart';
 import 'core/cloud.dart';
 import 'core/images.dart';
+import 'core/invite_link.dart';
 import 'core/maps_status.dart';
 import 'core/settings.dart';
 // ڕێکخستنی Firebase (ئێستا وێب؛ بۆ مۆبایل «flutterfire configure» نوێی دەکاتەوە)
@@ -16,6 +17,7 @@ import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  captureInviteRef();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // کۆپی ناوخۆ: ئەپ بێ ئینتەرنێتیش دەکرێتەوە و دوایین زانیارییەکان پیشان دەدات
   FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true, cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
