@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'actions.dart';
 import 'cloud.dart';
 import 'format.dart';
+import 'i18n.dart';
 import 'pricing.dart';
 import 'request_actions.dart';
 import 'sel.dart';
@@ -16,7 +17,7 @@ import 'trips.dart';
 const kPayMethodsDefault = [
   {'id': 'fib', 'name': 'FIB', 'on': true, 'account': true, 'topup': true, 'yeksaAccount': '', 'holder': ''},
   {'id': 'fastpay', 'name': 'FastPay', 'on': true, 'account': true, 'topup': true, 'yeksaAccount': '', 'holder': ''},
-  {'id': 'cash', 'name': 'کاش', 'on': true, 'account': false, 'topup': true},
+  {'id': 'cash', 'name': 'کاش', 'on': true, 'account': false, 'topup': true}, // i18n-keep
 ];
 
 String safeId(Object? x) => '$x'.replaceAll(RegExp(r'[^\w-]'), '_');
@@ -93,13 +94,13 @@ int pausedDays(Json sub) {
     if (st >= mb.end) return null;
     if (st > mb.start) {
       factor = (mb.days - p[2] + 1) / mb.days;
-      notes.add(Fmt.n('لە ${p[2]}ی مانگەوە'));
+      notes.add(Fmt.n(tr('لە {0}ی مانگەوە', [p[2]])));
     }
   }
   final pd = pausedDays(x);
   if (pd > 0) {
     factor = math.max(0.0, factor - pd / mb.days);
-    notes.add(Fmt.n('$pd ڕۆژ ڕاگیراو'));
+    notes.add(Fmt.n(tr('{0} ڕۆژ ڕاگیراو', [pd])));
   }
   return (factor: factor, notes: notes, amount: (((x['price'] as num?) ?? 0) * factor / 1000).round() * 1000);
 }
@@ -229,8 +230,8 @@ extension YkBilling on Cloud {
       final d = driver(x['driverId']) ?? const {};
       out.add(InvLine(
         subId: str(x['id']),
-        label: '${x['riderNames']}، ${str(d['name'])}',
-        note: legs < full ? Fmt.n('$legs گەشتی ماوەی ئەم مانگە') : '',
+        label: tr('{0}، {1}', [x['riderNames'], str(d['name'])]),
+        note: legs < full ? Fmt.n(tr('{0} گەشتی ماوەی ئەم مانگە', [legs])) : '',
         full: (x['price'] as num?) ?? 0,
         amount: amount,
         legs: legs,
@@ -251,7 +252,7 @@ extension YkBilling on Cloud {
               final sh = monthShare(x);
               if (sh == null) return null;
               final d = driver(x['driverId']) ?? const {};
-              return InvLine(subId: str(x['id']), label: '${x['riderNames']}، ${str(d['name'])}', note: sh.notes.join('، '), full: (x['price'] as num?) ?? 0, amount: sh.amount, factor: sh.factor);
+              return InvLine(subId: str(x['id']), label: tr('{0}، {1}', [x['riderNames'], str(d['name'])]), note: sh.notes.join(tr('، ')), full: (x['price'] as num?) ?? 0, amount: sh.amount, factor: sh.factor);
             })
             .whereType<InvLine>()
             .toList();
@@ -280,14 +281,14 @@ extension YkBilling on Cloud {
         asInv['inviteeUsedAt'] == null &&
         (asInv['month'] == null || str(asInv['month']).compareTo(invMk) <= 0) &&
         lines.any((l) => l.subId == asInv['subId'])) {
-      take(Disc('refIn', asInv['id'] ?? me, 'داشکاندنی بانگهێشتی هاوڕێ، یەکەم مانگ', ((asInv['amount'] as num?) ?? 0).toInt()));
+      take(Disc('refIn', asInv['id'] ?? me, tr('داشکاندنی بانگهێشتی هاوڕێ، یەکەم مانگ'), ((asInv['amount'] as num?) ?? 0).toInt()));
     }
     for (final r in list('referrals').where((r) => r['inviter'] == me && r['status'] == 'subscribed' && r['inviterUsedAt'] == null)) {
-      take(Disc('refOut', r['id'] ?? r['invitee'], 'داشکاندنی بانگهێشت، ${str(r['inviteeName']).isEmpty ? 'هاوڕێ' : r['inviteeName']}', ((r['amount'] as num?) ?? 0).toInt()));
+      take(Disc('refOut', r['id'] ?? r['invitee'], tr('داشکاندنی بانگهێشت، {0}', [str(r['inviteeName']).isEmpty ? tr('هاوڕێ') : r['inviteeName']]), ((r['amount'] as num?) ?? 0).toInt()));
     }
     for (final p in asList(asMap(pax['rewards'])['pending']).map(asMap)) {
       final amount = p['kind'] == 'days' ? (((sub / mb.days) * ((p['amount'] as num?) ?? 0)) / 250).round() * 250 : ((p['amount'] as num?) ?? 0).toInt();
-      take(Disc('reward', p['id'], 'پاداشت، ${p['title']}', amount));
+      take(Disc('reward', p['id'], tr('پاداشت، {0}', [trData(p['title'])]), amount));
     }
     final disc = discounts.fold<int>(0, (n, d) => n + d.amount);
     final adjustments = asList(b['adjustments']).map(asMap).toList();
@@ -326,7 +327,7 @@ extension YkBilling on Cloud {
       final inv = invoice(due: true);
       try {
         await update('pax/$me', {'billing.dueNotice': mk});
-        await addNotice(me!, {'kind': 'pay', 'title': 'پارەی مانگ ئامادە بکە', 'body': '${Fmt.money(inv.total)}، گەشتەکان دوای پارەدان دەست پێدەکەن', 'link': 'wallet'});
+        await addNotice(me!, inKu(() => {'kind': 'pay', 'title': 'پارەی مانگ ئامادە بکە', 'body': '${Fmt.money(inv.total)}، گەشتەکان دوای پارەدان دەست پێدەکەن', 'link': 'wallet'})); // i18n-keep
       } catch (_) {}
     }
   }
@@ -337,8 +338,8 @@ extension YkBilling on Cloud {
   Future<String?> applyPromo(String code) async {
     final c = code.trim().toUpperCase();
     final n = list('news').where((x) => x['hidden'] != true && str(x['code']).isNotEmpty && str(x['code']).toUpperCase() == c).firstOrNull;
-    if (n == null) return 'ئەم کۆدە دروست نییە';
-    if (asMap(billing['promo']).isNotEmpty) return 'کۆدێکی داشکاندن پێشتر بەکارهاتووە';
+    if (n == null) return tr('ئەم کۆدە دروست نییە');
+    if (asMap(billing['promo']).isNotEmpty) return tr('کۆدێکی داشکاندن پێشتر بەکارهاتووە');
     await update('pax/$me', {
       'billing.promo': {'code': c, 'rate': (((n['rate'] as num?) ?? 10)) / 100},
     });
@@ -402,7 +403,7 @@ extension YkBilling on Cloud {
       final rest = adj - inv.credit;
       up['billing.adjustments'] = rest > 0
           ? [
-              {'id': 'adj${shortId()}', 'amount': rest, 'note': 'ماوەی قەرەبوو', 'at': now},
+              {'id': 'adj${shortId()}', 'amount': rest, 'note': 'ماوەی قەرەبوو', 'at': now}, // i18n-keep
             ]
           : [];
     }
@@ -433,21 +434,23 @@ extension YkBilling on Cloud {
 
   /// پارەدانی فاتورە (بێ جزدان). یەکسا دواتر دەیپشکنێت
   Future<int> pay() async {
-    final inv = invoice();
+    // فاتورەکە بە کوردی دروست دەکرێت چونکە لە مێژوودا هەڵدەگیرێت (Firestore)
+    final inv = inKu(() => invoice());
     final pts = await _recordPayment(inv, str(billing['method']).isEmpty ? 'cash' : str(billing['method']));
-    await addNotice(me!, {'kind': 'pay', 'title': 'پارەدان تۆمار کرا', 'body': '${Fmt.money(inv.total)}${pts > 0 ? '، $pts خاڵی پاداشت زیاد کرا' : ''}'});
+    await addNotice(me!, inKu(() => {'kind': 'pay', 'title': 'پارەدان تۆمار کرا', 'body': '${Fmt.money(inv.total)}${pts > 0 ? '، $pts خاڵی پاداشت زیاد کرا' : ''}'})); // i18n-keep
     return pts;
   }
 
   /// پارەدانی مانگ لە جزدان. هەڵە یان null
   /// [mk] مانگێکی تر (پێشوەختە)، [only] تەنها ئەم بەشدارییانە
   Future<String?> payMonth({String? mk, Set<String>? only}) async {
-    final inv = invoice(due: true, mk: mk, only: only);
-    if (inv.lines.isEmpty) return 'هیچ پارەیەکی ئەم مانگە نەماوە';
-    if (balance < inv.total) return 'باڵانسی جزدانەکەت بەس نییە';
+    // فاتورەکە بە کوردی دروست دەکرێت چونکە لە جزدان و مێژوودا هەڵدەگیرێت (Firestore)
+    final inv = inKu(() => invoice(due: true, mk: mk, only: only));
+    if (inv.lines.isEmpty) return tr('هیچ پارەیەکی ئەم مانگە نەماوە');
+    if (balance < inv.total) return tr('باڵانسی جزدانەکەت بەس نییە');
     final cur = Fmt.monthKey();
     mk ??= cur;
-    final monthName = kMonths[int.parse(mk.split('-')[1]) - 1];
+    final monthName = kMonths[int.parse(mk.split('-')[1]) - 1]; // stored (wallet note, history, notice): Kurdish data
     final subIds = inv.lines.map((l) => l.subId).toList()..sort();
     final lines = <Json>[];
     for (final l in inv.lines) {
@@ -457,7 +460,7 @@ extension YkBilling on Cloud {
     }
     final gross = lines.fold<num>(0, (n, l) => n + (l['amt'] as num)).toInt();
     final id = safeId('m_${mk}_${subIds.join('_')}');
-    if (list('wallet').any((e) => e['id'] == id)) return 'پارەی ئەم مانگە پێشتر دراوە';
+    if (list('wallet').any((e) => e['id'] == id)) return tr('پارەی ئەم مانگە پێشتر دراوە');
     final uid = me!;
     final bool wrote;
     try {
@@ -471,26 +474,26 @@ extension YkBilling on Cloud {
         'discount': gross - inv.total,
         'month': mk,
         'lines': lines,
-        'note': 'پارەی مانگ، $monthName',
-        'title': inv.lines.map((l) => l.label).join('؛ '),
+        'note': 'پارەی مانگ، $monthName', // i18n-keep
+        'title': inv.lines.map((l) => l.label).join('؛ '), // i18n-keep
         'at': nowMs(),
         'by': 'passenger',
         '_r': Cloud.readers([uid, ...lines.map((l) => l['driverId'])]),
         '_t': newStamp(),
       });
     } catch (_) {
-      return 'نەکرا، ئینتەرنێت بپشکنە و دووبارە هەوڵ بدەرەوە';
+      return tr('نەکرا، ئینتەرنێت بپشکنە و دووبارە هەوڵ بدەرەوە');
     }
     // ئەگەر لە ئامێرێکی تر پێشتر درابوو، مێژوو و خاڵ دووبارە تۆمار ناکرێن (هاوتای core.js)
-    if (!wrote) return 'پارەی ئەم مانگە پێشتر دراوە';
+    if (!wrote) return tr('پارەی ئەم مانگە پێشتر دراوە');
     final pts = await _recordPayment(inv, 'wallet', monthLabel: monthName, markPaid: mk == cur);
     final name = str(passenger['name']);
     for (final l in lines) {
       final s = sub(l['subId']);
       if (s == null) continue;
-      await addDNotice(str(s['driverId']), {'kind': 'pay', 'title': '$name پارەی مانگی دا', 'body': '${s['riderNames']}، گەشتەکان دەست پێدەکەن', 'link': 'riders'});
+      await addDNotice(str(s['driverId']), {'kind': 'pay', 'title': '$name پارەی مانگی دا', 'body': '${s['riderNames']}، گەشتەکان دەست پێدەکەن', 'link': 'riders'}); // i18n-keep
     }
-    await addNotice(uid, {'kind': 'pay', 'title': 'پارەی $monthName درا', 'body': '${Fmt.money(inv.total)} لە جزدانەکەت${pts > 0 ? '، $pts خاڵی پاداشت' : ''}'});
+    await addNotice(uid, inKu(() => {'kind': 'pay', 'title': 'پارەی $monthName درا', 'body': '${Fmt.money(inv.total)} لە جزدانەکەت${pts > 0 ? '، $pts خاڵی پاداشت' : ''}'})); // i18n-keep
     // پارەدانی پێشوەختەی مانگی داهاتوو: گەشتەکانی ئەمڕۆ پەیوەندییان پێیەوە نییە
     if (mk != cur) return null;
     // گەشتەکانی ئەمڕۆ هەر ئێستا دروست دەبن (هاوتای payMonthIn ـی core.js)؛ ئەو بەشدارییانەی
@@ -549,13 +552,13 @@ extension YkBilling on Cloud {
         'method': 'refund',
         'subId': sub['id'],
         'legs': legs,
-        'note': '$why، ${sub['riderNames']}، ${Fmt.n(legs)} گەشت',
+        'note': '$why، ${sub['riderNames']}، ${Fmt.n(legs)} گەشت', // i18n-keep
         'status': 'pending',
         'at': nowMs(),
         '_r': [uid],
         '_t': newStamp(),
       });
-      await addANotice({'kind': 'pay', 'title': 'داوای گەڕاندنەوە: $name', 'body': '${Fmt.money(amount)}، $why', 'link': 'wallet'});
+      await addANotice(inKu(() => {'kind': 'pay', 'title': 'داوای گەڕاندنەوە: $name', 'body': '${Fmt.money(amount)}، $why', 'link': 'wallet'})); // i18n-keep
     } catch (_) {}
   }
 
@@ -584,7 +587,7 @@ extension YkBilling on Cloud {
     } catch (_) {
       return null;
     }
-    await addANotice({'kind': 'pay', 'title': 'زیادکردن: $name', 'body': '${Fmt.money(amount)}، ${payName(method)}${ref.isNotEmpty ? '، $ref' : ''}', 'link': 'wallet'});
+    await addANotice(inKu(() => {'kind': 'pay', 'title': 'زیادکردن: $name', 'body': '${Fmt.money(amount)}، ${payName(method)}${ref.isNotEmpty ? '، $ref' : ''}', 'link': 'wallet'})); // i18n-keep
     return id;
   }
 
@@ -595,12 +598,12 @@ extension YkBilling on Cloud {
   Future<String?> requestWithdraw(int amount, String method, String account, {void Function(String id)? onId}) async {
     final min = ((config['withdrawMin'] as num?) ?? 0).toInt();
     final m = payMethod(method);
-    if (amount <= 0) return 'بڕەکە بنووسە';
-    if (amount > freeBalance) return 'زۆرترین ${Fmt.money(math.max(0, freeBalance))}';
-    if (min > 0 && amount < min) return 'کەمترین بڕ ${Fmt.money(min)}';
-    if (m == null || m['on'] == false) return 'شێوازی ڕاکێشان هەڵبژێرە';
+    if (amount <= 0) return tr('بڕەکە بنووسە');
+    if (amount > freeBalance) return tr('زۆرترین {0}', [Fmt.money(math.max(0, freeBalance))]);
+    if (min > 0 && amount < min) return tr('کەمترین بڕ {0}', [Fmt.money(min)]);
+    if (m == null || m['on'] == false) return tr('شێوازی ڕاکێشان هەڵبژێرە');
     final acc = account.trim();
-    if (m['account'] != false && acc.replaceAll(RegExp(r'\D'), '').length < 6) return 'ژمارەی هەژماری ${m['name']} بنووسە';
+    if (m['account'] != false && acc.replaceAll(RegExp(r'\D'), '').length < 6) return tr('ژمارەی هەژماری {0} بنووسە', [trData(m['name'])]);
     final id = 'wd${shortId()}';
     final uid = me!;
     final name = str(passenger['name']);
@@ -620,14 +623,14 @@ extension YkBilling on Cloud {
         '_t': newStamp(),
       });
     } catch (_) {
-      return 'نەنێردرا، دووبارە هەوڵ بدەرەوە';
+      return tr('نەنێردرا، دووبارە هەوڵ بدەرەوە');
     }
-    await addANotice({
+    await addANotice(inKu(() => {
       'kind': 'pay',
-      'title': 'داوای ڕاکێشان: $name',
-      'body': '${Fmt.money(amount)}، ${payName(method)}${acc.isNotEmpty && m['account'] != false ? ' $acc' : ''}',
+      'title': 'داوای ڕاکێشان: $name', // i18n-keep
+      'body': '${Fmt.money(amount)}، ${payName(method)}${acc.isNotEmpty && m['account'] != false ? ' $acc' : ''}', // i18n-keep
       'link': 'wallet',
-    });
+    }));
     onId?.call(id);
     return null;
   }
@@ -637,24 +640,24 @@ extension YkBilling on Cloud {
   /// دۆزینەوەی سەرنشینێک بە ژمارەی مۆبایل بۆ ناردنی پارە
   Future<({String? uid, String name, String phone, String? err})> lookupPeer(String phone) async {
     final p = cleanPhone(phone);
-    if (!RegExp(r'^7\d{9}$').hasMatch(p)) return (uid: null, name: '', phone: p, err: 'ژمارەی مۆبایل دروست نییە');
-    if (p == cleanPhone(str(passenger['phone']))) return (uid: null, name: '', phone: p, err: 'ناتوانیت بۆ خۆت بنێریت');
+    if (!RegExp(r'^7\d{9}$').hasMatch(p)) return (uid: null, name: '', phone: p, err: tr('ژمارەی مۆبایل دروست نییە'));
+    if (p == cleanPhone(str(passenger['phone']))) return (uid: null, name: '', phone: p, err: tr('ناتوانیت بۆ خۆت بنێریت'));
     try {
       for (final k in [p, '0$p']) {
         final d = await get('pdir/$k');
         if (d != null && d['uid'] != null && d['uid'] != me) return (uid: str(d['uid']), name: str(d['name']), phone: p, err: null);
       }
     } catch (_) {
-      return (uid: null, name: '', phone: p, err: 'پەیوەندی نییە، دووبارە هەوڵ بدەرەوە');
+      return (uid: null, name: '', phone: p, err: tr('پەیوەندی نییە، دووبارە هەوڵ بدەرەوە'));
     }
-    return (uid: null, name: '', phone: p, err: 'هیچ سەرنشینێکی یەکسا بەم ژمارەیە نییە');
+    return (uid: null, name: '', phone: p, err: tr('هیچ سەرنشینێکی یەکسا بەم ژمارەیە نییە'));
   }
 
   /// ناردنی پارە لە جزدانی خۆمەوە بۆ سەرنشینێکی تر. هەڵە یان null
   Future<String?> sendMoney(String peerUid, String peerName, int amount, String note) async {
-    if (peerUid.isEmpty || peerUid == me) return 'وەرگر هەڵبژێرە';
-    if (amount <= 0) return 'بڕەکە بنووسە';
-    if (amount > freeBalance) return 'باڵانسەکەت بەس نییە (${Fmt.money(math.max(0, freeBalance))})';
+    if (peerUid.isEmpty || peerUid == me) return tr('وەرگر هەڵبژێرە');
+    if (amount <= 0) return tr('بڕەکە بنووسە');
+    if (amount > freeBalance) return tr('باڵانسەکەت بەس نییە ({0})', [Fmt.money(math.max(0, freeBalance))]);
     final uid = me!;
     final fromName = str(passenger['name']);
     final id = 'x${shortId()}';
@@ -676,41 +679,49 @@ extension YkBilling on Cloud {
         '_t': newStamp(),
       });
     } catch (_) {
-      return 'نەنێردرا، دووبارە هەوڵ بدەرەوە';
+      return tr('نەنێردرا، دووبارە هەوڵ بدەرەوە');
     }
-    await addNotice(peerUid, {'kind': 'pay', 'title': '$fromName پارەی بۆ ناردیت', 'body': '${Fmt.money(amount)} چووە سەر جزدانەکەت${n.isNotEmpty ? '، $n' : ''}', 'link': 'wallet'});
+    await addNotice(peerUid, inKu(() => {'kind': 'pay', 'title': '$fromName پارەی بۆ ناردیت', 'body': '${Fmt.money(amount)} چووە سەر جزدانەکەت${n.isNotEmpty ? '، $n' : ''}', 'link': 'wallet'})); // i18n-keep
     return null;
   }
 }
 
-/// ناونیشان و ئایکۆنی هەر جۆرێکی دێڕی جزدان (TK.txLabel)
+/// ناونیشان و ئایکۆنی هەر جۆرێکی دێڕی جزدان (TK.txLabel). بۆ پیشاندان: بە زمانی ئێستا
+/// (تێبینییە هەڵگیراوەکان کوردین؛ ئەوانەی دەقی جێگیرن بە trData وەردەگێڕدرێن)
 ({String icon, String title, String sub, bool bad}) txLabel(Cloud cloud, Json e) {
-  final m = e['method'] != null ? cloud.payName(e['method']) : '';
-  final note = str(e['note']);
+  final m = e['method'] != null ? trData(cloud.payName(e['method'])) : '';
+  final note = trData(str(e['note']));
   switch (e['type']) {
     case 'topup':
-      return (icon: 'wallet', title: 'زیادکردن${m.isNotEmpty ? ' بە $m' : ''}', sub: note, bad: false);
+      return (icon: 'wallet', title: m.isNotEmpty ? tr('زیادکردن بە {0}', [m]) : tr('زیادکردن'), sub: note, bad: false);
     case 'monthpay':
-      final names = asList(e['lines']).map((l) => str(asMap(l)['names'])).join('، ');
-      return (icon: 'receipt', title: note.isNotEmpty ? note : 'پارەی مانگ', sub: names.isNotEmpty ? names : str(e['title']), bad: false);
+      final names = asList(e['lines']).map((l) => str(asMap(l)['names'])).join(tr('، '));
+      return (icon: 'receipt', title: note.isNotEmpty ? monthPayTitle(note) : tr('پارەی مانگ'), sub: names.isNotEmpty ? names : str(e['title']), bad: false);
     case 'skipref':
-      return (icon: 'undo', title: 'گەڕانەوەی پارەی ڕۆژ', sub: note, bad: false);
+      return (icon: 'undo', title: tr('گەڕانەوەی پارەی ڕۆژ'), sub: note, bad: false);
     case 'comp':
-      return (icon: 'shield', title: 'قەرەبوو: شۆفێر نەهات', sub: note, bad: false);
+      return (icon: 'shield', title: tr('قەرەبوو: شۆفێر نەهات'), sub: note, bad: false);
     case 'refund':
-      return (icon: 'undo', title: 'گەڕاندنەوە', sub: note, bad: false);
+      return (icon: 'undo', title: tr('گەڕاندنەوە'), sub: note, bad: false);
     case 'adjust':
-      return (icon: 'sliders', title: ((e['amount'] as num?) ?? 0) >= 0 ? 'زیادکردن لەلایەن یەکسا' : 'لێبڕین لەلایەن یەکسا', sub: note, bad: false);
+      return (icon: 'sliders', title: ((e['amount'] as num?) ?? 0) >= 0 ? tr('زیادکردن لەلایەن یەکسا') : tr('لێبڕین لەلایەن یەکسا'), sub: note, bad: false);
     case 'legacy':
-      return (icon: 'calendar', title: 'مانگی پێش جزدان', sub: note, bad: false);
+      return (icon: 'calendar', title: tr('مانگی پێش جزدان'), sub: note, bad: false);
     case 'penalty':
-      return (icon: 'alert', title: 'سزا', sub: note, bad: true);
+      return (icon: 'alert', title: tr('سزا'), sub: note, bad: true);
     case 'withdraw':
-      return (icon: 'download', title: 'ڕاکێشان${m.isNotEmpty ? ' بۆ $m' : ''}', sub: note, bad: false);
+      return (icon: 'download', title: m.isNotEmpty ? tr('ڕاکێشان بۆ {0}', [m]) : tr('ڕاکێشان'), sub: note, bad: false);
     case 'xfer':
       return e['incoming'] == true
-          ? (icon: 'send', title: 'وەرگرتن لە ${str(e['fromName'])}', sub: note.isNotEmpty ? note : 'ناردن لە جزدانێکی ترەوە', bad: false)
-          : (icon: 'send', title: 'ناردن بۆ ${str(e['toName'])}', sub: note, bad: false);
+          ? (icon: 'send', title: tr('وەرگرتن لە {0}', [str(e['fromName'])]), sub: note.isNotEmpty ? note : tr('ناردن لە جزدانێکی ترەوە'), bad: false)
+          : (icon: 'send', title: tr('ناردن بۆ {0}', [str(e['toName'])]), sub: note, bad: false);
   }
   return (icon: 'wallet', title: note.isNotEmpty ? note : str(e['type']), sub: '', bad: false);
+}
+
+/// تێبینی هەڵگیراوی پارەدانی مانگ («پارەی مانگ، تشرینی دووەم») بە زمانی ئێستا
+String monthPayTitle(String storedNote) {
+  const prefix = 'پارەی مانگ، '; // i18n-keep (stored wallet note prefix, see payMonth)
+  if (storedNote.startsWith(prefix)) return tr('پارەی مانگ، {0}', [Fmt.monthName(storedNote.substring(prefix.length))]);
+  return trData(storedNote);
 }

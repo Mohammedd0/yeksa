@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import 'core/auth.dart';
 import 'core/cloud.dart';
+import 'core/i18n.dart';
 import 'core/settings.dart';
 import 'core/web_safe_stub.dart' if (dart.library.js_interop) 'core/web_safe_web.dart';
 import 'screens/login_screen.dart';
@@ -33,14 +34,15 @@ class YeksaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final st = context.watch<LocalSettings>();
     return MaterialApp(
-      title: 'یەکسا',
+      title: tr('یەکسا'),
       debugShowCheckedModeBanner: false,
       scrollBehavior: const YkScrollBehavior(),
       theme: buildTheme(Yk.light),
       darkTheme: buildTheme(Yk.darkTheme),
       themeMode: st.themeMode,
-      // کوردی (سۆرانی) بە ڕاست بۆ چەپ. Flutter وەرگێڕانی کوردی نییە، بۆیە دوگمە بنەڕەتییەکان بە عەرەبی دەبن
-      locale: const Locale('ar'),
+      // کوردی (سۆرانی) و عەرەبی بە ڕاست بۆ چەپ، ئینگلیزی بە چەپ بۆ ڕاست.
+      // Flutter وەرگێڕانی کوردی نییە، بۆیە لە کوردیدا دوگمە بنەڕەتییەکان بە عەرەبی دەبن
+      locale: Locale(st.lang == 'en' ? 'en' : 'ar'),
       supportedLocales: const [Locale('ar'), Locale('en')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
@@ -50,7 +52,7 @@ class YeksaApp extends StatelessWidget {
       builder: (context, child) {
         final mq = MediaQuery.of(context);
         return Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: L.rtl ? TextDirection.rtl : TextDirection.ltr,
           child: MediaQuery(
             // قەبارەی نووسین لە ڕێکخستنەکانی ئەپەوە (لەگەڵ ڕێکخستنی مۆبایل)
             // لە وێبی ئایفۆن (شاشەی سەرەکی) بۆشایی هێڵی خوارەوە زیاد دەکرێت، وەک env(safe-area-inset-bottom)

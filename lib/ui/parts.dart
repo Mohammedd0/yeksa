@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/images.dart';
 import '../core/sel.dart';
 import 'theme.dart';
@@ -35,12 +36,12 @@ LinearGradient newsGradient(String? th) =>
 
 /// «10%» ← «١٠٪»؛ «50K» ← «٥٠» لەگەڵ «هەزار»ی بچووک
 Widget bigText(Object? big, double size, Color color) {
-  var t = Fmt.digits == 'en' ? '$big' : Fmt.n('$big').replaceAll('%', '٪');
+  var t = Fmt.digits == 'en' ? '$big' : Fmt.n('$big').replaceAll('%', '٪'); // i18n-keep
   final m = RegExp(r'^(.*?)K$', caseSensitive: false).firstMatch(t);
   if (m != null) t = m.group(1)!;
   return Column(mainAxisSize: MainAxisSize.min, children: [
     Text(t, textAlign: TextAlign.center, style: TextStyle(fontSize: size, fontWeight: FontWeight.w700, height: 1, color: color, letterSpacing: -1)),
-    if (m != null) Text('هەزار', style: TextStyle(fontSize: size * .34, color: color, height: 1.4)),
+    if (m != null) Text(tr('هەزار'), style: TextStyle(fontSize: size * .34, color: color, height: 1.4)),
   ]);
 }
 
@@ -78,10 +79,10 @@ class NewsCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-              if (str(n['tag']).isNotEmpty) YkBadge(str(n['tag']), tone: BadgeTone.note),
+              if (str(n['tag']).isNotEmpty) YkBadge(trData(str(n['tag'])), tone: BadgeTone.note),
               const SizedBox(height: 4),
-              Text(str(n['title']), style: Ts.bold(context).copyWith(fontSize: 15.2)),
-              Text(str(n['sub']), style: Ts.muted(context, size: thumb < 80 ? 12.8 : 14)),
+              Text(trData(str(n['title'])), style: Ts.bold(context).copyWith(fontSize: 15.2)),
+              Text(trData(str(n['sub'])), style: Ts.muted(context, size: thumb < 80 ? 12.8 : 14)),
             ]),
           ),
         ]),
@@ -118,8 +119,8 @@ class NewsBanner extends StatelessWidget {
                 ),
               ),
             if (!hasImg)
-              Positioned(
-                left: -6,
+              PositionedDirectional(
+                end: -6,
                 bottom: -10,
                 top: 0,
                 width: 150,
@@ -143,16 +144,16 @@ class NewsBanner extends StatelessWidget {
                           color: th.fg == Colors.white || hasImg ? const Color(0x47FFFFFF) : const Color(0x1F0B1733),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: Text(str(n['tag']), style: TextStyle(color: fg, fontSize: 11.8, fontWeight: FontWeight.w700, height: 1.7)),
+                        child: Text(trData(str(n['tag'])), style: TextStyle(color: fg, fontSize: 11.8, fontWeight: FontWeight.w700, height: 1.7)),
                       ),
                     const SizedBox(height: 6),
                     FractionallySizedBox(
                       widthFactor: hasImg ? .9 : .6,
-                      child: Text(str(n['title']), style: TextStyle(color: fg, fontSize: 19.2, fontWeight: FontWeight.w700, height: 1.4)),
+                      child: Text(trData(str(n['title'])), style: TextStyle(color: fg, fontSize: 19.2, fontWeight: FontWeight.w700, height: 1.4)),
                     ),
                     FractionallySizedBox(
                       widthFactor: hasImg ? .9 : .6,
-                      child: Text(str(n['sub']), style: TextStyle(color: fg.withValues(alpha: .92), fontSize: 13.8, height: 1.5)),
+                      child: Text(trData(str(n['sub'])), style: TextStyle(color: fg.withValues(alpha: .92), fontSize: 13.8, height: 1.5)),
                     ),
                   ],
                 ),
@@ -247,7 +248,7 @@ class Plate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final priv = type == 'private';
-    final raw = plate.replaceAllMapped(RegExp('[٠-٩]'), (m) => '${'٠١٢٣٤٥٦٧٨٩'.indexOf(m[0]!)}').trim();
+    final raw = plate.replaceAllMapped(RegExp('[٠-٩]'), (m) => '${'٠١٢٣٤٥٦٧٨٩'.indexOf(m[0]!)}').trim(); // i18n-keep
     return Directionality(
       textDirection: TextDirection.ltr,
       child: Container(
@@ -356,7 +357,7 @@ class DriverHead extends StatelessWidget {
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 YkIcon('shield', size: 13, color: t.okText, stroke: 2.2),
                 const SizedBox(width: 3),
-                Text('پشکنراو', style: TextStyle(fontSize: 12.2, fontWeight: FontWeight.w700, color: t.okText)),
+                Text(tr('پشکنراو'), style: TextStyle(fontSize: 12.2, fontWeight: FontWeight.w700, color: t.okText)),
               ]),
             ),
           ]),
@@ -380,7 +381,7 @@ class PersonChip extends StatelessWidget {
     final t = context.yk;
     final w = p['w'];
     final kid = p['kid'] == 1 || p['kid'] == true;
-    final sex = kid ? (w == 1 ? 'کچ' : w == 0 ? 'کوڕ' : 'منداڵ') : (w == 1 ? 'مێ' : w == 0 ? 'نێر' : '');
+    final sex = kid ? (w == 1 ? tr('کچ') : w == 0 ? tr('کوڕ') : tr('منداڵ')) : (w == 1 ? tr('مێ') : w == 0 ? tr('نێر') : '');
     final bg = w == 1 ? t.wBg : t.chip;
     final fg = w == 1 ? t.wText : t.text;
     return Container(

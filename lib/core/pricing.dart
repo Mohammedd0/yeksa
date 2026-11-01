@@ -8,19 +8,19 @@ import 'sel.dart';
 /// بۆ گەڕان: پیتە عەرەبی و کوردییەکان یەک دەخرێن و بۆشایی لادەبرێت
 String normalizeText(String? t) {
   var s = t ?? '';
-  const ku = '٠١٢٣٤٥٦٧٨٩';
+  const ku = '٠١٢٣٤٥٦٧٨٩'; // i18n-keep
   s = s
-      .replaceAll(RegExp('[ي]'), 'ی')
-      .replaceAll(RegExp('[ك]'), 'ک')
-      .replaceAll(RegExp('[ةہھه]'), 'ە')
-      .replaceAll(RegExp('[ؤ]'), 'و')
-      .replaceAll(RegExp('[أإآ]'), 'ا')
-      .replaceAll('ڕ', 'ر')
-      .replaceAll('ڵ', 'ل')
-      .replaceAll('ێ', 'ی')
-      .replaceAll('ۆ', 'و')
-      .replaceAll(RegExp('[ً-ْ‌\\s·\\-]'), '')
-      .replaceAllMapped(RegExp('[٠-٩]'), (m) => '${ku.indexOf(m[0]!)}');
+      .replaceAll(RegExp('[ي]'), 'ی') // i18n-keep
+      .replaceAll(RegExp('[ك]'), 'ک') // i18n-keep
+      .replaceAll(RegExp('[ةہھه]'), 'ە') // i18n-keep
+      .replaceAll(RegExp('[ؤ]'), 'و') // i18n-keep
+      .replaceAll(RegExp('[أإآ]'), 'ا') // i18n-keep
+      .replaceAll('ڕ', 'ر') // i18n-keep
+      .replaceAll('ڵ', 'ل') // i18n-keep
+      .replaceAll('ێ', 'ی') // i18n-keep
+      .replaceAll('ۆ', 'و') // i18n-keep
+      .replaceAll(RegExp('[ً-ْ‌\\s·\\-]'), '') // i18n-keep
+      .replaceAllMapped(RegExp('[٠-٩]'), (m) => '${ku.indexOf(m[0]!)}'); // i18n-keep
   return s.toLowerCase();
 }
 

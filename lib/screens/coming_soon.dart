@@ -1,6 +1,7 @@
 // شوێنی کاتی بۆ ئەو پەڕانەی لە قۆناغەکانی داهاتوودا دەنووسرێن (بە هەمان وێنەی پەڕە بەتاڵەکانی وێب)
 import 'package:flutter/material.dart';
 
+import '../core/i18n.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 
@@ -14,7 +15,13 @@ class ComingSoon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).padding.bottom;
-    const names = {2: 'دووەم', 3: 'سێیەم', 4: 'چوارەم', 5: 'پێنجەم'};
+    // هەر ڕستەیەک تەواو، بۆ ئەوەی لە عەرەبی/ئینگلیزیدا ڕیزبەندی وشەکان بگۆڕدرێت
+    final names = {
+      2: tr('ئەم بەشە لە قۆناغی دووەمدا زیاد دەکرێت'),
+      3: tr('ئەم بەشە لە قۆناغی سێیەمدا زیاد دەکرێت'),
+      4: tr('ئەم بەشە لە قۆناغی چوارەمدا زیاد دەکرێت'),
+      5: tr('ئەم بەشە لە قۆناغی پێنجەمدا زیاد دەکرێت'),
+    };
     final body = SafeArea(
       bottom: false,
       child: Padding(
@@ -29,8 +36,8 @@ class ComingSoon extends StatelessWidget {
                 child: SingleChildScrollView(
                   child: YkEmpty(
                     icon: icon,
-                    title: 'ئەم بەشە لە قۆناغی ${names[phase] ?? ''}دا زیاد دەکرێت',
-                    text: 'تا ئەو کاتە دەتوانیت لە وەشانی وێبدا بەکاری بهێنیت. هەموو زانیارییەکان یەکن.',
+                    title: names[phase] ?? tr('ئەم بەشە لە قۆناغەکانی داهاتوودا زیاد دەکرێت'),
+                    text: tr('تا ئەو کاتە دەتوانیت لە وەشانی وێبدا بەکاری بهێنیت. هەموو زانیارییەکان یەکن.'),
                   ),
                 ),
               ),

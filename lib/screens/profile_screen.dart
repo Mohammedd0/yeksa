@@ -6,8 +6,8 @@ import '../core/auth.dart';
 import '../core/billing.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/pricing.dart';
-import '../core/sel.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 import '../ui/yk_icon.dart';
@@ -42,9 +42,9 @@ class ProfileScreen extends StatelessWidget {
 
     return YkScreen(
       withNav: true,
-      title: 'پرۆفایل',
+      title: tr('پرۆفایل'),
       children: [
-        Text('پرۆفایل', style: Ts.h1(context)),
+        Text(tr('پرۆفایل'), style: Ts.h1(context)),
         YkCard(
           child: Row(children: [
             GestureDetector(
@@ -73,7 +73,7 @@ class ProfileScreen extends StatelessWidget {
                   Row(children: [
                     YkIcon('home', size: 12, color: t.muted),
                     const SizedBox(width: 4),
-                    Flexible(child: Text(str(home['name']), style: Ts.muted(context, size: 12.8))),
+                    Flexible(child: Text(trData(home['name']), style: Ts.muted(context, size: 12.8))),
                   ]),
               ]),
             ),
@@ -82,7 +82,7 @@ class ProfileScreen extends StatelessWidget {
               height: 42,
               decoration: BoxDecoration(color: t.glass, shape: BoxShape.circle, border: Border.all(color: t.glassLine)),
               child: IconButton(
-                tooltip: 'دەستکاری',
+                tooltip: tr('دەستکاری'),
                 padding: EdgeInsets.zero,
                 onPressed: () => go(const ProfileEditScreen()),
                 icon: YkIcon('edit', size: 18, color: t.text),
@@ -90,69 +90,69 @@ class ProfileScreen extends StatelessWidget {
             ),
           ]),
         ),
-        const PLabel('هەژمارەکەم'),
+        PLabel(tr('هەژمارەکەم')),
         YkList(children: [
           YkListItem(
             icon: 'wallet',
-            label: cloud.walletOn ? 'جزدانەکەم' : 'پارەدان و فاتورە',
+            label: cloud.walletOn ? tr('جزدانەکەم') : tr('پارەدان و فاتورە'),
             trailing: cloud.walletOn
                 // باڵانس، و ئەگەر پارەی ئەم مانگە ماوە «پارەی مانگ»
                 ? Row(mainAxisSize: MainAxisSize.min, children: [
                     CountPill(Fmt.money(cloud.freeBalance)),
-                    if (cloud.dueLines().isNotEmpty) ...[const SizedBox(width: 6), const YkBadge('پارەی مانگ', tone: BadgeTone.note)],
+                    if (cloud.dueLines().isNotEmpty) ...[const SizedBox(width: 6), YkBadge(tr('پارەی مانگ'), tone: BadgeTone.note)],
                   ])
-                : (cloud.billing['paid'] != true && cloud.invoice().total > 0 ? const YkBadge('ئامادەیە', tone: BadgeTone.note) : null),
+                : (cloud.billing['paid'] != true && cloud.invoice().total > 0 ? YkBadge(tr('ئامادەیە'), tone: BadgeTone.note) : null),
             onTap: () => openLink(context, 'wallet'),
           ),
-          YkListItem(icon: 'tag', label: 'ئۆفەرەکان', onTap: () => openLink(context, 'offers')),
+          YkListItem(icon: 'tag', label: tr('ئۆفەرەکان'), onTap: () => openLink(context, 'offers')),
           YkListItem(
             icon: 'gift',
-            label: 'پاداشت',
-            trailing: points > 0 ? CountPill(Fmt.n('$points خاڵ')) : null,
+            label: tr('پاداشت'),
+            trailing: points > 0 ? CountPill(Fmt.n(tr('{0} خاڵ', [points]))) : null,
             onTap: () => openLink(context, 'rewards'),
           ),
           YkListItem(
             icon: 'users',
-            label: 'خێزان',
+            label: tr('خێزان'),
             trailing: members.length > 1 ? CountPill(Fmt.n(members.length)) : null,
             onTap: () => openLink(context, 'family'),
           ),
           YkListItem(
             icon: 'calendar',
-            label: 'بەشدارییەکانم',
+            label: tr('بەشدارییەکانم'),
             trailing: subs > 0 ? CountPill(Fmt.n(subs)) : null,
             onTap: () => openLink(context, 'subs'),
           ),
-          YkListItem(icon: 'megaphone', label: 'داواکارییەکانم', onTap: () => openLink(context, 'requests')),
+          YkListItem(icon: 'megaphone', label: tr('داواکارییەکانم'), onTap: () => openLink(context, 'requests')),
           YkListItem(
             icon: 'clock',
-            label: 'گەشتە کۆنەکان',
+            label: tr('گەشتە کۆنەکان'),
             trailing: history > 0 ? CountPill(Fmt.n(history)) : null,
             onTap: () => openLink(context, 'history'),
           ),
         ]),
-        const PLabel('ڕێکخستن و یارمەتی'),
+        PLabel(tr('ڕێکخستن و یارمەتی')),
         YkList(children: [
-          YkListItem(icon: 'settings', label: 'ڕێکخستنەکان', onTap: () => go(const SettingsScreen())),
-          YkListItem(icon: 'help', label: 'پرسیارە باوەکان', onTap: () => openLink(context, 'faq')),
-          YkListItem(icon: 'flag', label: 'یارمەتی و سکاڵاکان', onTap: () => openLink(context, 'support')),
-          YkListItem(icon: 'phone', label: 'پەیوەندی', onTap: () => showContactSheet(context)),
-          YkListItem(icon: 'doc', label: 'مەرج و ڕێساکان', onTap: () => showTerms(context)),
+          YkListItem(icon: 'settings', label: tr('ڕێکخستنەکان'), onTap: () => go(const SettingsScreen())),
+          YkListItem(icon: 'help', label: tr('پرسیارە باوەکان'), onTap: () => openLink(context, 'faq')),
+          YkListItem(icon: 'flag', label: tr('یارمەتی و سکاڵاکان'), onTap: () => openLink(context, 'support')),
+          YkListItem(icon: 'phone', label: tr('پەیوەندی'), onTap: () => showContactSheet(context)),
+          YkListItem(icon: 'doc', label: tr('مەرج و ڕێساکان'), onTap: () => showTerms(context)),
           if (partner != null)
             YkListItem(
               icon: partner['type'] == 'company' ? 'briefcase' : 'school',
               label: '${partner['name']}',
-              sub: 'لە ڕێگەی ئەم شوێنەوە تۆمار بوویت',
+              sub: tr('لە ڕێگەی ئەم شوێنەوە تۆمار بوویت'),
             )
           else
-            YkListItem(icon: 'school', label: 'کۆدی قوتابخانە یان کۆمپانیا', onTap: () => _partnerCode(context)),
+            YkListItem(icon: 'school', label: tr('کۆدی قوتابخانە یان کۆمپانیا'), onTap: () => _partnerCode(context)),
         ]),
         // ٢٠ پیکسڵ دوورتر لە کارتەکەی سەرەوە، تا بە هەڵە پەنجەی بەر نەکەوێت
         Padding(
           padding: const EdgeInsets.only(top: 20),
-          child: YkButton('چوونەدەرەوە', icon: 'logout', kind: BtnKind.secondary, block: true, onPressed: () => context.read<AuthService>().logout()),
+          child: YkButton(tr('چوونەدەرەوە'), icon: 'logout', kind: BtnKind.secondary, block: true, onPressed: () => context.read<AuthService>().logout()),
         ),
-        Text(Fmt.n('یەکسا، وەشانی 1٫0'), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
+        Text(Fmt.n(tr('یەکسا، وەشانی 1٫0')), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
       ],
     );
   }
@@ -164,9 +164,9 @@ class ProfileScreen extends StatelessWidget {
     showYkSheet(context, builder: (c) {
       return StatefulBuilder(builder: (c, setS) {
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('کۆدی قوتابخانە یان کۆمپانیا', style: Ts.h2(c)),
+          Text(tr('کۆدی قوتابخانە یان کۆمپانیا'), style: Ts.h2(c)),
           const SizedBox(height: 6),
-          Text('ئەو کۆدەی قوتابخانە، زانکۆ یان کۆمپانیاکەت پێیداویت بنووسە. تەنها یەک جار دەنووسرێت.', style: Ts.muted(c, size: 14)),
+          Text(tr('ئەو کۆدەی قوتابخانە، زانکۆ یان کۆمپانیاکەت پێیداویت بنووسە. تەنها یەک جار دەنووسرێت.'), style: Ts.muted(c, size: 14)),
           const SizedBox(height: 12),
           Directionality(
             textDirection: TextDirection.ltr,
@@ -179,17 +179,17 @@ class ProfileScreen extends StatelessWidget {
           ),
           if (err != null) ...[const SizedBox(height: 8), YkError(err!)],
           const SizedBox(height: 12),
-          YkButton('تۆمارکردن', block: true, onPressed: () async {
+          YkButton(tr('تۆمارکردن'), block: true, onPressed: () async {
             final cloud = c.read<Cloud>();
             final pt = cloud.partnerByCode(ctrl.text);
             final acc = cloud.account;
             String? e;
             if (pt == null) {
-              e = 'ئەم کۆدە دروست نییە';
+              e = tr('ئەم کۆدە دروست نییە');
             } else if (acc == null) {
-              e = 'ئەکاونت نەدۆزرایەوە';
+              e = tr('ئەکاونت نەدۆزرایەوە');
             } else if (acc['partnerId'] != null) {
-              e = 'پێشتر کۆدێکت تۆمار کردووە';
+              e = tr('پێشتر کۆدێکت تۆمار کردووە');
             }
             if (e != null || pt == null) {
               setS(() => err = e);
@@ -198,11 +198,11 @@ class ProfileScreen extends StatelessWidget {
             await cloud.update('accounts/${cloud.me}', {'partnerId': pt['id']});
             if (c.mounted) {
               Navigator.pop(c);
-              toast(context, 'کۆدەکە تۆمار کرا');
+              toast(context, tr('کۆدەکە تۆمار کرا'));
             }
           }),
           const SizedBox(height: 8),
-          YkButton('داخستن', kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
+          YkButton(tr('داخستن'), kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
         ]);
       });
     });

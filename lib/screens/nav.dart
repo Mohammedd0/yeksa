@@ -78,5 +78,5 @@ void openLink(BuildContext context, String? link) {
       return push(context, id == null ? const HistoryScreen() : HistoryDetailScreen(id: id));
   }
   // پەڕەیەکی نەناسراو: هیچ ناکرێت (بۆ نموونە لینکی کۆنی ئاگادارکردنەوە)
-  debugPrint('لینکی نەناسراو: $link');
+  debugPrint('لینکی نەناسراو: $link'); // i18n-keep
 }

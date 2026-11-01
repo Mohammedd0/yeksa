@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../core/cloud.dart';
+import '../core/i18n.dart';
 import '../core/live.dart';
 import '../ui/theme.dart';
 import '../ui/trip_map.dart';
@@ -14,18 +15,18 @@ import '../ui/yk_icon.dart';
 /// شوێنی ئێستای مۆبایل. هەڵە بە کوردی دەگەڕێنێتەوە
 Future<(Geo?, String?)> currentLocation() async {
   try {
-    if (!await Geolocator.isLocationServiceEnabled()) return (null, 'شوێن (GPS) لە مۆبایلەکەت کوژاوەتەوە');
+    if (!await Geolocator.isLocationServiceEnabled()) return (null, tr('شوێن (GPS) لە مۆبایلەکەت کوژاوەتەوە'));
     var p = await Geolocator.checkPermission();
     if (p == LocationPermission.denied) p = await Geolocator.requestPermission();
     if (p == LocationPermission.denied || p == LocationPermission.deniedForever) {
-      return (null, 'ڕێگەت نەدا ئەپەکە شوێنەکەت بزانێت. لە ڕێکخستنەکانی مۆبایلەوە ڕێگە بدە');
+      return (null, tr('ڕێگەت نەدا ئەپەکە شوێنەکەت بزانێت. لە ڕێکخستنەکانی مۆبایلەوە ڕێگە بدە'));
     }
     final pos = await Geolocator.getCurrentPosition(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 15)),
     );
     return ((lat: pos.latitude, lng: pos.longitude), null);
   } catch (_) {
-    return (null, 'نەتوانرا شوێنەکەت بدۆزرێتەوە، دووبارە هەوڵ بدەرەوە');
+    return (null, tr('نەتوانرا شوێنەکەت بدۆزرێتەوە، دووبارە هەوڵ بدەرەوە'));
   }
 }
 
@@ -122,7 +123,7 @@ class _LocationPickerState extends State<LocationPicker> {
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(children: [
-              _RoundBtn(icon: 'x', tooltip: 'داخستن', onTap: () => Navigator.pop(context)),
+              _RoundBtn(icon: 'x', tooltip: tr('داخستن'), onTap: () => Navigator.pop(context)),
               const SizedBox(width: 10),
               Expanded(
                 child: Container(
@@ -130,7 +131,7 @@ class _LocationPickerState extends State<LocationPicker> {
                   decoration: BoxDecoration(color: t.card, borderRadius: BorderRadius.circular(16), boxShadow: t.shadow),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                     Text(widget.title, style: Ts.bold(context).copyWith(height: 1.3)),
-                    Text('نەخشەکە بجووڵێنە تا دەرزییەکە لەسەر شوێنەکە بێت', style: Ts.muted(context, size: 12.8)),
+                    Text(tr('نەخشەکە بجووڵێنە تا دەرزییەکە لەسەر شوێنەکە بێت'), style: Ts.muted(context, size: 12.8)),
                   ]),
                 ),
               ),
@@ -151,10 +152,10 @@ class _LocationPickerState extends State<LocationPicker> {
               ),
             Align(
               alignment: AlignmentDirectional.centerEnd,
-              child: _RoundBtn(icon: 'navigate', tooltip: 'شوێنی ئێستام', busy: _locating, onTap: _here),
+              child: _RoundBtn(icon: 'navigate', tooltip: tr('شوێنی ئێستام'), busy: _locating, onTap: _here),
             ),
             const SizedBox(height: 10),
-            YkButton('ئەم شوێنە', icon: 'check', block: true, large: true, onPressed: () => Navigator.pop(context, _pos)),
+            YkButton(tr('ئەم شوێنە'), icon: 'check', block: true, large: true, onPressed: () => Navigator.pop(context, _pos)),
           ]),
         ),
       ]),

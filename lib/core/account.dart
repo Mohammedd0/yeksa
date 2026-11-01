@@ -8,23 +8,24 @@ import 'auth.dart';
 import 'billing.dart';
 import 'cloud.dart';
 import 'format.dart';
+import 'i18n.dart';
 import 'request_actions.dart';
 import 'sel.dart';
 import 'trips.dart';
 
 /// پاداشتە بنەڕەتییەکان (بەڕێوەبەر دەتوانێت بیانگۆڕێت)
 const kRewardsDefault = [
-  {'id': 'rw1', 'title': '١٠٬٠٠٠ دینار داشکاندن', 'cost': 500, 'kind': 'iqd', 'amount': 10000, 'repeat': true, 'on': true},
-  {'id': 'rw2', 'title': '٢٥٬٠٠٠ دینار داشکاندن', 'cost': 1000, 'kind': 'iqd', 'amount': 25000, 'repeat': true, 'on': true},
-  {'id': 'rw3', 'title': 'هەفتەیەکی بەخۆڕایی', 'cost': 2500, 'kind': 'days', 'amount': 7, 'repeat': true, 'on': true},
+  {'id': 'rw1', 'title': '١٠٬٠٠٠ دینار داشکاندن', 'cost': 500, 'kind': 'iqd', 'amount': 10000, 'repeat': true, 'on': true}, // i18n-keep
+  {'id': 'rw2', 'title': '٢٥٬٠٠٠ دینار داشکاندن', 'cost': 1000, 'kind': 'iqd', 'amount': 25000, 'repeat': true, 'on': true}, // i18n-keep
+  {'id': 'rw3', 'title': 'هەفتەیەکی بەخۆڕایی', 'cost': 2500, 'kind': 'days', 'amount': 7, 'repeat': true, 'on': true}, // i18n-keep
 ];
 
 /// پرسیارە باوە بنەڕەتییەکان. aud: p سەرنشین، d شۆفێر، all هەردووکیان
 const kFaqDefault = [
-  {'id': 'fq1', 'aud': 'p', 'on': true, 'q': 'ئەگەر شۆفێرەکەم نەهات چی دەبێت؟', 'a': 'شۆفێرێکی جێگرەوە بە هەمان کات و نرخ دێت و پێشوەختە ئاگادار دەکرێیتەوە. ئەگەر دواکەوتن هەبوو، قەرەبووی ڕۆژەکە بۆ فاتورەی داهاتوو زیاد دەکرێت.'},
-  {'id': 'fq2', 'aud': 'p', 'on': true, 'q': 'چۆن نرخ دیاری دەکرێت؟', 'a': 'ئەپەکە بە پێی دووری ڕێگا، ژمارەی ڕۆژەکان و ژمارەی سەرنشینەکان نرخێک پێشنیار دەکات. شۆفێرەکان دەتوانن تا {offerRange} کەمتر یان زیاتر نرخ بنێرن و تۆ هەڵدەبژێریت.'},
-  {'id': 'fq3', 'aud': 'p', 'on': true, 'q': 'دەتوانم بەشدارییەکەم ڕابگرم؟', 'a': 'بەڵێ، لە بەشی بەشداری «ڕاگرتنی کاتی» دابگرە. بۆ ئەو ڕۆژانەی ڕاگیراوە پارە نادەیت.'},
-  {'id': 'fq4', 'aud': 'p', 'on': true, 'q': 'چۆن پەیوەندی بە شۆفێرەکەمەوە بکەم؟', 'a': 'لە ناو ئەپ نامەی بۆ بنێرە، یان لە پەڕەی شۆفێرەکە پەیوەندی تەلەفۆنی پێوە بکە. ژمارەی مۆبایلی تۆ لای شۆفێر هەمیشە شاراوەیە.'},
+  {'id': 'fq1', 'aud': 'p', 'on': true, 'q': 'ئەگەر شۆفێرەکەم نەهات چی دەبێت؟', 'a': 'شۆفێرێکی جێگرەوە بە هەمان کات و نرخ دێت و پێشوەختە ئاگادار دەکرێیتەوە. ئەگەر دواکەوتن هەبوو، قەرەبووی ڕۆژەکە بۆ فاتورەی داهاتوو زیاد دەکرێت.'}, // i18n-keep
+  {'id': 'fq2', 'aud': 'p', 'on': true, 'q': 'چۆن نرخ دیاری دەکرێت؟', 'a': 'ئەپەکە بە پێی دووری ڕێگا، ژمارەی ڕۆژەکان و ژمارەی سەرنشینەکان نرخێک پێشنیار دەکات. شۆفێرەکان دەتوانن تا {offerRange} کەمتر یان زیاتر نرخ بنێرن و تۆ هەڵدەبژێریت.'}, // i18n-keep
+  {'id': 'fq3', 'aud': 'p', 'on': true, 'q': 'دەتوانم بەشدارییەکەم ڕابگرم؟', 'a': 'بەڵێ، لە بەشی بەشداری «ڕاگرتنی کاتی» دابگرە. بۆ ئەو ڕۆژانەی ڕاگیراوە پارە نادەیت.'}, // i18n-keep
+  {'id': 'fq4', 'aud': 'p', 'on': true, 'q': 'چۆن پەیوەندی بە شۆفێرەکەمەوە بکەم؟', 'a': 'لە ناو ئەپ نامەی بۆ بنێرە، یان لە پەڕەی شۆفێرەکە پەیوەندی تەلەفۆنی پێوە بکە. ژمارەی مۆبایلی تۆ لای شۆفێر هەمیشە شاراوەیە.'}, // i18n-keep
 ];
 
 extension YkAccount on Cloud {
@@ -43,7 +44,7 @@ extension YkAccount on Cloud {
       'kind': kind,
       'woman': woman,
       if (kind == 'child' && age != null) 'age': age,
-      'relation': kind == 'child' ? (woman ? 'کچ' : 'کوڕ') : 'ئەندامی خێزان',
+      'relation': kind == 'child' ? (woman ? 'کچ' : 'کوڕ') : 'ئەندامی خێزان', // i18n-keep
     });
     await update('pax/$me', {'family.members': list});
   }
@@ -103,7 +104,7 @@ extension YkAccount on Cloud {
   }
 
   /// {offerRange} لە وەڵامدا دەبێتە ڕێژەی ئێستای ڕێکخستن
-  String faqText(Object? t) => str(t).replaceAll('{offerRange}', Fmt.n('${(((config['offerRange'] as num?) ?? 0) * 100).round()}٪'));
+  String faqText(Object? t) => trData(t).replaceAll('{offerRange}', Fmt.n(tr('{0}٪', [(((config['offerRange'] as num?) ?? 0) * 100).round()])));
 
   List<Json> get contacts {
     final l = config['contacts'];
@@ -143,19 +144,19 @@ extension YkAccount on Cloud {
     }
     await update('subscriptions/$id', {'status': paused ? 'paused' : 'active', 'pauseLog': log});
     // دەستپێکردنەوە: پارەی ڕۆژە ڕاگیراوەکانی ئەم مانگە دەگەڕێتەوە (جزدان)
-    if (!paused && log.isNotEmpty && log.last['to'] != null) await refundRequest(s, legsPaused(s, log.last), 'ڕاگرتنی کاتی');
+    if (!paused && log.isNotEmpty && log.last['to'] != null) await refundRequest(s, legsPaused(s, log.last), 'ڕاگرتنی کاتی'); // i18n-keep
     final names = str(s['riderNames']);
     final did = str(s['driverId']);
     final d = driver(did);
     final me0 = str(passenger['name']);
-    await addNotice(me!, {'kind': 'info', 'title': paused ? 'بەشدارییەکە ڕاگیرا' : 'بەشدارییەکە دەستی پێکردەوە', 'body': '$names، ${str(d?['name'])} ئاگادار کرایەوە'});
+    await addNotice(me!, {'kind': 'info', 'title': paused ? 'بەشدارییەکە ڕاگیرا' : 'بەشدارییەکە دەستی پێکردەوە', 'body': '$names، ${str(d?['name'])} ئاگادار کرایەوە'}); // i18n-keep
     await addDNotice(did, {
       'kind': paused ? 'info' : 'ok',
-      'title': paused ? '$me0 بەشدارییەکەی ڕاگرت' : '$me0 بەشدارییەکەی دەستپێکردەوە',
-      'body': '$names، ${s['to']}${paused ? '، تا ئاگاداری دووەم گەشت نییە' : ''}',
+      'title': paused ? '$me0 بەشدارییەکەی ڕاگرت' : '$me0 بەشدارییەکەی دەستپێکردەوە', // i18n-keep
+      'body': '$names، ${s['to']}${paused ? '، تا ئاگاداری دووەم گەشت نییە' : ''}', // i18n-keep
       'link': 'today',
     });
-    await addSystemMessage(did, paused ? 'بەشداری $names بۆ ${s['to']} ڕاگیرا' : 'بەشداری $names بۆ ${s['to']} دەستی پێکردەوە');
+    await addSystemMessage(did, paused ? 'بەشداری $names بۆ ${s['to']} ڕاگیرا' : 'بەشداری $names بۆ ${s['to']} دەستی پێکردەوە'); // i18n-keep
     // گەشتە نەکراوەکانی ئەمڕۆ لادەبرێن کاتێک ڕاگیرا؛ کاتێک دەستی پێکردەوە دروست دەکرێنەوە
     if (paused) {
       for (final t in list('trips').where((t) => t['subId'] == id && t['status'] == 'scheduled' && t['runId'] == null)) {
@@ -191,10 +192,10 @@ extension YkAccount on Cloud {
     }
     await genTrips(s);
     final did = str(s['driverId']);
-    final text = 'گۆڕانکاری لە بەشداری ${s['riderNames']}: ${fmtSchedule(s)}، ${fmtDays(asList(s['days']))}';
+    final text = inKu(() => 'گۆڕانکاری لە بەشداری ${s['riderNames']}: ${fmtSchedule(s)}، ${fmtDays(asList(s['days']))}'); // i18n-keep
     await addSystemMessage(did, text);
-    await addDNotice(did, {'kind': 'info', 'title': 'گۆڕانکاری لە بەشدارییەک', 'body': text, 'link': 'today'});
-    await addNotice(me!, {'kind': 'info', 'title': 'گۆڕانکارییەکان پاشەکەوت کران', 'body': 'شۆفێرەکە ئاگادار کرایەوە'});
+    await addDNotice(did, {'kind': 'info', 'title': 'گۆڕانکاری لە بەشدارییەک', 'body': text, 'link': 'today'}); // i18n-keep
+    await addNotice(me!, {'kind': 'info', 'title': 'گۆڕانکارییەکان پاشەکەوت کران', 'body': 'شۆفێرەکە ئاگادار کرایەوە'}); // i18n-keep
   }
 
   Future<void> cancelSub(String id) => endSub(id, 'cancel');
@@ -205,20 +206,20 @@ extension YkAccount on Cloud {
   Future<String?> deleteMyAccount(String pass) async {
     final u = auth.currentUser;
     final uid = me;
-    if (u == null || uid == null) return 'دووبارە بچۆ ژوورەوە';
-    if (account?['blocked'] == true) return 'ئەم هەژمارە ڕاگیراوە. بۆ سڕینەوە پەیوەندی بە پشتگیری یەکسا بکە';
-    if (list('trips').any((t) => t['owner'] == uid && t['status'] == 'active')) return 'گەشتێکت ئێستا لە ڕێگەیە. دوای تەواوبوونی هەوڵ بدەرەوە';
-    if (walletOn && (balance > 0 || pendingWithdraw > 0)) return 'سەرەتا پارەی جزدانەکەت ڕابکێشە (یان بینێرە)، پاشان هەژمارەکە بسڕەوە';
+    if (u == null || uid == null) return tr('دووبارە بچۆ ژوورەوە');
+    if (account?['blocked'] == true) return tr('ئەم هەژمارە ڕاگیراوە. بۆ سڕینەوە پەیوەندی بە پشتگیری یەکسا بکە');
+    if (list('trips').any((t) => t['owner'] == uid && t['status'] == 'active')) return tr('گەشتێکت ئێستا لە ڕێگەیە. دوای تەواوبوونی هەوڵ بدەرەوە');
+    if (walletOn && (balance > 0 || pendingWithdraw > 0)) return tr('سەرەتا پارەی جزدانەکەت ڕابکێشە (یان بینێرە)، پاشان هەژمارەکە بسڕەوە');
     // وەک وێب: هەر داواکارییەکی چاوەڕێ (زیادکردن یان گەڕاندنەوە) ڕێگە لە سڕینەوە دەگرێت
     if (walletOn && myTopupsPending.isNotEmpty) {
-      return 'داواکارییەکی زیادکردنت چاوەڕێیە. سەرەتا هەڵیبوەشێنەوە یان چاوەڕێی پەسەندکردن بکە';
+      return tr('داواکارییەکی زیادکردنت چاوەڕێیە. سەرەتا هەڵیبوەشێنەوە یان چاوەڕێی پەسەندکردن بکە');
     }
     try {
       await u.reauthenticateWithCredential(EmailAuthProvider.credential(email: u.email!, password: pass));
     } on FirebaseAuthException catch (e) {
-      return RegExp('invalid-credential|wrong-password').hasMatch(e.code) ? 'وشەی نهێنی هەڵەیە' : AuthService.authErr(e);
+      return RegExp('invalid-credential|wrong-password').hasMatch(e.code) ? tr('وشەی نهێنی هەڵەیە') : AuthService.authErr(e);
     }
-    const fail = 'سڕینەوە تەواو نەبوو. ئینتەرنێت بپشکنە و دووبارە هەوڵ بدەرەوە';
+    final fail = tr('سڕینەوە تەواو نەبوو. ئینتەرنێت بپشکنە و دووبارە هەوڵ بدەرەوە');
     final name = str(passenger['name']);
     try {
       final key = str(u.email).split('@').first;
@@ -236,23 +237,23 @@ extension YkAccount on Cloud {
           final parts = asList(st['parts']).map((p) {
             final m = Map<String, dynamic>.from(asMap(p));
             if (m['owner'] != uid) return m;
-            m['riders'] = 'سڕاوە';
+            m['riders'] = 'سڕاوە'; // i18n-keep
             m['people'] = asList(m['people']).map((x) => {...asMap(x), 'n': ''}).toList();
             return m;
           }).toList();
           return {
             ...st,
             if (st['parts'] is List) 'parts': parts,
-            if (st['parts'] is List) 'riders': parts.map((p) => str(p['riders'])).join('، '),
+            if (st['parts'] is List) 'riders': parts.map((p) => str(p['riders'])).join('، '), // i18n-keep
             if (st['parts'] is List) 'people': parts.expand((p) => asList(p['people'])).toList(),
           };
         }).toList();
         try {
-          await update('trips/${t['id']}', {'title': 'گەشتی بەکارهێنەری سڕاوە', 'stops': stops});
+          await update('trips/${t['id']}', {'title': 'گەشتی بەکارهێنەری سڕاوە', 'stops': stops}); // i18n-keep
         } catch (_) {}
       }
       for (final r in list('requests').where((r) => r['owner'] == uid)) {
-        final up = <String, dynamic>{'ownerName': 'بەکارهێنەری سڕاوە', 'riderNames': 'سڕاوە', 'note': ''};
+        final up = <String, dynamic>{'ownerName': 'بەکارهێنەری سڕاوە', 'riderNames': 'سڕاوە', 'note': ''}; // i18n-keep
         if (r['status'] == 'open') {
           up['status'] = 'closed';
           up['closedReason'] = 'cancel';
@@ -276,7 +277,7 @@ extension YkAccount on Cloud {
           await delete('phistory/${h['id']}');
         } catch (_) {}
       }
-      await addANotice({'kind': 'info', 'title': 'سەرنشینێک هەژمارەکەی سڕییەوە', 'body': '$name. ئەگەر ڕاپۆرت یان تۆماری هاوبەشی هەبێت، لە پانێڵ بیانسڕەوە'});
+      await addANotice({'kind': 'info', 'title': 'سەرنشینێک هەژمارەکەی سڕییەوە', 'body': '$name. ئەگەر ڕاپۆرت یان تۆماری هاوبەشی هەبێت، لە پانێڵ بیانسڕەوە'}); // i18n-keep
       await db.waitForPendingWrites().timeout(const Duration(seconds: 30));
       await delete('pax/$uid');
       await delete('accounts/$uid');

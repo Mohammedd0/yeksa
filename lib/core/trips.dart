@@ -7,6 +7,7 @@ import 'actions.dart';
 import 'billing.dart';
 import 'cloud.dart';
 import 'format.dart';
+import 'i18n.dart';
 import 'sel.dart';
 
 /// چەند گەشت لە هەفتەیەکدا (TK.legsPerWeek)
@@ -60,14 +61,14 @@ extension YkTrips on Cloud {
     if (t == null || t['status'] != 'skipped') return null;
     if (t['runId'] != null) {
       final run = list('trips').where((x) => x['runId'] == t['runId']);
-      if (run.any((x) => x['status'] == 'active' || x['status'] == 'done' || x['status'] == 'absent')) return 'شۆفێر بەڕێ کەوتووە، نامەی بۆ بنێرە';
+      if (run.any((x) => x['status'] == 'active' || x['status'] == 'done' || x['status'] == 'absent')) return tr('شۆفێر بەڕێ کەوتووە، نامەی بۆ بنێرە');
     }
     await update('trips/$id', {'status': 'scheduled'});
     final stops = stopsOf(t);
     final names = stops.isEmpty ? '' : str(stops.first['riders']);
     final did = str(t['driverId']);
-    await addSystemMessage(did, '$names بۆ ${t['dir'] == 'back' ? 'هاتنەوە' : 'چوون'} دێن (هەڵوەشاندنەوەی «نایەم»)');
-    await addDNotice(did, {'kind': 'ok', 'title': '$names دێن', 'body': 'گەشتی ${Fmt.clock(str(t['time']))} دەگەڕێتەوە خشتە', 'link': 'today'});
+    await addSystemMessage(did, '$names بۆ ${t['dir'] == 'back' ? 'هاتنەوە' : 'چوون'} دێن (هەڵوەشاندنەوەی «نایەم»)'); // i18n-keep
+    await addDNotice(did, inKu(() => {'kind': 'ok', 'title': '$names دێن', 'body': 'گەشتی ${Fmt.clock(str(t['time']))} دەگەڕێتەوە خشتە', 'link': 'today'})); // i18n-keep
     return null;
   }
 
@@ -97,22 +98,22 @@ extension YkTrips on Cloud {
       } catch (_) {}
     }
     final od = driver(orig);
-    await addNotice(me!, {'kind': 'info', 'title': 'جێگرەوەکە ڕەتکرایەوە', 'body': '${str(od?['name']).isEmpty ? 'شۆفێرەکەت' : od!['name']} ئاگادار کرایەوە'});
-    await addDNotice(orig, {
+    await addNotice(me!, {'kind': 'info', 'title': 'جێگرەوەکە ڕەتکرایەوە', 'body': '${str(od?['name']).isEmpty ? 'شۆفێرەکەت' : od!['name']} ئاگادار کرایەوە'}); // i18n-keep
+    await addDNotice(orig, inKu(() => {
       'kind': 'info',
-      'title': 'سەرنشین جێگرەوەکەی ڕەتکردەوە',
-      'body': '${t['title']}، ${Fmt.clock(str(t['time']))}، دەبێت خۆت بڕۆیت',
+      'title': 'سەرنشین جێگرەوەکەی ڕەتکردەوە', // i18n-keep
+      'body': '${t['title']}، ${Fmt.clock(str(t['time']))}، دەبێت خۆت بڕۆیت', // i18n-keep
       'link': 'trip/$tripId',
-    });
-    await addDNotice(taker, {'kind': 'info', 'title': 'گەشتی جێگرەوە لابرا', 'body': '${t['title']}، سەرنشین شۆفێری خۆی دەوێت', 'link': 'today'});
+    }));
+    await addDNotice(taker, {'kind': 'info', 'title': 'گەشتی جێگرەوە لابرا', 'body': '${t['title']}، سەرنشین شۆفێری خۆی دەوێت', 'link': 'today'}); // i18n-keep
   }
 
   /// «شۆفێر نەهات»: تەنها ١٠ خولەک دوای کاتی گەشت
   Future<String?> reportNoShow(String tripId, String note) async {
     final t = trip(tripId);
-    if (t == null || t['status'] != 'scheduled') return 'ئەم گەشتە ناتوانرێت ڕاپۆرت بکرێت';
+    if (t == null || t['status'] != 'scheduled') return tr('ئەم گەشتە ناتوانرێت ڕاپۆرت بکرێت');
     if (minutesUntil(str(t['time'])) > -10) {
-      return 'دەتوانیت ١٠ خولەک دوای کاتی گەشتەکە (${Fmt.clock(addMin(str(t['time']), 10))}) ڕاپۆرت بکەیت';
+      return tr('دەتوانیت ١٠ خولەک دوای کاتی گەشتەکە ({0}) ڕاپۆرت بکەیت', [Fmt.clock(addMin(str(t['time']), 10))]);
     }
     final c = config;
     final penalty = (c['noShowPenalty'] as num?) ?? 0;
@@ -136,36 +137,36 @@ extension YkTrips on Cloud {
         'credit': math.min((c['noShowComp'] as num?) ?? 0, penalty), 'legValue': legValue, 'status': 'open', 'at': nowMs(), 'title': t['title'],
         '_t': newStamp(),
       });
-      await addNotice(me!, {'kind': 'info', 'title': 'ڕاپۆرتەکەت نێردرا', 'body': 'یەکسا دەیپشکنێت. ئەگەر پەسەند کرا، قەرەبووەکە دەچێتە سەر جزدانەکەت'});
-      await addDNotice(did, {'kind': 'info', 'red': true, 'title': 'ڕاپۆرتی نەهاتن', 'body': '${t['title']}، یەکسا دەیپشکنێت. ئەگەر هەڵەیە پەیوەندی بە یەکسا بکە', 'link': 'support'});
+      await addNotice(me!, {'kind': 'info', 'title': 'ڕاپۆرتەکەت نێردرا', 'body': 'یەکسا دەیپشکنێت. ئەگەر پەسەند کرا، قەرەبووەکە دەچێتە سەر جزدانەکەت'}); // i18n-keep
+      await addDNotice(did, {'kind': 'info', 'red': true, 'title': 'ڕاپۆرتی نەهاتن', 'body': '${t['title']}، یەکسا دەیپشکنێت. ئەگەر هەڵەیە پەیوەندی بە یەکسا بکە', 'link': 'support'}); // i18n-keep
     } else {
       final perTrip = s == null ? 0 : ((s['price'] as num?) ?? 0) / math.max(1, legsPerWeek(s) * 4.3);
       final credit = math.max(((c['noShowCreditMin'] as num?) ?? 0).toInt(), (perTrip / 500).round() * 500);
       final adjId = 'a${shortId()}';
       await update('pax/$me', {
         'billing.adjustments': FieldValue.arrayUnion([
-          {'id': adjId, 'amount': credit, 'note': 'قەرەبوو: شۆفێر نەهات، ${t['title']}', 'at': nowMs()},
+          {'id': adjId, 'amount': credit, 'note': 'قەرەبوو: شۆفێر نەهات، ${t['title']}', 'at': nowMs()}, // i18n-keep
         ]),
       });
       final lid = 'l${shortId()}';
       try {
-        await set('ledger/$lid', {
+        await set('ledger/$lid', inKu(() => {
           'id': lid, 'driverId': did, 'type': 'penalty', 'amount': -penalty,
-          'note': 'نەهاتن بۆ ${t['title']}، ${Fmt.clock(str(t['time']))}', 'at': nowMs(), 'tripId': tripId,
+          'note': 'نەهاتن بۆ ${t['title']}، ${Fmt.clock(str(t['time']))}', 'at': nowMs(), 'tripId': tripId, // i18n-keep
           '_r': [did], '_t': newStamp(),
-        });
+        }));
       } catch (_) {}
       await set('reports/$rid', {
         'id': rid, 'type': 'noshow', 'tripId': tripId, 'driverId': did, 'by': name, 'phone': phone, 'note': note,
         'credit': credit, 'penalty': penalty, 'adjId': adjId, 'ledgerId': lid, 'status': 'open', 'at': nowMs(), '_t': newStamp(),
       });
-      await addNotice(me!, {'kind': 'info', 'title': 'ڕاپۆرتەکەت تۆمار کرا', 'body': '${Fmt.money(credit)} قەرەبوو بۆ فاتورەی داهاتوو زیاد کرا'});
-      await addDNotice(did, {
-        'kind': 'info', 'red': true, 'title': 'ڕاپۆرتی نەهاتن',
-        'body': '${t['title']}، ${Fmt.money(penalty)} سزا. ئەگەر هەڵەیە پەیوەندی بە پشتگیری بکە', 'link': 'earnings',
-      });
+      await addNotice(me!, inKu(() => {'kind': 'info', 'title': 'ڕاپۆرتەکەت تۆمار کرا', 'body': '${Fmt.money(credit)} قەرەبوو بۆ فاتورەی داهاتوو زیاد کرا'})); // i18n-keep
+      await addDNotice(did, inKu(() => {
+        'kind': 'info', 'red': true, 'title': 'ڕاپۆرتی نەهاتن', // i18n-keep
+        'body': '${t['title']}، ${Fmt.money(penalty)} سزا. ئەگەر هەڵەیە پەیوەندی بە پشتگیری بکە', 'link': 'earnings', // i18n-keep
+      }));
     }
-    await addANotice({'kind': 'report', 'red': true, 'title': 'ڕاپۆرتی «شۆفێر نەهات» لە $name', 'body': t['title'], 'link': 'reports'});
+    await addANotice({'kind': 'report', 'red': true, 'title': 'ڕاپۆرتی «شۆفێر نەهات» لە $name', 'body': t['title'], 'link': 'reports'}); // i18n-keep
     return null;
   }
 
@@ -183,6 +184,6 @@ extension YkTrips on Cloud {
     await update('pax/$me', {
       'tickets': [ticket, ...asList(pax['tickets'])],
     });
-    await addANotice({'kind': 'ticket', 'title': 'سکاڵا لە $name', 'body': subject, 'link': 'reports'});
+    await addANotice({'kind': 'ticket', 'title': 'سکاڵا لە $name', 'body': subject, 'link': 'reports'}); // i18n-keep
   }
 }

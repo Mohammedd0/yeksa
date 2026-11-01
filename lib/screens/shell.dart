@@ -8,6 +8,7 @@ import '../core/auth.dart';
 import '../core/billing.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/request_actions.dart';
 import '../core/settings.dart';
 import '../core/web_notify_stub.dart' if (dart.library.js_interop) '../core/web_notify_web.dart';
@@ -126,6 +127,8 @@ class _ShellState extends State<Shell> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final cloud = context.watch<Cloud>();
+    // ناوی بەشەکانی شریتی خوارەوە لەگەڵ گۆڕینی زمان نوێ دەبنەوە
+    context.watch<LocalSettings>();
     final me = cloud.me;
     // داواکارییە کراوەکان کە شۆفێر نرخی بۆ ناردوون
     final waiting = cloud
@@ -171,11 +174,11 @@ class _ShellState extends State<Shell> with SingleTickerProviderStateMixin {
           }
         },
         items: [
-          const NavItem('home', 'سەرەکی'),
-          const NavItem('route', 'گەشتەکان'),
-          NavItem('calendar', 'بەشداری', badge: waiting),
-          NavItem('chat', 'نامەکان', badge: unread),
-          const NavItem('user', 'پرۆفایل'),
+          NavItem('home', tr('سەرەکی')),
+          NavItem('route', tr('گەشتەکان')),
+          NavItem('calendar', tr('بەشداری'), badge: waiting),
+          NavItem('chat', tr('نامەکان'), badge: unread),
+          NavItem('user', tr('پرۆفایل')),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+// i18n-keep-file (admin-default place names: data, not UI)
 // شوێنە بنەڕەتییەکان (PLACES ـی core.js). بەڕێوەبەر لە پانێڵ دەیانگۆڕێت (meta/app)
 // ئەم فایلە خۆکار لە core.js دروست کراوە، دەستکاری مەکە.
 

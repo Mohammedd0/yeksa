@@ -4,10 +4,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/auth.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
 import '../ui/yk_icon.dart';
@@ -96,7 +98,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _err = err;
     });
     if (err == null) {
-      toastAfterNav(context, 'ئەکاونتەکەت دروست کرا');
+      toastAfterNav(context, tr('ئەکاونتەکەت دروست کرا'));
       Navigator.of(context).popUntil((r) => r.isFirst);
     }
   }
@@ -104,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _refMsg(BuildContext context) {
     final t = context.yk;
     if (_ref.text.trim().length < 4) return const SizedBox.shrink();
-    if (_refWait) return Text('پشکنین...', style: Ts.muted(context, size: 12.8));
+    if (_refWait) return Text(tr('پشکنین...'), style: Ts.muted(context, size: 12.8));
     final r = _refRes;
     if (r == null) return const SizedBox.shrink();
     Widget ok(String s) => Row(children: [
@@ -116,11 +118,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (r.friend != null) {
       final auth = context.read<AuthService>();
       final cloud = context.read<Cloud>();
-      final who = (r.friend!['name'] as String?)?.isNotEmpty == true ? r.friend!['name'] : 'هاوڕێکەت';
-      final amt = cloud.config['refOn'] == true ? '. ${auth.refText()} داشکاندن لە یەکەم مانگت' : '';
-      return ok('بانگهێشتی $who$amt');
+      final who = (r.friend!['name'] as String?)?.isNotEmpty == true ? r.friend!['name'] : tr('هاوڕێکەت');
+      return ok(cloud.config['refOn'] == true
+          ? tr('بانگهێشتی {0}. {1} داشکاندن لە یەکەم مانگت', [who, auth.refText()])
+          : trc('بانگهێشتی {0}', 'دعوة من {0}', 'Invited by {0}', [who]));
     }
-    return Text(r.offline ? 'ئینتەرنێت نییە، دواتر دەپشکنرێت' : 'ئەم کۆدە نەدۆزرایەوە', style: TextStyle(color: t.danger, fontSize: 12.8));
+    return Text(r.offline ? tr('ئینتەرنێت نییە، دواتر دەپشکنرێت') : tr('ئەم کۆدە نەدۆزرایەوە'), style: TextStyle(color: t.danger, fontSize: 12.8));
   }
 
   @override
@@ -136,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: YkScreen(
           gap: 12,
           children: [
-            const YkHeader('ئەکاونتی نوێ', sub: 'تەنها یەک خولەک دەخایەنێت'),
+            YkHeader(tr('ئەکاونتی نوێ'), sub: tr('تەنها یەک خولەک دەخایەنێت')),
             if (partner != null)
               YkCard(
                 tone: CardTone.info,
@@ -145,46 +148,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('لە ڕێگەی ${partner['name']}ەوە', style: Ts.bold(context).copyWith(color: t.infoText)),
-                      Text('کۆد: ${partner['code']}', style: TextStyle(fontSize: 12.8, color: t.infoText)),
+                      Text(tr('لە ڕێگەی {0}ەوە', [partner['name']]), style: Ts.bold(context).copyWith(color: t.infoText)),
+                      Text(tr('کۆد: {0}', [partner['code']]), style: TextStyle(fontSize: 12.8, color: t.infoText)),
                     ]),
                   ),
                 ]),
               ),
             YkField(
-              label: 'ناوی تەواو',
+              label: tr('ناوی تەواو'),
               child: TextField(
                 controller: _name,
                 autofillHints: const [AutofillHints.name],
                 textInputAction: TextInputAction.next,
                 style: Ts.body(context),
-                decoration: ykInput(context, hint: 'ناو و ناوی باوک'),
+                decoration: ykInput(context, hint: tr('ناو و ناوی باوک')),
               ),
             ),
-            YkField(label: 'ژمارەی مۆبایل', child: PhoneInput(controller: _phone, textInputAction: TextInputAction.next)),
-            YkField(label: 'وشەی نهێنی', child: PasswordInput(controller: _pass, hint: 'لانیکەم ٦ پیت', newPassword: true)),
+            YkField(label: tr('ژمارەی مۆبایل'), child: PhoneInput(controller: _phone, textInputAction: TextInputAction.next)),
+            YkField(label: tr('وشەی نهێنی'), child: PasswordInput(controller: _pass, hint: tr('لانیکەم ٦ پیت'), newPassword: true)),
             YkField(
-              label: 'ڕەگەز',
-              hint: 'کاتێک لە تەکسییەکی هاوبەشدایت، سەرنشینانی تر تەنها ناوی یەکەم و ڕەگەزت دەبینن',
+              label: tr('ڕەگەز'),
+              hint: tr('کاتێک لە تەکسییەکی هاوبەشدایت، سەرنشینانی تر تەنها ناوی یەکەم و ڕەگەزت دەبینن'),
               child: YkChoice<String>(
-                items: const [('m', 'نێر'), ('f', 'مێ')],
+                items: [('m', tr('نێر')), ('f', tr('مێ'))],
                 value: _gender.isEmpty ? null : _gender,
                 onChanged: (v) => setState(() => _gender = v),
               ),
             ),
             YkField(
-              label: 'شار',
+              label: tr('شار'),
               child: YkSelect<String>(
-                title: 'شار',
-                items: [for (final c in cities) (c['id'] as String, '${c['name']}')],
+                title: tr('شار'),
+                items: [for (final c in cities) (c['id'] as String, trData(c['name']))],
                 value: _city,
                 onChanged: (v) => setState(() => _city = v),
               ),
             ),
             YkField(
-              label: 'کۆدی بانگهێشت',
+              label: tr('کۆدی بانگهێشت'),
               optional: true,
-              hint: 'کۆدی هاوڕێ، ناوەندی خوێندن یان شوێنی کار',
+              hint: tr('کۆدی هاوڕێ، ناوەندی خوێندن یان شوێنی کار'),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 Directionality(
                   textDirection: TextDirection.ltr,
@@ -203,13 +206,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
             _refMsg(context),
             if (_err != null) YkError(_err!),
-            YkButton('دروستکردنی ئەکاونت', block: true, busy: _busy, onPressed: _submit),
+            YkButton(tr('دروستکردنی ئەکاونت'), block: true, busy: _busy, onPressed: _submit),
             Wrap(
               alignment: WrapAlignment.center,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text('بە دروستکردنی ئەکاونت ڕازی دەبیت بە ', style: Ts.muted(context, size: 12.8)),
-                YkLink('مەرج و ڕێساکان و پاراستنی زانیاری', size: 12.8, onTap: () => showTerms(context)),
+                Text(tr('بە دروستکردنی ئەکاونت ڕازی دەبیت بە '), style: Ts.muted(context, size: 12.8)),
+                YkLink(tr('مەرج و ڕێساکان و پاراستنی زانیاری'), size: 12.8, onTap: () => showTerms(context)),
               ],
             ),
           ],
@@ -225,6 +228,9 @@ class _UpperCase extends TextInputFormatter {
       newValue.copyWith(text: newValue.text.toUpperCase());
 }
 
+/// پەڕە فەرمییەکانی مەرج و تایبەتمەندی (لەسەر Firebase Hosting ـی پانێڵی بەڕێوەبەر)
+const String kLegalBase = 'https://taxiakam-6d28f.web.app';
+
 /// مەرج و ڕێساکان (TK.showTerms('passenger'))
 void showTerms(BuildContext context) {
   final cfg = context.read<Cloud>().config;
@@ -236,20 +242,26 @@ void showTerms(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('مەرج و ڕێساکان', style: Ts.h2(c)),
+        Text(tr('مەرج و ڕێساکان'), style: Ts.h2(c)),
         const SizedBox(height: 8),
         Text.rich(
           TextSpan(children: [
-            item('١. پاراستنی زانیاری:', 'زانیاری کەسی، وێنەی بەڵگەنامەکان و ژمارەی مۆبایل تەنها بۆ پشتڕاستکردنەوە و سەلامەتی گەشتەکان بەکاردێن و بە کەسی تر نادرێن.'),
-            item('٢. ژمارەی مۆبایل:', 'ژمارەی سەرنشین تەنها ئەگەر خۆی ڕێگە بدات بۆ شۆفێر دیار دەبێت.'),
-            item('٣. سەلامەتی منداڵان:', 'منداڵ هەرگیز لەگەڵ کەسی گەورەی نەناسراو سوار ناکرێت و تەنها شۆفێری پشکنراوی منداڵان گەشتی منداڵان وەردەگرن.'),
-            item('٤. سەرنشین:', Fmt.n('«نایەم» تا ${cfg['skipCutoffMin']} خولەک پێش گەشت دەکرێت. ئەگەر شۆفێر نەهات، ڕاپۆرت بکە و قەرەبوو دەکرێیتەوە.')),
-            item('٥. پارەدان:', 'نرخی مانگانە پێش دەستپێکردن ڕێک دەکەوێت و لە کاتی گەشتدا ناگۆڕێت.'),
+            item(tr('١. پاراستنی زانیاری:'), tr('زانیاری کەسی، وێنەی بەڵگەنامەکان و ژمارەی مۆبایل تەنها بۆ پشتڕاستکردنەوە و سەلامەتی گەشتەکان بەکاردێن و بە کەسی تر نادرێن.')),
+            item(tr('٢. ژمارەی مۆبایل:'), tr('ژمارەی سەرنشین تەنها ئەگەر خۆی ڕێگە بدات بۆ شۆفێر دیار دەبێت.')),
+            item(tr('٣. سەلامەتی منداڵان:'), tr('منداڵ هەرگیز لەگەڵ کەسی گەورەی نەناسراو سوار ناکرێت و تەنها شۆفێری پشکنراوی منداڵان گەشتی منداڵان وەردەگرن.')),
+            item(tr('٤. سەرنشین:'), Fmt.n(tr('«نایەم» تا {0} خولەک پێش گەشت دەکرێت. ئەگەر شۆفێر نەهات، ڕاپۆرت بکە و قەرەبوو دەکرێیتەوە.', [cfg['skipCutoffMin']]))),
+            item(tr('٥. پارەدان:'), tr('نرخی مانگانە پێش دەستپێکردن ڕێک دەکەوێت و لە کاتی گەشتدا ناگۆڕێت.')),
           ]),
           style: Ts.sm(c).copyWith(height: 2),
         ),
+        // دەقی تەواوی فەرمی (هەمان لینکەکانی Google Play و App Store)
+        // عەرەبی و ئینگلیزی: وەشانی ئینگلیزی پەڕەکان (?lang=en)
+        Wrap(spacing: 16, runSpacing: 4, children: [
+          YkLink(tr('مەرج و ڕێساکانی تەواو'), size: 13.6, onTap: () => launchUrl(Uri.parse('$kLegalBase/terms.html${L.ku ? '' : '?lang=en'}'), mode: LaunchMode.externalApplication)),
+          YkLink(tr('سیاسەتی تایبەتمەندی'), size: 13.6, onTap: () => launchUrl(Uri.parse('$kLegalBase/privacy.html${L.ku ? '' : '?lang=en'}'), mode: LaunchMode.externalApplication)),
+        ]),
         const SizedBox(height: 12),
-        YkButton('تێگەیشتم', block: true, onPressed: () => Navigator.pop(c)),
+        YkButton(tr('تێگەیشتم'), block: true, onPressed: () => Navigator.pop(c)),
       ],
     );
   });

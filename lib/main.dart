@@ -21,7 +21,7 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // کۆپی ناوخۆ: ئەپ بێ ئینتەرنێتیش دەکرێتەوە و دوایین زانیارییەکان پیشان دەدات
   FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true, cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED);
-  if (kIsWeb) debugPrint('یەکسا: وەشانی وێبی Flutter');
+  if (kIsWeb) debugPrint('یەکسا: وەشانی وێبی Flutter'); // i18n-keep
 
   MapsStatus.start();
   final settings = LocalSettings();

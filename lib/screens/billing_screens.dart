@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import '../core/billing.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/images.dart';
 import '../core/sel.dart';
 import '../ui/help.dart';
@@ -23,7 +24,7 @@ import 'request_screen.dart' show askConfirm;
 int _pos(int x) => x < 0 ? 0 : x;
 
 /// «٢٥٬٠٠٠» ← 25000
-int parseAmount(String v) => int.tryParse(v.replaceAllMapped(RegExp('[٠-٩]'), (m) => '${'٠١٢٣٤٥٦٧٨٩'.indexOf(m[0]!)}').replaceAll(RegExp(r'[^\d]'), '')) ?? 0;
+int parseAmount(String v) => int.tryParse(v.replaceAllMapped(RegExp('[٠-٩]'), (m) => '${'٠١٢٣٤٥٦٧٨٩'.indexOf(m[0]!)}').replaceAll(RegExp(r'[^\d]'), '')) ?? 0; // i18n-keep
 
 /// کارتی ڕەشی جزدان (ui.walletCard)
 class WalletCard extends StatelessWidget {
@@ -66,7 +67,7 @@ class WalletCard extends StatelessWidget {
         Text.rich(
           TextSpan(children: [
             TextSpan(text: '${amount < 0 ? '−' : ''}${Fmt.n(Fmt.group(amount.abs()))} '),
-            const TextSpan(text: 'دینار', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.white70)),
+            TextSpan(text: tr('دینار'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.white70)),
           ]),
           style: TextStyle(color: amount < 0 ? const Color(0xFFFCA5A5) : Colors.white, fontSize: 34, fontWeight: FontWeight.w800),
         ),
@@ -138,7 +139,7 @@ class TxRow extends StatelessWidget {
           const SizedBox(width: 8),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Text('${amt > 0 ? '+' : amt < 0 ? '−' : ''}${Fmt.n(Fmt.group(amt.abs()))}', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: amt > 0 ? t.okText : t.text)),
-            Text(pending ? 'چاوەڕێ' : Fmt.clock(Fmt.hhmm(((e['at'] as num?) ?? 0).toInt())), style: Ts.muted(context, size: 11)),
+            Text(pending ? tr('چاوەڕێ') : Fmt.clock(Fmt.hhmm(((e['at'] as num?) ?? 0).toInt())), style: Ts.muted(context, size: 11)),
           ]),
         ]),
       ),
@@ -179,33 +180,33 @@ void showReceipt(BuildContext context, Json e, {bool pending = false, Widget? ex
       Text.rich(
         TextSpan(children: [
           TextSpan(text: '${amt > 0 ? '+' : amt < 0 ? '−' : ''}${Fmt.n(Fmt.group(amt.abs()))} '),
-          TextSpan(text: 'دینار', style: TextStyle(fontSize: 16, color: t.muted, fontWeight: FontWeight.w400)),
+          TextSpan(text: tr('دینار'), style: TextStyle(fontSize: 16, color: t.muted, fontWeight: FontWeight.w400)),
         ]),
         textAlign: TextAlign.center,
         style: Ts.h1(c),
       ),
-      Center(child: pending ? const YkBadge('چاوەڕێی پشکنینە', tone: BadgeTone.note) : const YkBadge('تۆمارکراو', tone: BadgeTone.ok)),
+      Center(child: pending ? YkBadge(tr('چاوەڕێی پشکنینە'), tone: BadgeTone.note) : YkBadge(tr('تۆمارکراو'), tone: BadgeTone.ok)),
       const SizedBox(height: 12),
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(color: t.card, borderRadius: BorderRadius.circular(Yk.rMd), border: Border.all(color: t.line)),
         child: Column(children: [
-          row('جۆر', l.title),
-          row('وردەکاری', l.sub),
-          row('شێواز', e['method'] != null ? cloud.payName(e['method']) : ''),
-          row('ژمارەی حەواڵە', str(e['ref']), latin: true),
-          row('کات', '${Fmt.date(at)}، ${Fmt.clock(Fmt.hhmm(at))}'),
-          row('ناسنامە', idTxt, latin: true),
+          row(tr('جۆر'), l.title),
+          row(tr('وردەکاری'), l.sub),
+          row(tr('شێواز'), e['method'] != null ? cloud.payName(e['method']) : ''),
+          row(tr('ژمارەی حەواڵە'), str(e['ref']), latin: true),
+          row(tr('کات'), tr('{0}، {1}', [Fmt.date(at), Fmt.clock(Fmt.hhmm(at))])),
+          row(tr('ناسنامە'), idTxt, latin: true),
         ]),
       ),
       if (extra != null) ...[const SizedBox(height: 12), extra],
       const SizedBox(height: 10),
       if (!pending)
-        YkButton('هاوبەشکردنی پسوولە', icon: 'share', kind: BtnKind.secondary, block: true, onPressed: () {
-          SharePlus.instance.share(ShareParams(text: 'یەکسا: ${l.title}\n${amt > 0 ? '+' : '−'}${Fmt.money(amt.abs())}\n${Fmt.date(at)}، ${Fmt.hhmm(at)}\n$idTxt'));
+        YkButton(tr('هاوبەشکردنی پسوولە'), icon: 'share', kind: BtnKind.secondary, block: true, onPressed: () {
+          SharePlus.instance.share(ShareParams(text: tr('یەکسا: {0}\n{1}\n{2}، {3}\n{4}', [l.title, '${amt > 0 ? '+' : '−'}${Fmt.money(amt.abs())}', Fmt.date(at), Fmt.hhmm(at), idTxt])));
         }),
       const SizedBox(height: 8),
-      YkButton('داخستن', kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
+      YkButton(tr('داخستن'), kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
     ]);
   });
 }
@@ -237,16 +238,16 @@ class BillingScreen extends StatelessWidget {
 
     return Scaffold(
       body: YkScreen(children: [
-        const YkHeader('پارەدان'),
+        YkHeader(tr('پارەدان')),
         YkCard(
           big: true,
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
-              Expanded(child: Text('فاتورەی ${str(b['month'])}', style: Ts.bold(context))),
-              paid ? const YkBadge('دراوە', tone: BadgeTone.ok) : const YkBadge('ئامادەیە', tone: BadgeTone.note),
+              Expanded(child: Text(tr('فاتورەی {0}', [Fmt.monthName(str(b['month']))]), style: Ts.bold(context))),
+              paid ? YkBadge(tr('دراوە'), tone: BadgeTone.ok) : YkBadge(tr('ئامادەیە'), tone: BadgeTone.note),
             ]),
             const SizedBox(height: 6),
-            if (lines.isEmpty) Text('هیچ بەشدارییەکی چالاک نییە', style: Ts.muted(context, size: 14)),
+            if (lines.isEmpty) Text(tr('هیچ بەشدارییەکی چالاک نییە'), style: Ts.muted(context, size: 14)),
             for (final l in lines)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 3),
@@ -254,45 +255,45 @@ class BillingScreen extends StatelessWidget {
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(str(l['label']), style: Ts.sm(context)),
-                      if (str(l['note']).isNotEmpty) Text('${l['note']}، نرخی تەواو ${Fmt.n(Fmt.group((l['full'] as num?) ?? 0))}', style: Ts.muted(context, size: 12.5)),
+                      if (str(l['note']).isNotEmpty) Text(tr('{0}، نرخی تەواو {1}', [l['note'], Fmt.n(Fmt.group((l['full'] as num?) ?? 0))]), style: Ts.muted(context, size: 12.5)),
                     ]),
                   ),
                   _b(Fmt.n(Fmt.group((l['amount'] as num?) ?? 0)), size: 14),
                 ]),
               ),
-            if (promo > 0) _row(context, 'داشکاندن (${str(pr['code'])})', _b(Fmt.n(Fmt.group(promo)), color: t.okText, size: 14)),
-            for (final d in discounts) _row(context, d.$1, _b(Fmt.n(Fmt.group(-d.$2)), color: t.okText, size: 14)),
+            if (promo > 0) _row(context, tr('داشکاندن ({0})', [str(pr['code'])]), _b(Fmt.n(Fmt.group(promo)), color: t.okText, size: 14)),
+            for (final d in discounts) _row(context, trData(d.$1), _b(Fmt.n(Fmt.group(-d.$2)), color: t.okText, size: 14)),
             if (credit > 0)
-              for (final a in (h0 != null ? [<String, dynamic>{'note': 'قەرەبوو', 'amount': credit}] : inv.adjustments))
-                _row(context, str(a['note']), _b(Fmt.n(Fmt.group((a['amount'] as num?) ?? 0)), color: t.okText, size: 14)),
+              for (final a in (h0 != null ? [<String, dynamic>{'note': tr('قەرەبوو'), 'amount': credit}] : inv.adjustments))
+                _row(context, trData(str(a['note'])), _b(Fmt.n(Fmt.group((a['amount'] as num?) ?? 0)), color: t.okText, size: 14)),
             const YkHr(),
             Row(children: [
-              Expanded(child: Text('کۆی گشتی', style: Ts.bold(context))),
+              Expanded(child: Text(tr('کۆی گشتی'), style: Ts.bold(context))),
               Text(Fmt.money(total), style: Ts.h2(context).copyWith(color: t.brand)),
             ]),
             if (h0 == null && inv.waiting.isNotEmpty)
-              Text('${Fmt.money(inv.waiting.fold<int>(0, (n, d) => n + d.amount))} داشکاندنی چاوەڕوان لە فاتورەی داهاتوو دەبڕدرێت', style: Ts.muted(context, size: 12.8)),
+              Text(tr('{0} داشکاندنی چاوەڕوان لە فاتورەی داهاتوو دەبڕدرێت', [Fmt.money(inv.waiting.fold<int>(0, (n, d) => n + d.amount))]), style: Ts.muted(context, size: 12.8)),
           ]),
         ),
         if (paid)
-          YkButton('پسوولە', icon: 'receipt', kind: BtnKind.secondary, block: true, onPressed: () => _billReceipt(context))
+          YkButton(tr('پسوولە'), icon: 'receipt', kind: BtnKind.secondary, block: true, onPressed: () => _billReceipt(context))
         else ...[
           Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text('شێوازی پارەدان', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.muted)),
+            Text(tr('شێوازی پارەدان'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.muted)),
             const SizedBox(height: 6),
             YkSeg<String>(
-              options: const [('fib', 'FIB'), ('fastpay', 'FastPay'), ('cash', 'کاش')],
+              options: [('fib', 'FIB'), ('fastpay', 'FastPay'), ('cash', tr('کاش'))],
               value: str(b['method']).isEmpty ? 'cash' : str(b['method']),
               onChanged: (v) => cloud.setPayMethod(v),
             ),
           ]),
           if (pr.isEmpty) const _PromoField(),
-          YkButton('پارەدان، ${Fmt.money(inv.total)}', block: true, onPressed: inv.total > 0 ? () => _payNow(context) : null),
-          if (p1000 > 0) Text(Fmt.n('بە هەر ${Fmt.group(1000)} دینار، $p1000 خاڵی پاداشت وەردەگریت'), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
+          YkButton(tr('پارەدان، {0}', [Fmt.money(inv.total)]), block: true, onPressed: inv.total > 0 ? () => _payNow(context) : null),
+          if (p1000 > 0) Text(Fmt.n(tr('بە هەر {0} دینار، {1} خاڵی پاداشت وەردەگریت', [Fmt.group(1000), p1000])), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
         ],
-        Text('مێژووی پارەدان', style: Ts.h3(context)),
+        Text(tr('مێژووی پارەدان'), style: Ts.h3(context)),
         if (history.isEmpty)
-          Text('هێشتا هیچ پارەدانێک نییە', style: Ts.muted(context, size: 14))
+          Text(tr('هێشتا هیچ پارەدانێک نییە'), style: Ts.muted(context, size: 14))
         else
           YkList(children: [
             for (final h in history)
@@ -303,7 +304,7 @@ class BillingScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(str(h['month']), style: Ts.bold(context)),
+                      Text(Fmt.monthName(str(h['month'])), style: Ts.bold(context)),
                       Text(Fmt.ago(((h['at'] as num?) ?? 0).toInt()), style: Ts.muted(context, size: 12.5)),
                     ]),
                   ),
@@ -319,34 +320,34 @@ class BillingScreen extends StatelessWidget {
     final cloud = context.read<Cloud>();
     final inv = cloud.invoice();
     final method = str(cloud.billing['method']).isEmpty ? 'cash' : str(cloud.billing['method']);
-    final m = const {'fib': 'FIB', 'fastpay': 'FastPay', 'cash': 'کاش'}[method] ?? method;
+    final m = {'fib': 'FIB', 'fastpay': 'FastPay', 'cash': tr('کاش')}[method] ?? method;
     var busy = false;
     showYkSheet(context, builder: (c) {
       return StatefulBuilder(builder: (c, setS) {
         final t = c.yk;
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('پشتڕاستکردنەوەی پارەدان', style: Ts.h2(c)),
+          Text(tr('پشتڕاستکردنەوەی پارەدان'), style: Ts.h2(c)),
           const SizedBox(height: 12),
           YkCard(
             child: Column(children: [
-              _row(c, 'بڕ', _b(Fmt.money(inv.total), color: t.brand)),
-              _row(c, 'شێواز', _b(m)),
+              _row(c, tr('بڕ'), _b(Fmt.money(inv.total), color: t.brand)),
+              _row(c, tr('شێواز'), _b(m)),
             ]),
           ),
           const SizedBox(height: 10),
           Text(
-            method == 'cash' ? 'پارەکە بدە بە بەڕێوەبەر یان نوێنەری یەکسا؛ کاتێک وەریگرت تۆماری دەکات.' : 'لە ئەپی $m بنێرە بۆ هەژماری یەکسا، پاشان لێرە پشتڕاستی بکەرەوە. یەکسا دەیپشکنێت.',
+            method == 'cash' ? tr('پارەکە بدە بە بەڕێوەبەر یان نوێنەری یەکسا؛ کاتێک وەریگرت تۆماری دەکات.') : tr('لە ئەپی {0} بنێرە بۆ هەژماری یەکسا، پاشان لێرە پشتڕاستی بکەرەوە. یەکسا دەیپشکنێت.', [m]),
             style: Ts.muted(c, size: 12.8),
           ),
           const SizedBox(height: 14),
-          YkButton('پارەدان', block: true, busy: busy, onPressed: () async {
+          YkButton(trc('پارەدان', 'ادفع', 'Pay'), block: true, busy: busy, onPressed: () async {
             setS(() => busy = true);
             final pts = await cloud.pay();
             if (c.mounted) Navigator.pop(c);
-            if (context.mounted) toast(context, 'پارەدان سەرکەوتوو بوو${pts > 0 ? Fmt.n('، $pts خاڵ زیاد کرا') : ''}');
+            if (context.mounted) toast(context, pts > 0 ? Fmt.n(tr('پارەدان سەرکەوتوو بوو، {0} خاڵ زیاد کرا', [pts])) : tr('پارەدان سەرکەوتوو بوو'));
           }),
           const SizedBox(height: 8),
-          YkButton('پاشگەزبوونەوە', kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
+          YkButton(tr('پاشگەزبوونەوە'), kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
         ]);
       });
     });
@@ -365,40 +366,40 @@ class BillingScreen extends StatelessWidget {
     showYkSheet(context, builder: (c) {
       final t = c.yk;
       // لە ناو builder، تا لە هەر دووبارە دروستکردنێک دێڕەکان دووبارە نەبنەوە
-      final text = StringBuffer('یەکسا، پسوولەی ${h['month']}\n${Fmt.date(at)}\n${p['name']}، ${Fmt.phone(str(p['phone']))}\n');
+      final text = StringBuffer(tr('یەکسا، پسوولەی {0}\n{1}\n{2}، {3}\n', [Fmt.monthName(str(h['month'])), Fmt.date(at), p['name'], Fmt.phone(str(p['phone']))]));
       final rows = <(String, String)>[
         for (final l in lines) (str(l['label']), Fmt.n(Fmt.group((l['amount'] as num?) ?? 0))),
-        if (((h['promo'] as num?) ?? 0) > 0) ('داشکاندن', Fmt.n(Fmt.group(h['promo'] as num))),
-        for (final d in asList(h['discounts']).map(asMap)) (str(d['label']), Fmt.n(Fmt.group(-((d['amount'] as num?) ?? 0)))),
-        if (((h['credit'] as num?) ?? 0) > 0) ('قەرەبوو', Fmt.n(Fmt.group(h['credit'] as num))),
+        if (((h['promo'] as num?) ?? 0) > 0) (tr('داشکاندن'), Fmt.n(Fmt.group(h['promo'] as num))),
+        for (final d in asList(h['discounts']).map(asMap)) (trData(str(d['label'])), Fmt.n(Fmt.group(-((d['amount'] as num?) ?? 0)))),
+        if (((h['credit'] as num?) ?? 0) > 0) (tr('قەرەبوو'), Fmt.n(Fmt.group(h['credit'] as num))),
       ];
       for (final r in rows) {
         text.writeln('${r.$1}: ${r.$2}');
       }
-      text.write('کۆی گشتی: ${Fmt.money((h['total'] as num?) ?? 0)}');
+      text.write(tr('کۆی گشتی: {0}', [Fmt.money((h['total'] as num?) ?? 0)]));
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(color: t.card, borderRadius: BorderRadius.circular(Yk.rLg), border: Border.all(color: t.line)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
-              Expanded(child: Text('یەکسا', style: Ts.h2(c))),
-              const YkBadge('دراوە', tone: BadgeTone.ok),
+              Expanded(child: Text(tr('یەکسا'), style: Ts.h2(c))),
+              YkBadge(tr('دراوە'), tone: BadgeTone.ok),
             ]),
             const SizedBox(height: 8),
-            Text('پسوولەی ${h['month']}', style: Ts.bold(c)),
+            Text(tr('پسوولەی {0}', [Fmt.monthName(str(h['month']))]), style: Ts.bold(c)),
             Text(Fmt.date(at), style: Ts.muted(c, size: 12.8)),
-            Text('${p['name']}، ${Fmt.phone(str(p['phone']))}', style: Ts.muted(c, size: 12.8)),
+            Text(tr('{0}، {1}', [p['name'], Fmt.phone(str(p['phone']))]), style: Ts.muted(c, size: 12.8)),
             const YkHr(),
             for (final r in rows) _row(c, r.$1, _b(r.$2, size: 14)),
             const YkHr(),
-            _row(c, 'کۆی گشتی', _b(Fmt.money((h['total'] as num?) ?? 0))),
+            _row(c, tr('کۆی گشتی'), _b(Fmt.money((h['total'] as num?) ?? 0))),
           ]),
         ),
         const SizedBox(height: 12),
-        YkButton('هاوبەشکردن / پاشەکەوت', icon: 'share', block: true, onPressed: () => SharePlus.instance.share(ShareParams(text: text.toString()))),
+        YkButton(tr('هاوبەشکردن / پاشەکەوت'), icon: 'share', block: true, onPressed: () => SharePlus.instance.share(ShareParams(text: text.toString()))),
         const SizedBox(height: 8),
-        YkButton('داخستن', kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
+        YkButton(tr('داخستن'), kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
       ]);
     });
   }
@@ -426,16 +427,16 @@ class _PromoFieldState extends State<_PromoField> {
         child: TextField(
           controller: _c,
           textCapitalization: TextCapitalization.characters,
-          decoration: ykInput(context, hint: 'کۆدی داشکاندن (ئەگەر هەتە)'),
+          decoration: ykInput(context, hint: tr('کۆدی داشکاندن (ئەگەر هەتە)')),
         ),
       ),
       const SizedBox(width: 8),
-      YkButton('جێبەجێکردن', kind: BtnKind.secondary, onPressed: () async {
+      YkButton(tr('جێبەجێکردن'), kind: BtnKind.secondary, onPressed: () async {
         final cloud = context.read<Cloud>();
         final code = _c.text;
         final err = await cloud.applyPromo(code);
         final n = cloud.list('news').where((x) => str(x['code']).toUpperCase() == code.trim().toUpperCase()).firstOrNull;
-        if (context.mounted) toast(context, err ?? Fmt.n('داشکاندنی ${n?['rate'] ?? 10}٪ جێبەجێ کرا'));
+        if (context.mounted) toast(context, err ?? Fmt.n(tr('داشکاندنی {0}٪ جێبەجێ کرا', [n?['rate'] ?? 10])));
       }),
     ]);
   }
@@ -460,31 +461,31 @@ class WalletScreen extends StatelessWidget {
             child: Row(children: [
               IcoBox(icon, size: 40, bg: t.chip, color: t.text),
               const SizedBox(width: 10),
-              Expanded(child: Text(label, style: Ts.bold(context))),
-              YkIcon('forward', size: 16, color: t.muted),
+              Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: AlignmentDirectional.centerStart, child: Text(label, maxLines: 1, style: Ts.bold(context)))),
+              YkIcon(L.rtl ? 'forward' : 'back', size: 16, color: t.muted),
             ]),
           ),
         );
     return Scaffold(
       body: YkScreen(onRefresh: context.read<Cloud>().refresh, children: [
-        const YkHeader('جزدانەکەم', right: HelpButton('wallet')),
+        YkHeader(tr('جزدانەکەم'), right: const HelpButton('wallet')),
         WalletCard(
-          title: 'باڵانسی بەردەست',
-          tag: 'جزدانی یەکسا',
+          title: tr('باڵانسی بەردەست'),
+          tag: tr('جزدانی یەکسا'),
           amount: bal - cloud.pendingWithdraw,
           pills: [
             (
               inv.lines.isNotEmpty ? 'calendar' : 'check',
               inv.lines.isNotEmpty
                   ? Text.rich(TextSpan(children: [
-                      const TextSpan(text: 'ئەم مانگە '),
+                      TextSpan(text: '${tr('ئەم مانگە')} '),
                       TextSpan(text: Fmt.n(Fmt.group(inv.total)), style: const TextStyle(fontWeight: FontWeight.w700)),
                     ]))
-                  : Text(paidNow ? 'ئەم مانگە دراوە' : 'هیچ پارەیەک نییە'),
+                  : Text(paidNow ? tr('ئەم مانگە دراوە') : tr('هیچ پارەیەک نییە')),
             ),
           ],
         ),
-        _trust(context, 'پارەکەت لای یەکسا پارێزراوە. هەر جووڵەیەک لێرە تۆمار دەکرێت.'),
+        _trust(context, tr('پارەکەت لای یەکسا پارێزراوە. هەر جووڵەیەک لێرە تۆمار دەکرێت.')),
         // پارەدان: پارەی مانگانەی هەموو شۆفێرەکان (نەدراو و دراو)
         GestureDetector(
           onTap: () => push(context, const PaymentsScreen()),
@@ -504,36 +505,36 @@ class WalletScreen extends StatelessWidget {
                 child: const YkIcon('wallet', size: 22, color: Color(0xFF0B1733), stroke: 2),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('پارەدان', style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800, color: Color(0xFF0B1733))),
-                  Text('پارەی مانگانەی شۆفێرەکانت', style: TextStyle(fontSize: 12.8, color: Color(0xFF0B1733))),
+                  Text(tr('پارەدان'), style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800, color: Color(0xFF0B1733))),
+                  Text(tr('پارەی مانگانەی شۆفێرەکانت'), style: const TextStyle(fontSize: 12.8, color: Color(0xFF0B1733))),
                 ]),
               ),
-              const YkIcon('forward', size: 20, color: Color(0xFF0B1733)),
+              YkIcon(L.rtl ? 'forward' : 'back', size: 20, color: const Color(0xFF0B1733)),
             ]),
           ),
         ),
-        Row(children: [tile('plus', 'زیادکردن', const TopupScreen()), const SizedBox(width: 10), tile('download', 'ڕاکێشان', const WithdrawScreen())]),
-        Row(children: [tile('send', 'ناردن', const SendMoneyScreen()), const SizedBox(width: 10), tile('receipt', 'مامەڵەکان', const TxsScreen())]),
+        Row(children: [tile('plus', tr('زیادکردن'), const TopupScreen()), const SizedBox(width: 10), tile('download', tr('ڕاکێشان'), const WithdrawScreen())]),
+        Row(children: [tile('send', tr('ناردن'), const SendMoneyScreen()), const SizedBox(width: 10), tile('receipt', tr('مامەڵەکان'), const TxsScreen())]),
         if (inv.lines.isNotEmpty)
           YkCard(
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Row(children: [
-                Expanded(child: Text('پارەی ${str(cloud.billing['month'])}', style: Ts.bold(context))),
-                const YkBadge('گەشتەکان چاوەڕێن', tone: BadgeTone.note),
+                Expanded(child: Text(tr('پارەی {0}', [Fmt.monthName(str(cloud.billing['month']))]), style: Ts.bold(context))),
+                YkBadge(tr('گەشتەکان چاوەڕێن'), tone: BadgeTone.note),
               ]),
               const SizedBox(height: 10),
               _Progress(value: bal / (inv.total == 0 ? 1 : inv.total)),
               const SizedBox(height: 6),
               Row(children: [
-                Expanded(child: Text(Fmt.n('ئامادەیە ${Fmt.group(bal.clamp(0, inv.total))}'), style: Ts.muted(context, size: 14))),
-                Text(Fmt.n('لە ${Fmt.group(inv.total)}'), style: Ts.muted(context, size: 14)),
+                Expanded(child: Text(Fmt.n(tr('ئامادەیە {0}', [Fmt.group(bal.clamp(0, inv.total))])), style: Ts.muted(context, size: 14))),
+                Text(Fmt.n(tr('لە {0}', [Fmt.group(inv.total)])), style: Ts.muted(context, size: 14)),
               ]),
               const SizedBox(height: 10),
               need > 0
-                  ? YkButton('زیادکردنی ${Fmt.n(Fmt.group(need))} ی ماوە', icon: 'plus', small: true, block: true, kind: BtnKind.secondary, onPressed: () => push(context, TopupScreen(amount: need)))
-                  : YkButton('پارەدانی مانگ لە جزدان', icon: 'check', small: true, block: true, onPressed: () => push(context, const PayMonthScreen())),
+                  ? YkButton(tr('زیادکردنی {0} ی ماوە', [Fmt.n(Fmt.group(need))]), icon: 'plus', small: true, block: true, kind: BtnKind.secondary, onPressed: () => push(context, TopupScreen(amount: need)))
+                  : YkButton(tr('پارەدانی مانگ لە جزدان'), icon: 'check', small: true, block: true, onPressed: () => push(context, const PayMonthScreen())),
             ]),
           ),
       ]),
@@ -574,19 +575,19 @@ class _PayMonthScreenState extends State<PayMonthScreen> {
       final has = cloud.mySubs.isNotEmpty;
       return Scaffold(
         body: YkScreen(children: [
-          const YkHeader('پارەدانی مانگ'),
+          YkHeader(tr('پارەدانی مانگ')),
           YkEmpty(
             icon: 'receipt',
-            title: has ? 'پارەی ئەم مانگە دراوە' : 'هیچ بەشدارییەکت نییە',
-            text: has ? 'گەشتەکانت بەردەوامن. مانگی داهاتوو لێرە دەردەکەوێت.' : 'بەشدارییەکی مانگانە دروست بکە',
-            button: YkButton('جزدانەکەم', kind: BtnKind.secondary, onPressed: () => Navigator.of(context).maybePop()),
+            title: has ? tr('پارەی ئەم مانگە دراوە') : tr('هیچ بەشدارییەکت نییە'),
+            text: has ? tr('گەشتەکانت بەردەوامن. مانگی داهاتوو لێرە دەردەکەوێت.') : tr('بەشدارییەکی مانگانە دروست بکە'),
+            button: YkButton(tr('جزدانەکەم'), kind: BtnKind.secondary, onPressed: () => Navigator.of(context).maybePop()),
           ),
         ]),
       );
     }
     return Scaffold(
       body: YkScreen(children: [
-        const YkHeader('پارەدانی مانگ'),
+        YkHeader(tr('پارەدانی مانگ')),
         YkCard(
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             for (var i = 0; i < inv.lines.length; i++) ...[
@@ -601,7 +602,7 @@ class _PayMonthScreenState extends State<PayMonthScreen> {
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(l.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.bold(context)),
-                      Text('${fmtDays(asList(s['days']))}${l.note.isNotEmpty ? '، ${l.note}' : ''}', style: Ts.muted(context, size: 12.5)),
+                      Text(l.note.isNotEmpty ? tr('{0}، {1}', [fmtDays(asList(s['days'])), l.note]) : fmtDays(asList(s['days'])), style: Ts.muted(context, size: 12.5)),
                     ]),
                   ),
                   _b(Fmt.n(Fmt.group(l.amount))),
@@ -609,29 +610,29 @@ class _PayMonthScreenState extends State<PayMonthScreen> {
               }),
             ],
             if (inv.promo > 0 || inv.discounts.isNotEmpty) const YkHr(),
-            if (inv.promo > 0) _row(context, 'داشکاندنی هاوبەش', _b('−${Fmt.n(Fmt.group(inv.promo))}', color: t.okText)),
-            for (final d in inv.discounts) _row(context, d.label, _b('−${Fmt.n(Fmt.group(d.amount))}', color: t.okText)),
+            if (inv.promo > 0) _row(context, tr('داشکاندنی هاوبەش'), _b('−${Fmt.n(Fmt.group(inv.promo))}', color: t.okText)),
+            for (final d in inv.discounts) _row(context, trData(d.label), _b('−${Fmt.n(Fmt.group(d.amount))}', color: t.okText)),
             const SizedBox(height: 6),
-            if (pr.isNotEmpty) _row(context, 'کۆدی داشکاندن', _b(str(pr['code']), size: 14)) else const _PromoField(),
+            if (pr.isNotEmpty) _row(context, tr('کۆدی داشکاندن'), _b(str(pr['code']), size: 14)) else const _PromoField(),
             const YkHr(),
-            _row(context, 'کۆی پارەی ${str(cloud.billing['month'])}', _b(Fmt.money(inv.total))),
-            _row(context, 'باڵانسی جزدانەکەت', _b(Fmt.money(bal), color: bal >= inv.total ? t.okText : null)),
+            _row(context, tr('کۆی پارەی {0}', [Fmt.monthName(str(cloud.billing['month']))]), _b(Fmt.money(inv.total))),
+            _row(context, tr('باڵانسی جزدانەکەت'), _b(Fmt.money(bal), color: bal >= inv.total ? t.okText : null)),
             const SizedBox(height: 6),
             if (need > 0) ...[
               _Progress(value: bal / (inv.total == 0 ? 1 : inv.total)),
               const SizedBox(height: 6),
               Row(children: [
-                Expanded(child: Text(Fmt.n('لە جزدانەکەت ${Fmt.group(bal < 0 ? 0 : bal)}'), style: Ts.muted(context, size: 14))),
-                Text(Fmt.n('پێویستە ${Fmt.group(need)} ی تر'), style: TextStyle(fontSize: 14, color: t.dangerText, fontWeight: FontWeight.w700)),
+                Expanded(child: Text(Fmt.n(tr('لە جزدانەکەت {0}', [Fmt.group(bal < 0 ? 0 : bal)])), style: Ts.muted(context, size: 14))),
+                Text(Fmt.n(tr('پێویستە {0} ی تر', [Fmt.group(need)])), style: TextStyle(fontSize: 14, color: t.dangerText, fontWeight: FontWeight.w700)),
               ]),
               const SizedBox(height: 10),
-              YkButton('زیادکردنی ${Fmt.n(Fmt.group(need))}', icon: 'plus', block: true, large: true, onPressed: () => push(context, TopupScreen(amount: need))),
+              YkButton(tr('زیادکردنی {0}', [Fmt.n(Fmt.group(need))]), icon: 'plus', block: true, large: true, onPressed: () => push(context, TopupScreen(amount: need))),
             ] else ...[
-              _row(context, 'باڵانس دوای پارەدان', _b(Fmt.money(bal - inv.total))),
+              _row(context, tr('باڵانس دوای پارەدان'), _b(Fmt.money(bal - inv.total))),
               const SizedBox(height: 10),
-              YkButton('پارەدان لە جزدان', icon: 'check', block: true, large: true, busy: _busy, onPressed: () async {
+              YkButton(tr('پارەدان لە جزدان'), icon: 'check', block: true, large: true, busy: _busy, onPressed: () async {
                 // پرسیاری دووپاتکردنەوە پێش بڕینی پارە لە جزدان
-                final ok = await askConfirm(context, 'پارەی ${str(cloud.billing['month'])} (${Fmt.money(inv.total)}) لە جزدانەکەت دەدرێت؟', yes: 'پارەدان', danger: false);
+                final ok = await askConfirm(context, tr('پارەی {0} ({1}) لە جزدانەکەت دەدرێت؟', [Fmt.monthName(str(cloud.billing['month'])), Fmt.money(inv.total)]), yes: tr('پارەدان'), danger: false);
                 if (!ok || !context.mounted) return;
                 setState(() => _busy = true);
                 final err = await cloud.payMonth();
@@ -641,15 +642,15 @@ class _PayMonthScreenState extends State<PayMonthScreen> {
                   toast(context, err);
                   return;
                 }
-                toast(context, 'پارەی مانگ درا، گەشتەکان دەست پێدەکەن');
+                toast(context, tr('پارەی مانگ درا، گەشتەکان دەست پێدەکەن'));
                 Navigator.of(context).maybePop();
               }),
             ],
             const SizedBox(height: 10),
-            _trust(context, 'پارەکە لای یەکسا دەمێنێتەوە و ڕۆژ بە ڕۆژ، تەنها دوای تەواوبوونی هەر گەشتێک، دەچێتە سەر حیسابی شۆفێر.'),
+            _trust(context, tr('پارەکە لای یەکسا دەمێنێتەوە و ڕۆژ بە ڕۆژ، تەنها دوای تەواوبوونی هەر گەشتێک، دەچێتە سەر حیسابی شۆفێر.')),
           ]),
         ),
-        if (inv.waiting.isNotEmpty) Text('${inv.waiting.map((w) => w.label).join('، ')} بۆ مانگی داهاتوو دەمێنێتەوە.', style: Ts.muted(context, size: 12.8)),
+        if (inv.waiting.isNotEmpty) Text(tr('{0} بۆ مانگی داهاتوو دەمێنێتەوە.', [inv.waiting.map((w) => trData(w.label)).join(tr('، '))]), style: Ts.muted(context, size: 12.8)),
       ]),
     );
   }
@@ -659,7 +660,7 @@ class _PayMonthScreenState extends State<PayMonthScreen> {
 
 String _monthName(String mk) {
   final p = mk.split('-');
-  return '${kMonths[int.parse(p[1]) - 1]} ${Fmt.n(p[0])}';
+  return '${Fmt.month(int.parse(p[1]) - 1)} ${Fmt.n(p[0])}';
 }
 
 class PaymentsScreen extends StatefulWidget {
@@ -682,9 +683,9 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     final paid = cloud.myWallet.where((e) => e['type'] == 'monthpay' && e['incoming'] != true).toList();
     return Scaffold(
       body: YkScreen(onRefresh: cloud.refresh, children: [
-        const YkHeader('پارەدانی مانگانە'),
+        YkHeader(tr('پارەدانی مانگانە')),
         YkSeg<String>(
-          options: [('due', 'نەدراو'), ('paid', Fmt.n('دراو (${paid.length})'))],
+          options: [('due', tr('نەدراو')), ('paid', Fmt.n(tr('دراو ({0})', [paid.length])))],
           value: _tab,
           onChanged: (v) => setState(() => _tab = v),
         ),
@@ -701,8 +702,8 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
       return [
         YkEmpty(
           icon: 'receipt',
-          title: cloud.mySubs.isEmpty ? 'هیچ بەشدارییەکت نییە' : 'هەموو پارەکان دراون',
-          text: cloud.mySubs.isEmpty ? 'بەشدارییەکی مانگانە دروست بکە' : 'پارەی ئەم مانگە و مانگی داهاتوو دراوە. لە «دراو» پسوولەکان دەبینیت.',
+          title: cloud.mySubs.isEmpty ? tr('هیچ بەشدارییەکت نییە') : tr('هەموو پارەکان دراون'),
+          text: cloud.mySubs.isEmpty ? tr('بەشدارییەکی مانگانە دروست بکە') : tr('پارەی ئەم مانگە و مانگی داهاتوو دراوە. لە «دراو» پسوولەکان دەبینیت.'),
         ),
       ];
     }
@@ -728,10 +729,10 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                   _b(Fmt.n(Fmt.group(l.amount))),
                   const SizedBox(height: 4),
-                  const YkBadge('نەدراو', tone: BadgeTone.note),
+                  YkBadge(tr('نەدراو'), tone: BadgeTone.note),
                 ]),
                 const SizedBox(width: 6),
-                YkIcon('forward', size: 16, color: t.muted),
+                YkIcon(L.rtl ? 'forward' : 'back', size: 16, color: t.muted),
               ]),
             );
           }),
@@ -742,7 +743,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
   List<Widget> _paid(BuildContext context, List<Json> paid) {
     final t = context.yk;
     if (paid.isEmpty) {
-      return [const YkEmpty(icon: 'receipt', title: 'هێشتا هیچ پارەیەکت نەداوە', text: 'هەر پارەیەکی مانگانە بدەیت، لێرە وەک بەڵگە دەمێنێتەوە')];
+      return [YkEmpty(icon: 'receipt', title: tr('هێشتا هیچ پارەیەکت نەداوە'), text: tr('هەر پارەیەکی مانگانە بدەیت، لێرە وەک بەڵگە دەمێنێتەوە'))];
     }
     return [
       for (final e in paid)
@@ -750,8 +751,8 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           onTap: () => showReceipt(context, e),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
-              Expanded(child: Text(str(e['month']).isEmpty ? str(e['note']) : _monthName(str(e['month'])), style: Ts.bold(context))),
-              const YkBadge('دراو ✓', tone: BadgeTone.ok),
+              Expanded(child: Text(str(e['month']).isEmpty ? trData(str(e['note'])) : _monthName(str(e['month'])), style: Ts.bold(context))),
+              YkBadge(tr('دراو ✓'), tone: BadgeTone.ok),
             ]),
             Text(Fmt.date(((e['at'] as num?) ?? 0).toInt()), style: Ts.muted(context, size: 12.5)),
             const SizedBox(height: 8),
@@ -768,7 +769,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
               ),
             const YkHr(),
             Row(children: [
-              Expanded(child: Text('کۆی دراو', style: Ts.muted(context, size: 13.4))),
+              Expanded(child: Text(tr('کۆی دراو'), style: Ts.muted(context, size: 13.4))),
               Text(Fmt.money(-(((e['amount'] as num?) ?? 0))), style: TextStyle(fontWeight: FontWeight.w800, color: t.text)),
             ]),
           ]),
@@ -800,15 +801,15 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
     if (inv.lines.isEmpty) {
       return Scaffold(
         body: YkScreen(children: [
-          YkHeader('پارەی ${_monthName(mk)}'),
-          const YkEmpty(icon: 'receipt', title: 'ئەم پارەیە دراوە', text: 'لە «دراو» پسوولەکەی دەبینیت'),
+          YkHeader(tr('پارەی {0}', [_monthName(mk)])),
+          YkEmpty(icon: 'receipt', title: tr('ئەم پارەیە دراوە'), text: tr('لە «دراو» پسوولەکەی دەبینیت')),
         ]),
       );
     }
     final l = inv.lines.first;
     final bal = cloud.balance;
     final need = _pos(inv.total - bal);
-    String place(Object? x) => str(x).split('، ').first;
+    String place(Object? x) => str(x).split('، ').first; // i18n-keep
     String time(Object? x) => str(x).isEmpty ? '—' : Fmt.clock(str(x));
     // دێڕی زانیاری: نووسینی درێژ دەچێتە دێڕی دووەم، نەک لە شاشە دەربچێت
     Widget info(String k, String v) => Padding(
@@ -821,7 +822,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
         );
     return Scaffold(
       body: YkScreen(children: [
-        YkHeader('پارەی ${_monthName(mk)}'),
+        YkHeader(tr('پارەی {0}', [_monthName(mk)])),
         // شۆفێر
         YkCard(
           onTap: () => openLink(context, 'driver/${d['id']}'),
@@ -840,43 +841,43 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
         // بەشداری
         YkCard(
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            info('سەرنشین', str(s['riderNames'])),
-            info('لە', place(s['from'])),
-            info('بۆ', place(s['to'])),
-            info('ڕۆژەکان', fmtDays(asList(s['days']))),
-            info('چوون / هاتنەوە', '${time(s['go'])} / ${time(s['back'])}'),
-            info('گەشتەکانی ${_monthName(mk)}', Fmt.n('${l.legs} گەشت')),
+            info(tr('سەرنشین'), str(s['riderNames'])),
+            info(tr('لە'), place(s['from'])),
+            info(tr('بۆ'), place(s['to'])),
+            info(tr('ڕۆژەکان'), fmtDays(asList(s['days']))),
+            info(tr('چوون / هاتنەوە'), '${time(s['go'])} / ${time(s['back'])}'),
+            info(tr('گەشتەکانی {0}', [_monthName(mk)]), Fmt.n(tr('{0} گەشت', [l.legs]))),
             if (l.note.isNotEmpty) Text(l.note, style: Ts.muted(context, size: 12.8)),
           ]),
         ),
         // بڕ و پارەدان
         YkCard(
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _row(context, 'نرخی مانگانە', _b(Fmt.money(l.full))),
-            if (l.amount != l.full) _row(context, 'بڕی ئەم مانگە', _b(Fmt.money(l.amount))),
-            if (inv.promo > 0) _row(context, 'داشکاندنی هاوبەش', _b('−${Fmt.n(Fmt.group(inv.promo))}', color: t.okText)),
-            for (final x in inv.discounts) _row(context, x.label, _b('−${Fmt.n(Fmt.group(x.amount))}', color: t.okText)),
+            _row(context, tr('نرخی مانگانە'), _b(Fmt.money(l.full))),
+            if (l.amount != l.full) _row(context, tr('بڕی ئەم مانگە'), _b(Fmt.money(l.amount))),
+            if (inv.promo > 0) _row(context, tr('داشکاندنی هاوبەش'), _b('−${Fmt.n(Fmt.group(inv.promo))}', color: t.okText)),
+            for (final x in inv.discounts) _row(context, trData(x.label), _b('−${Fmt.n(Fmt.group(x.amount))}', color: t.okText)),
             const YkHr(),
-            _row(context, 'کۆی پارە', _b(Fmt.money(inv.total), size: 18)),
-            _row(context, 'باڵانسی جزدان', _b(Fmt.money(bal), color: bal >= inv.total ? t.okText : null)),
-            if (need > 0) _row(context, 'ماوە بۆ زیادکردن', _b(Fmt.money(need), color: t.dangerText)),
+            _row(context, tr('کۆی پارە'), _b(Fmt.money(inv.total), size: 18)),
+            _row(context, tr('باڵانسی جزدان'), _b(Fmt.money(bal), color: bal >= inv.total ? t.okText : null)),
+            if (need > 0) _row(context, tr('ماوە بۆ زیادکردن'), _b(Fmt.money(need), color: t.dangerText)),
             const SizedBox(height: 12),
             if (need > 0)
-              YkButton('زیادکردنی ${Fmt.n(Fmt.group(need))} ی ماوە', icon: 'plus', block: true, large: true, onPressed: () => push(context, TopupScreen(amount: need)))
+              YkButton(tr('زیادکردنی {0} ی ماوە', [Fmt.n(Fmt.group(need))]), icon: 'plus', block: true, large: true, onPressed: () => push(context, TopupScreen(amount: need)))
             else
-              YkButton('پارەدان لە جزدان', icon: 'check', block: true, large: true, busy: _busy, onPressed: () async {
-                final ok = await askConfirm(context, '${Fmt.money(inv.total)} لە جزدانەکەت بۆ ${str(d['name'])}، ${_monthName(mk)} دەدرێت.', yes: 'پارەدان', danger: false);
+              YkButton(tr('پارەدان لە جزدان'), icon: 'check', block: true, large: true, busy: _busy, onPressed: () async {
+                final ok = await askConfirm(context, tr('{0} لە جزدانەکەت بۆ {1}، {2} دەدرێت.', [Fmt.money(inv.total), str(d['name']), _monthName(mk)]), yes: tr('پارەدان'), danger: false);
                 if (!ok || !context.mounted) return;
                 setState(() => _busy = true);
                 final err = await cloud.payMonth(mk: mk, only: {widget.subId});
                 if (!context.mounted) return;
                 setState(() => _busy = false);
                 if (err != null) return toast(context, err);
-                toastAfterNav(context, 'پارەی ${_monthName(mk)} درا');
+                toastAfterNav(context, tr('پارەی {0} درا', [_monthName(mk)]));
                 Navigator.of(context).pop();
               }),
             const SizedBox(height: 10),
-            _trust(context, 'پارەکە لای یەکسا دەمێنێتەوە و ڕۆژ بە ڕۆژ، تەنها دوای تەواوبوونی هەر گەشتێک، دەچێتە سەر حیسابی شۆفێر.'),
+            _trust(context, tr('پارەکە لای یەکسا دەمێنێتەوە و ڕۆژ بە ڕۆژ، تەنها دوای تەواوبوونی هەر گەشتێک، دەچێتە سەر حیسابی شۆفێر.')),
           ]),
         ),
       ]),
@@ -888,9 +889,10 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
 
 /// خانەی گەورەی بڕ (amt-hero)
 class _AmountField extends StatelessWidget {
-  const _AmountField({required this.ctrl, required this.label, this.sub = 'دینار'});
+  const _AmountField({required this.ctrl, required this.label, this.sub});
   final TextEditingController ctrl;
-  final String label, sub;
+  final String label;
+  final String? sub;
   @override
   Widget build(BuildContext context) {
     final t = context.yk;
@@ -904,11 +906,11 @@ class _AmountField extends StatelessWidget {
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         textDirection: TextDirection.ltr,
-        inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9٠-٩,٬]'))],
+        inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[0-9٠-٩,٬]'))], // i18n-keep
         style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: t.text),
         decoration: const InputDecoration(border: InputBorder.none, isDense: true, hintText: '0', contentPadding: EdgeInsets.symmetric(vertical: 8)),
       ),
-      Text(sub, style: Ts.muted(context, size: 12.8).copyWith(height: 1.7)),
+      Text(sub ?? tr('دینار'), style: Ts.muted(context, size: 12.8).copyWith(height: 1.7)),
     ]),
     );
   }
@@ -951,7 +953,7 @@ class _AmountHero extends StatelessWidget {
               textDirection: TextDirection.ltr,
               style: TextStyle(fontFamily: Fmt.digits == 'en' ? 'Arial' : null, fontSize: 52, fontWeight: FontWeight.w900, letterSpacing: Fmt.digits == 'en' ? -1 : 0, color: amount == 0 ? t.muted : t.text)),
         ),
-        Text(bottom ?? 'دینار', textAlign: TextAlign.center, style: Ts.muted(context, size: 14)),
+        Text(bottom ?? tr('دینار'), textAlign: TextAlign.center, style: Ts.muted(context, size: 14)),
       ]),
     );
   }
@@ -1016,7 +1018,7 @@ class _MethodRow extends StatelessWidget {
     final t = context.yk;
     final m = methods.where((x) => x['id'] == value).firstOrNull ?? (methods.isEmpty ? null : methods.first);
     if (m == null) {
-      return const YkCard(tone: CardTone.note, child: Text('هێشتا هیچ شێوازێکی پارەدان دانەنراوە. پەیوەندی بە یەکسا بکە.', style: TextStyle(fontSize: 14)));
+      return YkCard(tone: CardTone.note, child: Text(tr('هێشتا هیچ شێوازێکی پارەدان دانەنراوە. پەیوەندی بە یەکسا بکە.'), style: const TextStyle(fontSize: 14)));
     }
     final many = methods.length > 1;
     return YkCard(
@@ -1026,12 +1028,12 @@ class _MethodRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(str(m['name']), style: Ts.bold(context)),
+            Text(trData(m['name']), style: Ts.bold(context)),
             Text(sub(m), style: Ts.muted(context, size: 12.5)),
           ]),
         ),
         if (many) ...[
-          Text('گۆڕین', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.4, color: t.muted)),
+          Text(tr('گۆڕین'), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.4, color: t.muted)),
           const SizedBox(width: 4),
           YkIcon('down', size: 14, color: t.muted, stroke: 2.4),
         ],
@@ -1042,7 +1044,7 @@ class _MethodRow extends StatelessWidget {
   void _pick(BuildContext context) {
     showYkSheet(context, builder: (c) {
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('شێوازی پارەدان', style: Ts.h3(c)),
+        Text(tr('شێوازی پارەدان'), style: Ts.h3(c)),
         const SizedBox(height: 10),
         YkList(children: [
           for (final x in methods)
@@ -1058,7 +1060,7 @@ class _MethodRow extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(str(x['name']), style: Ts.bold(c)),
+                      Text(trData(x['name']), style: Ts.bold(c)),
                       Text(sub(x), style: Ts.muted(c, size: 12.5)),
                     ]),
                   ),
@@ -1121,24 +1123,24 @@ class _TopupScreenState extends State<TopupScreen> {
 
   Widget _first(BuildContext context, Cloud cloud, List<Json> ms) {
     return YkScreen(children: [
-      const YkHeader('زیادکردنی پارە'),
-      _AmountHero(amount: _amount, top: Fmt.n('باڵانس: ${Fmt.money(_pos(cloud.freeBalance))}')),
+      YkHeader(tr('زیادکردنی پارە')),
+      _AmountHero(amount: _amount, top: Fmt.n(tr('باڵانس: {0}', [Fmt.money(_pos(cloud.freeBalance))]))),
       Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
-        if (_needR > 0) YkChip(Fmt.n('بۆ ئەم مانگە ${Fmt.group(_needR)}'), on: _amount == _needR, onTap: () => setState(() => _amount = _needR)),
+        if (_needR > 0) YkChip(Fmt.n(tr('بۆ ئەم مانگە {0}', [Fmt.group(_needR)])), on: _amount == _needR, onTap: () => setState(() => _amount = _needR)),
         for (final a in const [25000, 50000, 100000])
           YkChip(Fmt.n('+${Fmt.group(a)}'), on: false, onTap: () => setState(() => _amount = (_amount + a).clamp(0, _max))),
       ]),
       _MethodRow(
         methods: ms,
         value: _method,
-        sub: (m) => 'ناردن بۆ هەژماری یەکسا',
+        sub: (m) => tr('ناردن بۆ هەژماری یەکسا'),
         onChanged: (v) => setState(() => _method = v),
       ),
       _Keypad(onKey: (k) => setState(() => _amount = _applyKey(_amount, k, _max))),
-      YkButton('بەردەوام بوون', block: true, large: true, onPressed: ms.isEmpty
+      YkButton(tr('بەردەوام بوون'), block: true, large: true, onPressed: ms.isEmpty
           ? null
           : () {
-              if (_amount < 1000) return toast(context, 'بڕەکە بنووسە');
+              if (_amount < 1000) return toast(context, tr('بڕەکە بنووسە'));
               setState(() => _step = 2);
             }),
     ]);
@@ -1170,7 +1172,7 @@ class _TopupScreenState extends State<TopupScreen> {
         );
     final refDone = _ref.text.trim().length >= 3;
     return YkScreen(children: [
-      YkHeader('ناردن بە $name'),
+      YkHeader(tr('ناردن بە {0}', [name])),
       // ژمارەی هەژماری یەکسا بە کۆپی
       YkCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -1179,11 +1181,11 @@ class _TopupScreenState extends State<TopupScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(Fmt.n('${Fmt.money(_amount)} بنێرە بۆ'), style: Ts.muted(context, size: 12.8)),
-                Text(str(m['holder']).isEmpty ? 'یەکسا' : str(m['holder']), style: Ts.bold(context).copyWith(fontSize: 16)),
+                Text(Fmt.n(tr('{0} بنێرە بۆ', [Fmt.money(_amount)])), style: Ts.muted(context, size: 12.8)),
+                Text(str(m['holder']).isEmpty ? tr('یەکسا') : str(m['holder']), style: Ts.bold(context).copyWith(fontSize: 16)),
               ]),
             ),
-            const YkBadge('پشتڕاستکراو', tone: BadgeTone.ok),
+            YkBadge(tr('پشتڕاستکراو'), tone: BadgeTone.ok),
           ]),
           const SizedBox(height: 12),
           CustomPaint(
@@ -1197,29 +1199,29 @@ class _TopupScreenState extends State<TopupScreen> {
                       textDirection: TextDirection.ltr, textAlign: TextAlign.end, style: TextStyle(fontFamily: 'Arial', fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: 1, color: t.text)),
                 ),
                 const SizedBox(width: 10),
-                YkButton('کۆپی', icon: 'copy', small: true, kind: BtnKind.secondary, onPressed: () {
+                YkButton(tr('کۆپی'), icon: 'copy', small: true, kind: BtnKind.secondary, onPressed: () {
                   Clipboard.setData(ClipboardData(text: str(m['yeksaAccount'])));
-                  toast(context, 'کۆپی کرا');
+                  toast(context, tr('کۆپی کرا'));
                 }),
               ]),
             ),
           ),
         ]),
       ),
-      step('١', true, 'ئەپی $name بکەرەوە و ${Fmt.n(Fmt.group(_amount))} بنێرە', Text('بۆ ئەو ژمارەیەی سەرەوە', style: Ts.muted(context, size: 12.8))),
+      step(Fmt.n('1'), true, tr('ئەپی {0} بکەرەوە و {1} بنێرە', [name, Fmt.n(Fmt.group(_amount))]), Text(tr('بۆ ئەو ژمارەیەی سەرەوە'), style: Ts.muted(context, size: 12.8))),
       step(
-        '٢',
+        Fmt.n('2'),
         refDone,
-        'ژمارەی حەواڵە',
+        tr('ژمارەی حەواڵە'),
         Directionality(
           textDirection: TextDirection.ltr,
-          child: TextField(controller: _ref, onChanged: (_) => setState(() {}), decoration: ykInput(context, hint: 'لە پسوولەی $name کۆپی بکە')),
+          child: TextField(controller: _ref, onChanged: (_) => setState(() {}), decoration: ykInput(context, hint: tr('کۆپی بکە لە پسوولەی {0}', [name])).copyWith(hintTextDirection: L.rtl ? TextDirection.rtl : TextDirection.ltr)),
         ),
       ),
       step(
-        '٣',
+        Fmt.n('3'),
         _photo != null,
-        'وێنەی پسوولە (ئارەزوومەندانە)',
+        tr('وێنەی پسوولە (ئارەزوومەندانە)'),
         InkWell(
           onTap: _pickPhoto,
           borderRadius: BorderRadius.circular(16),
@@ -1233,21 +1235,21 @@ class _TopupScreenState extends State<TopupScreen> {
                 else
                   YkIcon('camera', size: 20, color: t.muted),
                 const SizedBox(width: 10),
-                Flexible(child: Text(_photo != null ? 'وێنە زیاد کرا، بۆ گۆڕین دابگرە' : 'زیادکردنی وێنە', style: Ts.muted(context, size: 13.4))),
+                Flexible(child: Text(_photo != null ? tr('وێنە زیاد کرا، بۆ گۆڕین دابگرە') : tr('زیادکردنی وێنە'), style: Ts.muted(context, size: 13.4))),
               ]),
             ),
           ),
         ),
       ),
       const SizedBox(height: 4),
-      YkButton('پارەم نارد، پشکنین بکە', icon: 'send', block: true, large: true, busy: _busy, onPressed: () async {
+      YkButton(tr('پارەم نارد، پشکنین بکە'), icon: 'send', block: true, large: true, busy: _busy, onPressed: () async {
         final ref = _ref.text.trim();
-        if (ref.length < 3) return toast(context, 'ژمارەی حەواڵە بنووسە');
+        if (ref.length < 3) return toast(context, tr('ژمارەی حەواڵە بنووسە'));
         setState(() => _busy = true);
         final id = await cloud.requestTopup(_amount, str(_method), ref, _photo);
         if (!context.mounted) return;
         setState(() => _busy = false);
-        if (id == null) return toast(context, 'نەنێردرا، دووبارە هەوڵ بدەرەوە');
+        if (id == null) return toast(context, tr('نەنێردرا، دووبارە هەوڵ بدەرەوە'));
         // پەڕەی دۆخی داواکارییەکە جێگەی ئەم پەڕەیە دەگرێتەوە؛ «گەڕانەوە» دەچێتە جزدان
         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => RequestStatusScreen(withdraw: false, id: id)));
       }),
@@ -1262,7 +1264,7 @@ class _TopupScreenState extends State<TopupScreen> {
       final id = await store.save(await f.readAsBytes(), pub: false);
       if (mounted) setState(() => _photo = id);
     } catch (_) {
-      if (mounted) toast(context, 'ئەم وێنەیە ناخوێندرێتەوە');
+      if (mounted) toast(context, tr('ئەم وێنەیە ناخوێندرێتەوە'));
     }
   }
 }
@@ -1309,26 +1311,26 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
     final chips = <int>[f, 25000, 50000].where((a) => a > 0 && a <= f).toSet().toList();
     return Scaffold(
       body: YkScreen(children: [
-        const YkHeader('ڕاکێشانی پارە'),
+        YkHeader(tr('ڕاکێشانی پارە')),
         _AmountHero(
           amount: _amount,
-          top: 'چەند ڕادەکێشیت؟',
-          bottom: Fmt.n('دینار · بەردەست ${Fmt.group(f)}${min > 0 ? ' · کەمترین ${Fmt.group(min)}' : ''}'),
+          top: tr('چەند ڕادەکێشیت؟'),
+          bottom: Fmt.n(min > 0 ? tr('دینار · بەردەست {0} · کەمترین {1}', [Fmt.group(f), Fmt.group(min)]) : tr('دینار · بەردەست {0}', [Fmt.group(f)])),
         ),
         if (chips.isNotEmpty)
           Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
             for (var i = 0; i < chips.length; i++)
-              YkChip(Fmt.n('${i == 0 ? 'هەمووی ' : ''}${Fmt.group(chips[i])}'), on: _amount == chips[i], onTap: () => setState(() => _amount = chips[i])),
+              YkChip(Fmt.n(i == 0 ? tr('هەمووی {0}', [Fmt.group(chips[i])]) : Fmt.group(chips[i])), on: _amount == chips[i], onTap: () => setState(() => _amount = chips[i])),
           ]),
-        _MethodRow(methods: ms, value: _method, sub: (x) => 'بۆ هەژماری ${x['name']} ـی خۆت', onChanged: (v) => setState(() => _method = v)),
+        _MethodRow(methods: ms, value: _method, sub: (x) => tr('بۆ هەژماری {0} ـی خۆت', [x['name']]), onChanged: (v) => setState(() => _method = v)),
         if (ms.isNotEmpty)
           YkField(
-            label: 'ژمارەی هەژماری ${str(m['name'])} ـەکەت',
+            label: tr('ژمارەی هەژماری {0} ـەکەت', [str(m['name'])]),
             child: Directionality(textDirection: TextDirection.ltr, child: TextField(controller: _acc, keyboardType: TextInputType.phone, decoration: ykInput(context))),
           ),
         _Keypad(onKey: (k) => setState(() => _amount = _applyKey(_amount, k, f))),
         if (_err != null) YkError(_err!),
-        YkButton('داوای ڕاکێشان', block: true, large: true, busy: _busy, onPressed: f > 0 && ms.isNotEmpty
+        YkButton(tr('داوای ڕاکێشان'), block: true, large: true, busy: _busy, onPressed: f > 0 && ms.isNotEmpty
             ? () async {
                 FocusScope.of(context).unfocus();
                 setState(() {
@@ -1347,9 +1349,9 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                 }
               }
             : null),
-        _trust(context, 'یەکسا پارەکەت بۆ دەنێرێت و ئاگادار دەکرێیتەوە. تا نەنێردرێت، دەتوانیت هەڵیبوەشێنیتەوە.', icon: 'clock'),
+        _trust(context, tr('یەکسا پارەکەت بۆ دەنێرێت و ئاگادار دەکرێیتەوە. تا نەنێردرێت، دەتوانیت هەڵیبوەشێنیتەوە.'), icon: 'clock'),
         if (pend.isNotEmpty) ...[
-          Text('چاوەڕێی ناردن', style: Ts.h3(context)),
+          Text(tr('چاوەڕێی ناردن'), style: Ts.h3(context)),
           YkList(children: [for (final w in pend) _pendingWithdraw(context, w)]),
         ],
       ]),
@@ -1381,28 +1383,28 @@ class _RequestStatusScreenState extends State<RequestStatusScreen> {
     final bad = st == 'rejected' || st == 'cancelled';
     final method = cloud.payName(str(x?['method']));
     final at = ((x?['at'] as num?) ?? 0).toInt();
-    final title = widget.withdraw ? 'داوای ڕاکێشان' : 'داواکاری زیادکردن';
+    final title = widget.withdraw ? tr('داوای ڕاکێشان') : tr('داواکاری زیادکردن');
     final sub = switch (st) {
-      'approved' => 'زیادکرا بۆ جزدانەکەت',
-      'sent' => 'نێردرا بۆ هەژمارەکەت',
-      'rejected' => 'ڕەتکرایەوە${str(x?['why']).isEmpty ? '' : '، ${x!['why']}'}',
-      'cancelled' => 'هەڵوەشێنرایەوە',
-      _ => widget.withdraw ? 'چاوەڕێی ناردنی یەکسا' : 'چاوەڕێی پشکنینی یەکسا',
+      'approved' => tr('زیادکرا بۆ جزدانەکەت'),
+      'sent' => tr('نێردرا بۆ هەژمارەکەت'),
+      'rejected' => str(x?['why']).isEmpty ? tr('ڕەتکرایەوە') : tr('ڕەتکرایەوە، {0}', [trData(x!['why'])]),
+      'cancelled' => tr('هەڵوەشێنرایەوە'),
+      _ => widget.withdraw ? tr('چاوەڕێی ناردنی یەکسا') : tr('چاوەڕێی پشکنینی یەکسا'),
     };
     // ژمارەی حەواڵە / هەژمار (لاتینی) لە دێڕێکی جیادا و بە LRI…PDI جیا دەکرێتەوە، تا لە ناو
     // دەقی کوردیدا (RTL) لە نیوەدا نەشکێت و پیتەکانی تێکەڵ نەبن (بۆ نموونە TEST-CANCEL)
     String ltr(Object? v) => '\u2066$v\u2069';
-    final when = at > 0 ? '${Fmt.date(at)}، ${Fmt.clock(Fmt.hhmm(at))}' : '';
+    final when = at > 0 ? tr('{0}، {1}', [Fmt.date(at), Fmt.clock(Fmt.hhmm(at))]) : '';
     final detail = !widget.withdraw
-        ? (str(x?['ref']).isNotEmpty ? 'حەواڵە ${ltr(x!['ref'])}' : '')
+        ? (str(x?['ref']).isNotEmpty ? tr('حەواڵە {0}', [ltr(x!['ref'])]) : '')
         : (str(x?['account']).isNotEmpty ? '$method ${ltr(x!['account'])}' : '');
     // هەنگاوەکان: نێردرا ← پشکنین/ناردن ← تەواو. هەڵوەشاندنەوە پێش پشکنینی یەکسا دەکرێت، بۆیە
     // هەنگاوی ناوەڕاست تێپەڕ نابێت؛ ڕەتکردنەوە دوای پشکنینە، بۆیە ئەو هەنگاوە تەواوە
     final reviewed = ok || st == 'rejected';
     final steps = <(String, String, int)>[
-      ('داواکاری نێردرا', [when, detail].where((s) => s.isNotEmpty).join('\n'), 2),
-      (widget.withdraw ? 'یەکسا پارەکە دەنێرێت' : 'یەکسا دەیپشکنێت', st == 'pending' ? 'ئاسایی لە ماوەیەکی کورتدا' : '', reviewed ? 2 : (st == 'pending' ? 1 : 0)),
-      (bad ? sub : (widget.withdraw ? 'نێردرا بۆ هەژمارەکەت' : 'زیادکرا بۆ جزدان'), '', ok || bad ? 2 : 0),
+      (tr('داواکاری نێردرا'), [when, detail].where((s) => s.isNotEmpty).join('\n'), 2),
+      (widget.withdraw ? tr('یەکسا پارەکە دەنێرێت') : tr('یەکسا دەیپشکنێت'), st == 'pending' ? tr('ئاسایی لە ماوەیەکی کورتدا') : '', reviewed ? 2 : (st == 'pending' ? 1 : 0)),
+      (bad ? sub : (widget.withdraw ? tr('نێردرا بۆ هەژمارەکەت') : tr('زیادکرا بۆ جزدان')), '', ok || bad ? 2 : 0),
     ];
     Widget dot(int s, bool last) {
       if (s == 2) {
@@ -1463,9 +1465,9 @@ class _RequestStatusScreenState extends State<RequestStatusScreen> {
           ]),
         ),
         if (st == 'pending')
-          YkButton('هەڵوەشاندنەوەی داواکاری', kind: BtnKind.secondary, block: true, busy: _busy, onPressed: () async {
-            final warn = widget.withdraw ? 'داوای ڕاکێشان هەڵدەوەشێتەوە؟' : 'داواکاری زیادکردن هەڵدەوەشێتەوە؟ ئەگەر پارەت ناردووە، هەڵی مەوەشێنەرەوە.';
-            if (!await askConfirm(context, warn, yes: 'هەڵوەشاندنەوە')) return;
+          YkButton(tr('هەڵوەشاندنەوەی داواکاری'), kind: BtnKind.secondary, block: true, busy: _busy, onPressed: () async {
+            final warn = widget.withdraw ? tr('داوای ڕاکێشان هەڵدەوەشێتەوە؟') : tr('داواکاری زیادکردن هەڵدەوەشێتەوە؟ ئەگەر پارەت ناردووە، هەڵی مەوەشێنەرەوە.');
+            if (!await askConfirm(context, warn, yes: tr('هەڵوەشاندنەوە'))) return;
             setState(() => _busy = true);
             if (widget.withdraw) {
               await cloud.cancelWithdraw(widget.id);
@@ -1474,14 +1476,14 @@ class _RequestStatusScreenState extends State<RequestStatusScreen> {
             }
             if (mounted) setState(() => _busy = false);
           }),
-        YkButton('گەڕانەوە بۆ جزدان', block: true, large: true, onPressed: () => Navigator.of(context).maybePop()),
+        YkButton(tr('گەڕانەوە بۆ جزدان'), block: true, large: true, onPressed: () => Navigator.of(context).maybePop()),
       ]),
     );
   }
 }
 
 Widget _pendingWithdraw(BuildContext context, Json w) {
-  final e = {'id': w['id'], 'type': 'withdraw', 'amount': -((w['amount'] as num?) ?? 0), 'method': w['method'], 'note': str(w['account']).isEmpty ? 'چاوەڕێی ناردنی یەکسا' : w['account'], 'at': w['at']};
+  final e = {'id': w['id'], 'type': 'withdraw', 'amount': -((w['amount'] as num?) ?? 0), 'method': w['method'], 'note': str(w['account']).isEmpty ? tr('چاوەڕێی ناردنی یەکسا') : w['account'], 'at': w['at']};
   return TxRow(e, pending: true, onTap: () => push(context, RequestStatusScreen(withdraw: true, id: str(w['id']))));
 }
 
@@ -1493,7 +1495,7 @@ Widget _pendingTopup(BuildContext context, Json x) {
     'amount': x['amount'],
     'method': refund ? null : x['method'],
     'ref': x['ref'],
-    'note': refund ? x['note'] : 'چاوەڕێی پشکنینی یەکسا${str(x['ref']).isNotEmpty ? '، حەواڵە ${x['ref']}' : ''}',
+    'note': refund ? x['note'] : (str(x['ref']).isNotEmpty ? tr('چاوەڕێی پشکنینی یەکسا، حەواڵە {0}', [x['ref']]) : tr('چاوەڕێی پشکنینی یەکسا')),
     'at': x['at'],
   };
   // گەڕاندنەوە پسوولەیە؛ زیادکردن پەڕەی دۆخی داواکارییەکە دەکاتەوە
@@ -1551,12 +1553,12 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     final p = _peer;
     if (p == null) return;
     final amount = parseAmount(_amt.text);
-    if (amount <= 0) return toast(context, 'بڕەکە بنووسە');
+    if (amount <= 0) return toast(context, tr('بڕەکە بنووسە'));
     if (amount > cloud.freeBalance) {
-      setState(() => _err = 'باڵانسەکەت بەس نییە (${Fmt.money(cloud.freeBalance < 0 ? 0 : cloud.freeBalance)})');
+      setState(() => _err = tr('باڵانسەکەت بەس نییە ({0})', [Fmt.money(cloud.freeBalance < 0 ? 0 : cloud.freeBalance)]));
       return;
     }
-    if (!await askConfirm(context, '${Fmt.money(amount)} بۆ ${p.name} دەنێردرێت. دوای ناردن ناگەڕێتەوە.', yes: 'ناردن', danger: false)) return;
+    if (!await askConfirm(context, tr('{0} بۆ {1} دەنێردرێت. دوای ناردن ناگەڕێتەوە.', [Fmt.money(amount), p.name]), yes: tr('ناردن'), danger: false)) return;
     setState(() => _busy = true);
     final err = await cloud.sendMoney(p.uid, p.name, amount, _note.text);
     if (!mounted) return;
@@ -1574,10 +1576,10 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
           child: Container(width: 68, height: 68, decoration: BoxDecoration(shape: BoxShape.circle, color: t.okBg), alignment: Alignment.center, child: YkIcon('check', size: 34, color: t.okText, stroke: 2.6)),
         ),
         const SizedBox(height: 10),
-        Text('نێردرا', textAlign: TextAlign.center, style: Ts.h2(c)),
-        Text('${Fmt.money(amount)} چووە جزدانی ${p.name}', textAlign: TextAlign.center, style: Ts.muted(c, size: 14)),
+        Text(tr('نێردرا'), textAlign: TextAlign.center, style: Ts.h2(c)),
+        Text(tr('{0} چووە جزدانی {1}', [Fmt.money(amount), p.name]), textAlign: TextAlign.center, style: Ts.muted(c, size: 14)),
         const SizedBox(height: 14),
-        YkButton('باشە', block: true, onPressed: () => Navigator.pop(c)),
+        YkButton(tr('باشە'), block: true, onPressed: () => Navigator.pop(c)),
       ]);
     });
   }
@@ -1589,7 +1591,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
     final p = _peer;
     return Scaffold(
       body: YkScreen(children: [
-        const YkHeader('ناردن بۆ سەرنشین'),
+        YkHeader(tr('ناردن بۆ سەرنشین')),
         if (p != null)
           Container(
             padding: const EdgeInsets.all(12),
@@ -1600,10 +1602,10 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(p.name, style: Ts.bold(context)),
-                  Text('${Fmt.phone(p.phone)} · سەرنشینی یەکسا', style: Ts.muted(context, size: 12.5)),
+                  Text(tr('{0} · سەرنشینی یەکسا', [Fmt.phone(p.phone)]), style: Ts.muted(context, size: 12.5)),
                 ]),
               ),
-              YkButton('گۆڕین', small: true, kind: BtnKind.secondary, onPressed: () => setState(() {
+              YkButton(tr('گۆڕین'), small: true, kind: BtnKind.secondary, onPressed: () => setState(() {
                     _peer = null;
                     _err = null;
                   })),
@@ -1611,7 +1613,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
           )
         else ...[
           YkField(
-            label: 'ژمارەی مۆبایلی سەرنشینی وەرگر',
+            label: tr('ژمارەی مۆبایلی سەرنشینی وەرگر'),
             child: Row(children: [
               Expanded(
                 child: Directionality(
@@ -1628,17 +1630,17 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              YkButton('دۆزینەوە', icon: 'search', kind: BtnKind.secondary, busy: _busy, onPressed: _find),
+              YkButton(tr('دۆزینەوە'), icon: 'search', kind: BtnKind.secondary, busy: _busy, onPressed: _find),
             ]),
           ),
-          Text('تەنها دەتوانیت بۆ سەرنشینێکی تری یەکسا بنێریت.', style: Ts.muted(context, size: 12.8)),
+          Text(tr('تەنها دەتوانیت بۆ سەرنشینێکی تری یەکسا بنێریت.'), style: Ts.muted(context, size: 12.8)),
         ],
         if (_err != null) YkError(_err!),
         if (p != null) ...[
-          _AmountField(ctrl: _amt, label: 'بڕ', sub: Fmt.n('دینار · بەردەست ${Fmt.group(f)}')),
-          YkField(label: 'تێبینی', optional: true, child: TextField(controller: _note, maxLength: 80, decoration: ykInput(context, hint: 'بۆ نموونە: پارەی مانگی خوشکم'))),
-          YkButton('ناردن', icon: 'send', block: true, large: true, busy: _busy, onPressed: f > 0 ? _send : null),
-          _trust(context, 'پارەکە یەکسەر دەچێتە جزدانی وەرگر. دوای ناردن ناگەڕێتەوە، بۆیە ناوەکە باش بپشکنە.'),
+          _AmountField(ctrl: _amt, label: tr('بڕ'), sub: Fmt.n(tr('دینار · بەردەست {0}', [Fmt.group(f)]))),
+          YkField(label: tr('تێبینی'), optional: true, child: TextField(controller: _note, maxLength: 80, decoration: ykInput(context, hint: tr('بۆ نموونە: پارەی مانگی خوشکم')))),
+          YkButton(tr('ناردن'), icon: 'send', block: true, large: true, busy: _busy, onPressed: f > 0 ? _send : null),
+          _trust(context, tr('پارەکە یەکسەر دەچێتە جزدانی وەرگر. دوای ناردن ناگەڕێتەوە، بۆیە ناوەکە باش بپشکنە.')),
         ],
       ]),
     );
@@ -1655,7 +1657,7 @@ class TxsScreen extends StatefulWidget {
 
 class _TxsScreenState extends State<TxsScreen> {
   String _k = 'all';
-  static const _f = [('all', 'هەمووی'), ('in', 'زیادکردن'), ('out', 'ڕاکێشان'), ('xfer', 'ناردن و وەرگرتن'), ('month', 'پارەی مانگ'), ('back', 'گەڕاندنەوە')];
+  static List<(String, String)> get _f => [('all', tr('هەمووی')), ('in', tr('زیادکردن')), ('out', tr('ڕاکێشان')), ('xfer', tr('ناردن و وەرگرتن')), ('month', tr('پارەی مانگ')), ('back', tr('گەڕاندنەوە'))];
   static const _types = {
     'in': ['topup', 'adjust+'],
     'out': ['withdraw', 'adjust-'],
@@ -1691,7 +1693,7 @@ class _TxsScreenState extends State<TxsScreen> {
     for (final e in list) {
       final at = ((e['at'] as num?) ?? 0).toInt();
       final d = DateTime.fromMillisecondsSinceEpoch(at);
-      final k = at >= d0 ? 'ئەمڕۆ' : at >= d0 - 86400000 ? 'دوێنێ' : Fmt.n('${kMonths[d.month - 1]} ${d.year}');
+      final k = at >= d0 ? tr('ئەمڕۆ') : at >= d0 - 86400000 ? tr('دوێنێ') : Fmt.n('${Fmt.month(d.month - 1)} ${d.year}');
       groups.putIfAbsent(k, () => []).add(e);
     }
     Widget sum(String k, String v, Color c) => Expanded(
@@ -1706,7 +1708,7 @@ class _TxsScreenState extends State<TxsScreen> {
         );
     return Scaffold(
       body: YkScreen(onRefresh: context.read<Cloud>().refresh, children: [
-        const YkHeader('مامەڵەکان'),
+        YkHeader(tr('مامەڵەکان')),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(children: [
@@ -1714,12 +1716,12 @@ class _TxsScreenState extends State<TxsScreen> {
           ]),
         ),
         Row(children: [
-          sum('هاتوو ئەم مانگە', '+${Fmt.n(Fmt.group(sumIn))}', t.okText),
+          sum(tr('هاتوو ئەم مانگە'), '+${Fmt.n(Fmt.group(sumIn))}', t.okText),
           const SizedBox(width: 10),
-          sum('چوو ئەم مانگە', '−${Fmt.n(Fmt.group(sumOut))}', t.text),
+          sum(tr('چوو ئەم مانگە'), '−${Fmt.n(Fmt.group(sumOut))}', t.text),
         ]),
         if (pTp.isNotEmpty || pWd.isNotEmpty) ...[
-          Text('چاوەڕێ', style: TextStyle(fontWeight: FontWeight.w800, color: t.text)),
+          Text(tr('چاوەڕێ'), style: TextStyle(fontWeight: FontWeight.w800, color: t.text)),
           YkList(children: [
             for (final x in pTp) _pendingTopup(context, x),
             for (final w in pWd) _pendingWithdraw(context, w),
@@ -1734,8 +1736,8 @@ class _TxsScreenState extends State<TxsScreen> {
         if (list.isEmpty && pTp.isEmpty && pWd.isEmpty)
           YkEmpty(
             icon: 'wallet',
-            title: 'هیچ مامەڵەیەک نییە',
-            text: _k == 'all' ? 'هەر پارەیەک زیاد بکەیت، ڕایبکێشیت یان بینێریت، لێرە دەردەکەوێت' : 'لەم جۆرە هیچ مامەڵەیەک نییە',
+            title: tr('هیچ مامەڵەیەک نییە'),
+            text: _k == 'all' ? tr('هەر پارەیەک زیاد بکەیت، ڕایبکێشیت یان بینێریت، لێرە دەردەکەوێت') : tr('لەم جۆرە هیچ مامەڵەیەک نییە'),
           ),
       ]),
     );

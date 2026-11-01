@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../core/i18n.dart';
 import 'theme.dart';
 
 String _hex(Color c) => '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
@@ -45,7 +46,7 @@ class YLogo extends StatelessWidget {
     final bg = inverse ? const Color(0xFF1C1C1E) : t.bg;
     final h = height;
     return Semantics(
-      label: 'یەکسا',
+      label: tr('یەکسا'),
       child: ExcludeSemantics(
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -55,9 +56,11 @@ class YLogo extends StatelessWidget {
             SizedBox(width: h * .28),
             Container(width: 1.5, height: h * .94, color: inverse ? Colors.white24 : t.line),
             SizedBox(width: h * .28),
+            // لۆگۆکە لە هەموو زمانەکاندا وەک خۆی (ڕاست بۆ چەپ) دەمێنێتەوە، تەنانەت لە ئینگلیزیش
             Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
+              textDirection: TextDirection.rtl,
               children: [
                 ShaderMask(
                   blendMode: BlendMode.srcIn,
@@ -67,7 +70,7 @@ class YLogo extends StatelessWidget {
                     colors: [ink, ink, gray, gray],
                     stops: const [0, .56, .56, 1],
                   ).createShader(r),
-                  child: Text('یەکسا', style: TextStyle(fontFamily: kFont, fontWeight: FontWeight.w700, fontSize: h * .76, height: 1, color: Colors.white)),
+                  child: Text('یەکسا', textDirection: TextDirection.rtl, style: TextStyle(fontFamily: kFont, fontWeight: FontWeight.w700, fontSize: h * .76, height: 1, color: Colors.white)), // i18n-keep
                 ),
                 SizedBox(height: h * .12),
                 Directionality(

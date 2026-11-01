@@ -2,6 +2,7 @@
 import 'dart:collection'; // firstOrNull / lastOrNull
 import 'cloud.dart';
 import 'format.dart';
+import 'i18n.dart';
 import 'sel.dart';
 
 /// نامەی خۆت تەنها تا ٥ خولەک دەگەڕێنرێتەوە
@@ -67,7 +68,7 @@ extension YkChat on Cloud {
       'at': nowMs(),
       'driverId': driverId,
       'kind': 'chat',
-      'title': 'نامە لە ${str(passenger['name']).isEmpty ? 'سەرنشین' : passenger['name']}',
+      'title': 'نامە لە ${str(passenger['name']).isEmpty ? 'سەرنشین' : passenger['name']}', // i18n-keep
       'body': t,
       'link': 'chat/${Uri.encodeComponent(me!)}',
       'msgId': id,
@@ -80,8 +81,8 @@ extension YkChat on Cloud {
   /// گەڕاندنەوەی نامە. دەقی ڕاستەقینە تەنها بۆ بەڕێوەبەر هەڵدەگیرێت (بۆ سکاڵا و سەلامەتی)
   Future<String?> unsendMessage(String id) async {
     final m = list('messages').where((x) => x['id'] == id).firstOrNull;
-    if (m == null || m['system'] == true || m['unsent'] == true || m['voice'] != null) return 'ئەم نامەیە ناگەڕێنرێتەوە';
-    if (!canUnsend(m)) return 'تەنها تا ٥ خولەک دوای ناردن دەتوانیت نامە بگەڕێنیتەوە';
+    if (m == null || m['system'] == true || m['unsent'] == true || m['voice'] != null) return tr('ئەم نامەیە ناگەڕێنرێتەوە');
+    if (!canUnsend(m)) return tr('تەنها تا ٥ خولەک دوای ناردن دەتوانیت نامە بگەڕێنیتەوە');
     final now = nowMs();
     final uid = 'u${shortId()}';
     await set('unsent/$uid', {
@@ -100,7 +101,7 @@ extension YkChat on Cloud {
     final nid = m['nid'];
     if (nid is String && nid.isNotEmpty) {
       try {
-        await update('dnotices/$nid', {'body': 'ئەم نامەیە گەڕێنرایەوە'});
+        await update('dnotices/$nid', {'body': 'ئەم نامەیە گەڕێنرایەوە'}); // i18n-keep
       } catch (_) {}
     }
     return null;

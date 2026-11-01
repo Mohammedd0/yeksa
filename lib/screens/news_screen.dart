@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../core/actions.dart';
 import '../core/cloud.dart';
+import '../core/i18n.dart';
 import '../core/images.dart';
 import '../core/sel.dart';
 import '../ui/parts.dart';
@@ -26,13 +27,13 @@ class NewsListScreen extends StatelessWidget {
     final list = cloud.newsFor('passenger').where((n) => YkSel.newsKind(n) == kind).toList();
     return Scaffold(
       body: YkScreen(onRefresh: offer ? context.read<Cloud>().refresh : null, children: [
-        YkHeader(offer ? 'ئۆفەرەکان' : 'ڕێکلام و هەواڵ'),
+        YkHeader(offer ? tr('ئۆفەرەکان') : tr('ڕێکلام و هەواڵ')),
         if (list.isEmpty)
           YkEmpty(
             icon: offer ? 'tag' : 'news',
-            title: offer ? 'ئێستا هیچ ئۆفەرێک نییە' : 'ئێستا هیچ هەواڵێک نییە',
-            text: offer ? 'کاتێک داشکاندن یان ئۆفەرێکی نوێ هات، لێرە و لە سەرەکی دەیبینیت' : 'هەواڵ و ڕێکلامە نوێکان لێرە دەردەکەون',
-            button: YkButton('گەڕانەوە بۆ سەرەکی', kind: BtnKind.secondary, onPressed: () => openLink(context, 'home')),
+            title: offer ? tr('ئێستا هیچ ئۆفەرێک نییە') : tr('ئێستا هیچ هەواڵێک نییە'),
+            text: offer ? tr('کاتێک داشکاندن یان ئۆفەرێکی نوێ هات، لێرە و لە سەرەکی دەیبینیت') : tr('هەواڵ و ڕێکلامە نوێکان لێرە دەردەکەون'),
+            button: YkButton(tr('گەڕانەوە بۆ سەرەکی'), kind: BtnKind.secondary, onPressed: () => openLink(context, 'home')),
           ),
         for (final n in list) NewsCard(n, onTap: () => push(context, NewsDetailScreen(id: str(n['id'])))),
       ]),
@@ -60,8 +61,8 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
     final cloud = context.watch<Cloud>();
     final n = cloud.doc('news/${widget.id}');
     if (n == null) {
-      return const Scaffold(
-        body: YkScreen(children: [YkHeader('هەواڵ'), YkEmpty(icon: 'news', title: 'ئەم هەواڵە نەدۆزرایەوە')]),
+      return Scaffold(
+        body: YkScreen(children: [YkHeader(tr('هەواڵ')), YkEmpty(icon: 'news', title: tr('ئەم هەواڵە نەدۆزرایەوە'))]),
       );
     }
     final th = newsTheme(n['theme'] as String?);
@@ -74,16 +75,16 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
               decoration: BoxDecoration(color: const Color(0x40FFFFFF), borderRadius: BorderRadius.circular(999)),
-              child: Text(str(n['tag']), style: TextStyle(color: fg, fontSize: 12.2, fontWeight: FontWeight.w700)),
+              child: Text(trData(str(n['tag'])), style: TextStyle(color: fg, fontSize: 12.2, fontWeight: FontWeight.w700)),
             ),
           const SizedBox(height: 8),
-          Text(str(n['title']), style: TextStyle(color: fg, fontSize: 19.2, fontWeight: FontWeight.w700, height: 1.45)),
-          Text(str(n['sub']), style: TextStyle(color: fg.withValues(alpha: .9), fontSize: 14)),
+          Text(trData(str(n['title'])), style: TextStyle(color: fg, fontSize: 19.2, fontWeight: FontWeight.w700, height: 1.45)),
+          Text(trData(str(n['sub'])), style: TextStyle(color: fg.withValues(alpha: .9), fontSize: 14)),
         ]);
 
     return Scaffold(
       body: YkScreen(children: [
-        YkHeader(str(n['tag']).isEmpty ? 'هەواڵ' : str(n['tag'])),
+        YkHeader(str(n['tag']).isEmpty ? tr('هەواڵ') : trData(str(n['tag']))),
         ClipRRect(
           borderRadius: BorderRadius.circular(Yk.rXl),
           child: hasImg
@@ -103,8 +104,8 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
                   decoration: BoxDecoration(gradient: newsGradient(n['theme'] as String?)),
                   padding: const EdgeInsets.all(20),
                   child: Stack(children: [
-                    Positioned(
-                      left: 0,
+                    PositionedDirectional(
+                      end: 0,
                       top: 0,
                       child: Opacity(
                         opacity: .9,
@@ -115,12 +116,12 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
                   ]),
                 ),
         ),
-        Text(str(n['body']), style: TextStyle(fontSize: 16.3, height: 1.9, color: t.text)),
+        Text(trData(str(n['body'])), style: TextStyle(fontSize: 16.3, height: 1.9, color: t.text)),
         if (str(n['until']).isNotEmpty)
           Row(children: [
             YkIcon('clock', size: 16, color: t.muted),
             const SizedBox(width: 8),
-            Text(str(n['until']), style: Ts.muted(context, size: 14)),
+            Text(trData(str(n['until'])), style: Ts.muted(context, size: 14)),
           ]),
         if (str(n['code']).isNotEmpty)
           Container(
@@ -133,17 +134,17 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
             child: Row(children: [
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('کۆدی داشکاندن', style: Ts.muted(context, size: 12.8)),
+                  Text(tr('کۆدی داشکاندن'), style: Ts.muted(context, size: 12.8)),
                   Text(str(n['code']), textDirection: TextDirection.ltr, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 2, color: t.text)),
                 ]),
               ),
-              YkButton('کۆپی', icon: 'copy', small: true, kind: BtnKind.secondary, onPressed: () {
+              YkButton(tr('کۆپی'), icon: 'copy', small: true, kind: BtnKind.secondary, onPressed: () {
                 Clipboard.setData(ClipboardData(text: str(n['code'])));
-                toast(context, 'کۆپی کرا');
+                toast(context, tr('کۆپی کرا'));
               }),
             ]),
           ),
-        if (offer && str(n['code']).isEmpty) YkButton('بەشداری نوێ', block: true, onPressed: () => openLink(context, 'new')),
+        if (offer && str(n['code']).isEmpty) YkButton(tr('بەشداری نوێ'), block: true, onPressed: () => openLink(context, 'new')),
       ]),
     );
   }

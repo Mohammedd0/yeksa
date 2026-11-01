@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../core/actions.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/live.dart';
 import '../core/sel.dart';
 import '../core/trips.dart';
@@ -22,17 +23,17 @@ import 'trip_actions.dart';
 Widget tripStatusBadge(Json t) {
   switch (t['status']) {
     case 'active':
-      return const YkBadge('لە ڕێگەیە', tone: BadgeTone.ok);
+      return YkBadge(tr('لە ڕێگەیە'), tone: BadgeTone.ok);
     case 'done':
-      return const YkBadge('تەواو بوو', tone: BadgeTone.ok);
+      return YkBadge(tr('تەواو بوو'), tone: BadgeTone.ok);
     case 'skipped':
-      return const YkBadge('نایەن', tone: BadgeTone.danger);
+      return YkBadge(tr('نایەن'), tone: BadgeTone.danger);
     case 'noshow':
-      return const YkBadge('شۆفێر نەهات', tone: BadgeTone.danger);
+      return YkBadge(tr('شۆفێر نەهات'), tone: BadgeTone.danger);
     case 'absent':
-      return const YkBadge('سوار نەبوون', tone: BadgeTone.danger);
+      return YkBadge(tr('سوار نەبوون'), tone: BadgeTone.danger);
     case 'missed':
-      return const YkBadge('نەکرا', tone: BadgeTone.danger);
+      return YkBadge(tr('نەکرا'), tone: BadgeTone.danger);
   }
   return _DirBadge(back: t['dir'] == 'back');
 }
@@ -54,7 +55,7 @@ class _DirBadge extends StatelessWidget {
           decoration: BoxDecoration(shape: BoxShape.circle, color: back ? Colors.transparent : t.text, border: Border.all(color: t.text, width: 1.6)),
         ),
         const SizedBox(width: 6),
-        Text(back ? 'هاتنەوە' : 'چوون', style: TextStyle(fontSize: 12.2, fontWeight: FontWeight.w700, color: t.text, height: 1.4)),
+        Text(back ? tr('هاتنەوە') : tr('چوون'), style: TextStyle(fontSize: 12.2, fontWeight: FontWeight.w700, color: t.text, height: 1.4)),
       ]),
     );
   }
@@ -74,7 +75,7 @@ class TripsScreen extends StatelessWidget {
 
     Widget chatBtn(String did) => Semantics(
           button: true,
-          label: 'نامە',
+          label: tr('نامە'),
           child: InkWell(
             onTap: () => openLink(context, 'chat/$did'),
             borderRadius: BorderRadius.circular(14),
@@ -88,12 +89,12 @@ class TripsScreen extends StatelessWidget {
           ),
         );
 
-    return YkScreen(withNav: true, title: 'گەشتەکانی ئەمڕۆ', onRefresh: context.read<Cloud>().refresh, children: [
+    return YkScreen(withNav: true, title: tr('گەشتەکانی ئەمڕۆ'), onRefresh: context.read<Cloud>().refresh, children: [
       // (؟) لە ئاستی ناونیشانەکەیە، نەک لە ناوەڕاستی ناونیشان و بەروار (وەک نامەکان)
       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('گەشتەکانی ئەمڕۆ', style: Ts.h1(context)),
+            Text(tr('گەشتەکانی ئەمڕۆ'), style: Ts.h1(context)),
             Text(Fmt.today(), style: Ts.muted(context, size: 14)),
           ]),
         ),
@@ -103,17 +104,17 @@ class TripsScreen extends StatelessWidget {
         cloud.walletOn && hasSubs
             ? YkEmpty(
                 icon: 'calendar',
-                title: 'پارەی مانگ چاوەڕێیە',
-                text: 'گەشتەکان دوای پارەدانی ئەم مانگە دەست پێدەکەن',
-                button: YkButton('پارەدانی مانگ', onPressed: () => openLink(context, 'paymonth')),
+                title: tr('پارەی مانگ چاوەڕێیە'),
+                text: tr('گەشتەکان دوای پارەدانی ئەم مانگە دەست پێدەکەن'),
+                button: YkButton(tr('پارەدانی مانگ'), onPressed: () => openLink(context, 'paymonth')),
               )
             : YkEmpty(
                 icon: 'calendar',
-                title: 'ئەمڕۆ هیچ گەشتێکت نییە',
-                text: hasSubs ? 'گەشتەکانی بەیانی لە سەرەکی دەبینیت' : 'بەشدارییەکی مانگانە دروست بکە و هەموو ڕۆژێک شۆفێرەکەت دێت',
+                title: tr('ئەمڕۆ هیچ گەشتێکت نییە'),
+                text: hasSubs ? tr('گەشتەکانی بەیانی لە سەرەکی دەبینیت') : tr('بەشدارییەکی مانگانە دروست بکە و هەموو ڕۆژێک شۆفێرەکەت دێت'),
                 button: hasSubs
-                    ? YkButton('سەرەکی', kind: BtnKind.secondary, onPressed: () => openLink(context, 'home'))
-                    : YkButton('بەشداری نوێ', onPressed: () => openLink(context, 'new')),
+                    ? YkButton(tr('سەرەکی'), kind: BtnKind.secondary, onPressed: () => openLink(context, 'home'))
+                    : YkButton(tr('بەشداری نوێ'), onPressed: () => openLink(context, 'new')),
               ),
       for (final x in trips)
         Builder(builder: (context) {
@@ -134,9 +135,9 @@ class TripsScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('$names، ${tripDest(x)}', style: Ts.bold(context)),
+                      Text(tr('{0}، {1}', [names, tripDest(x)]), style: Ts.bold(context)),
                       Text(
-                        '${Fmt.clock(str(x['time']))}، ${str(d['name'])}${x['originalDriverId'] != null ? ' (جێگرەوە)' : ''}${x['runId'] != null ? '، تەکسی هاوبەش' : ''}',
+                        [Fmt.clock(str(x['time'])), x['originalDriverId'] != null ? tr('{0} (جێگرەوە)', [str(d['name'])]) : str(d['name']), if (x['runId'] != null) tr('تەکسی هاوبەش')].join(tr('، ')),
                         style: Ts.muted(context, size: 12.8),
                       ),
                     ]),
@@ -148,13 +149,13 @@ class TripsScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 if (canSkip(x, cutoff))
                   Row(children: [
-                    Expanded(child: YkButton('نایەم', icon: 'x', small: true, block: true, kind: BtnKind.secondary, onPressed: () => showSkipSheet(context, str(x['id'])))),
+                    Expanded(child: YkButton(tr('نایەم'), icon: 'x', small: true, block: true, kind: BtnKind.secondary, onPressed: () => showSkipSheet(context, str(x['id'])))),
                     const SizedBox(width: 8),
                     chatBtn(did),
                   ])
                 else
                   Row(children: [
-                    Expanded(child: Text(Fmt.n('کەمتر لە $cutoff خولەک ماوە، «نایەم» ناکرێت. نامە بۆ شۆفێر بنێرە.'), style: Ts.muted(context, size: 12.8))),
+                    Expanded(child: Text(Fmt.n(tr('کەمتر لە {0} خولەک ماوە، «نایەم» ناکرێت. نامە بۆ شۆفێر بنێرە.', [cutoff])), style: Ts.muted(context, size: 12.8))),
                     const SizedBox(width: 8),
                     chatBtn(did),
                   ]),
@@ -162,10 +163,10 @@ class TripsScreen extends StatelessWidget {
               if (skipped) ...[
                 const SizedBox(height: 10),
                 Row(children: [
-                  Expanded(child: Text(str(x['skipReason']).isNotEmpty ? str(x['skipReason']) : 'شۆفێر ئاگادار کرایەوە', style: Ts.muted(context, size: 12.8))),
-                  YkButton('دەیەم', small: true, kind: BtnKind.secondary, onPressed: () async {
+                  Expanded(child: Text(str(x['skipReason']).isNotEmpty ? trData(str(x['skipReason'])) : tr('شۆفێر ئاگادار کرایەوە'), style: Ts.muted(context, size: 12.8))),
+                  YkButton(tr('دەیەم'), small: true, kind: BtnKind.secondary, onPressed: () async {
                     final err = await cloud.unskipTrip(str(x['id']));
-                    if (context.mounted) toast(context, err ?? 'شۆفێر ئاگادار کرایەوە کە دێن');
+                    if (context.mounted) toast(context, err ?? tr('شۆفێر ئاگادار کرایەوە کە دێن'));
                   }),
                 ]),
               ],
@@ -173,8 +174,8 @@ class TripsScreen extends StatelessWidget {
           );
         }),
       if (pending.length > 1)
-        YkButton('ئەمڕۆ هیچ کەسێک نایەت', kind: BtnKind.ghost, block: true, onPressed: () async {
-          if (!await askConfirm(context, 'هەموو گەشتە ماوەکانی ئەمڕۆ هەڵدەوەشێنرێنەوە و شۆفێرەکان ئاگادار دەکرێنەوە.')) return;
+        YkButton(tr('ئەمڕۆ هیچ کەسێک نایەت'), kind: BtnKind.ghost, block: true, onPressed: () async {
+          if (!await askConfirm(context, tr('هەموو گەشتە ماوەکانی ئەمڕۆ هەڵدەوەشێنرێنەوە و شۆفێرەکان ئاگادار دەکرێنەوە.'))) return;
           final bySub = <String, List<String>>{};
           for (final x in cloud.myTrips.where((x) => x['status'] == 'scheduled')) {
             bySub.putIfAbsent(str(x['subId'] ?? x['id']), () => []).add(str(x['id']));
@@ -182,16 +183,16 @@ class TripsScreen extends StatelessWidget {
           for (final ids in bySub.values) {
             await cloud.skipTrips(ids, '');
           }
-          if (context.mounted) toast(context, 'هەموو شۆفێرەکان ئاگادار کرانەوە');
+          if (context.mounted) toast(context, tr('هەموو شۆفێرەکان ئاگادار کرانەوە'));
         }),
-      Text(Fmt.n('«نایەم» تا $cutoff خولەک پێش کاتی گەشت دەکرێت.'), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
+      Text(Fmt.n(tr('«نایەم» تا {0} خولەک پێش کاتی گەشت دەکرێت.', [cutoff])), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
       YkCard(
         onTap: () => push(context, const HistoryScreen()),
         child: Row(children: [
           YkIcon('clock', size: 20, color: t.brand),
           const SizedBox(width: 10),
-          Expanded(child: Text('گەشتە کۆنەکان', style: Ts.bold(context))),
-          YkIcon('forward', size: 18, color: t.muted),
+          Expanded(child: Text(tr('گەشتە کۆنەکان'), style: Ts.bold(context))),
+          YkIcon(L.rtl ? 'forward' : 'back', size: 18, color: t.muted),
         ]),
       ),
     ]);
@@ -234,22 +235,22 @@ class HistoryScreen extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(title, style: Ts.bold(context)),
               if (absent) ...[
-                Text('سوار نەبوون، حیساب کرا', style: TextStyle(fontSize: 12.8, color: t.dangerText)),
-                Text(Fmt.n('${str(d['name'])} ${h['waited'] ?? ''} خولەک لە ${str(first['place'])} چاوەڕێی کرد'), style: Ts.muted(context, size: 12.8)),
+                Text(tr('سوار نەبوون، حیساب کرا'), style: TextStyle(fontSize: 12.8, color: t.dangerText)),
+                Text(Fmt.n(tr('{0} {1} خولەک لە {2} چاوەڕێی کرد', [str(d['name']), h['waited'] ?? '', str(first['place'])])), style: Ts.muted(context, size: 12.8)),
               ] else ...[
-                Text('${str(first['place'])} ← ${str(last['place'])}', style: Ts.muted(context, size: 12.8)),
-                Text('${str(d['name'])}، سوار بوون ${_hm(first['doneAt'])}، گەیشتن ${_hm(last['doneAt'])}', style: Ts.muted(context, size: 12.8)),
+                Text(tr('{0} ← {1}', [str(first['place']), str(last['place'])]), style: Ts.muted(context, size: 12.8)),
+                Text(tr('{0}، سوار بوون {1}، گەیشتن {2}', [str(d['name']), _hm(first['doneAt']), _hm(last['doneAt'])]), style: Ts.muted(context, size: 12.8)),
               ],
             ]),
           ),
-          YkIcon('forward', size: 18, color: t.muted),
+          YkIcon(L.rtl ? 'forward' : 'back', size: 18, color: t.muted),
         ]),
       ));
     }
     return Scaffold(
       body: YkScreen(children: [
-        YkHeader('گەشتەکانم', sub: Fmt.n('${list.length} گەشتی تەواوبوو')),
-        if (list.isEmpty) const YkEmpty(icon: 'clock', title: 'هێشتا هیچ گەشتێکت نییە', text: 'دوای هەر گەشتێک لێرە دەبینیت کەی سوار بوون و کەی گەیشتن'),
+        YkHeader(tr('گەشتەکانم'), sub: Fmt.n(tr('{0} گەشتی تەواوبوو', [list.length]))),
+        if (list.isEmpty) YkEmpty(icon: 'clock', title: tr('هێشتا هیچ گەشتێکت نییە'), text: tr('دوای هەر گەشتێک لێرە دەبینیت کەی سوار بوون و کەی گەیشتن')),
         ...rows,
       ]),
     );
@@ -265,7 +266,7 @@ class HistoryDetailScreen extends StatelessWidget {
     final t = context.yk;
     final cloud = context.watch<Cloud>();
     final h = cloud.myHistory.where((x) => x['id'] == id).firstOrNull;
-    if (h == null) return const Scaffold(body: YkScreen(children: [YkHeader('گەشت'), YkEmpty(icon: 'clock', title: 'نەدۆزرایەوە')]));
+    if (h == null) return Scaffold(body: YkScreen(children: [YkHeader(tr('گەشت')), YkEmpty(icon: 'clock', title: tr('نەدۆزرایەوە'))]));
     final did = str(h['driverId']);
     final d = cloud.driver(did) ?? {'id': did};
     final orig = h['originalDriverId'] != null ? cloud.driver(h['originalDriverId']) : null;
@@ -275,16 +276,16 @@ class HistoryDetailScreen extends StatelessWidget {
     final a = (first['doneAt'] as num?) ?? 0, b = (last['doneAt'] as num?) ?? 0;
     final dur = ((b - a) / 60000).round().clamp(1, 1 << 20);
     final ev = <(num, String, String)>[];
-    if (h['startedAt'] is num) ev.add((h['startedAt'] as num, '${str(d['name'])} دەستی بە گەشت کرد', 'route'));
+    if (h['startedAt'] is num) ev.add((h['startedAt'] as num, tr('{0} دەستی بە گەشت کرد', [str(d['name'])]), 'route'));
     for (final x in stops) {
-      if (x['arrivedAt'] is num) ev.add((x['arrivedAt'] as num, 'تەکسی گەیشتە ${str(x['place'])}', 'pin'));
+      if (x['arrivedAt'] is num) ev.add((x['arrivedAt'] as num, tr('تەکسی گەیشتە {0}', [str(x['place'])]), 'pin'));
       if (x['absent'] == true) {
-        ev.add(((x['doneAt'] as num?) ?? 0, 'کەس نەهات، شۆفێر ڕۆیشت', 'x'));
+        ev.add(((x['doneAt'] as num?) ?? 0, tr('کەس نەهات، شۆفێر ڕۆیشت'), 'x'));
         continue;
       }
       ev.add((
         (x['doneAt'] as num?) ?? 0,
-        x['kind'] == 'pickup' ? '${str(x['riders'])} سوار بوون، ${str(x['place'])}' : '${str(x['riders'])} دابەزین، ${str(x['place'])}',
+        x['kind'] == 'pickup' ? tr('{0} سوار بوون، {1}', [str(x['riders']), str(x['place'])]) : tr('{0} دابەزین، {1}', [str(x['riders']), str(x['place'])]),
         x['kind'] == 'pickup' ? 'car' : 'check',
       ));
     }
@@ -308,8 +309,8 @@ class HistoryDetailScreen extends StatelessWidget {
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(str(d['name']), style: Ts.bold(context)),
-                Text('${str(d['car'])}، ${str(d['plate'])}', style: Ts.muted(context, size: 12.8)),
-                if (orig != null) Text('جێگرەوەی ${str(orig['name'])}', style: TextStyle(fontSize: 12.8, color: t.brand)),
+                Text(tr('{0}، {1}', [str(d['car']), str(d['plate'])]), style: Ts.muted(context, size: 12.8)),
+                if (orig != null) Text(tr('جێگرەوەی {0}', [str(orig['name'])]), style: TextStyle(fontSize: 12.8, color: t.brand)),
               ]),
             ),
             YkButton('', icon: 'chat', small: true, kind: BtnKind.secondary, onPressed: () => openLink(context, 'chat/$did')),
@@ -319,21 +320,21 @@ class HistoryDetailScreen extends StatelessWidget {
           YkCard(
             tone: CardTone.danger,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('سوار نەبوون', style: TextStyle(fontWeight: FontWeight.w700)),
-              Text(Fmt.n('شۆفێر ${h['waited'] ?? ''} خولەک چاوەڕێی کرد. چونکە پێشتر «نایەم» نەکرابوو، ئەم گەشتە وەک کراو حیساب کرا.'), style: const TextStyle(fontSize: 14)),
+              Text(tr('سوار نەبوون'), style: const TextStyle(fontWeight: FontWeight.w700)),
+              Text(Fmt.n(tr('شۆفێر {0} خولەک چاوەڕێی کرد. چونکە پێشتر «نایەم» نەکرابوو، ئەم گەشتە وەک کراو حیساب کرا.', [h['waited'] ?? ''])), style: const TextStyle(fontSize: 14)),
             ]),
           )
         else
           Row(children: [
-            stat(_hm(first['doneAt']), 'سوار بوون'),
+            stat(_hm(first['doneAt']), tr('سوار بوون')),
             const SizedBox(width: 8),
-            stat(_hm(last['doneAt']), 'گەیشتن'),
+            stat(_hm(last['doneAt']), tr('گەیشتن')),
             const SizedBox(width: 8),
-            stat(Fmt.n(dur), 'خولەک'),
+            stat(Fmt.n(dur), tr('خولەک')),
           ]),
         YkCard(
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text('ڕووداوەکان', style: Ts.h3(context)),
+            Text(tr('ڕووداوەکان'), style: Ts.h3(context)),
             const SizedBox(height: 10),
             Timeline(items: [
               for (final e in ev)
@@ -349,11 +350,11 @@ class HistoryDetailScreen extends StatelessWidget {
         ),
         YkCard(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('سەرنشینەکان', style: Ts.muted(context, size: 14)),
+            Text(tr('سەرنشینەکان'), style: Ts.muted(context, size: 14)),
             Text(Fmt.names(cloud.names(asList(h['memberIds']))), style: Ts.bold(context)),
           ]),
         ),
-        YkButton('کێشەیەک لەم گەشتەدا هەبوو؟', icon: 'help', kind: BtnKind.ghost, block: true, onPressed: () => openLink(context, 'support')),
+        YkButton(tr('کێشەیەک لەم گەشتەدا هەبوو؟'), icon: 'help', kind: BtnKind.ghost, block: true, onPressed: () => openLink(context, 'support')),
       ]),
     );
   }

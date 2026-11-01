@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import 'theme.dart';
 import 'widgets.dart';
 import 'yk_icon.dart';
@@ -13,29 +14,29 @@ import 'yk_icon.dart';
   switch (key) {
     case 'trips':
       return (
-        title: 'گەشتەکانی ئەمڕۆ',
+        title: tr('گەشتەکانی ئەمڕۆ'),
         body: [
-          'ئەگەر ئەمڕۆ کەسێک نایەت، «نایەم» دابگرە. شۆفێرەکە دەستبەجێ ئاگادار دەکرێتەوە و پێویست ناکات بێت.',
-          Fmt.n('«نایەم» تا ${c['skipCutoffMin'] ?? 30} خولەک پێش کاتی گەشت دەکرێت. نرخی مانگانە ناگۆڕێت.'),
+          tr('ئەگەر ئەمڕۆ کەسێک نایەت، «نایەم» دابگرە. شۆفێرەکە دەستبەجێ ئاگادار دەکرێتەوە و پێویست ناکات بێت.'),
+          Fmt.n(tr('«نایەم» تا {0} خولەک پێش کاتی گەشت دەکرێت. نرخی مانگانە ناگۆڕێت.', [c['skipCutoffMin'] ?? 30])),
         ],
         mutedLast: true,
       );
     case 'inbox':
       return (
-        title: 'نامەکان',
+        title: tr('نامەکان'),
         body: [
-          'بۆ ناردنی نامە بۆ شۆفێرێکی نوێ، پرۆفایلەکەی بکەرەوە و «نامە» دابگرە.',
-          'ژمارەی مۆبایلەکەت بۆ شۆفێر شاراوەیە. نامەی خۆت تا ٥ خولەک دەتوانیت بگەڕێنیتەوە.',
+          tr('بۆ ناردنی نامە بۆ شۆفێرێکی نوێ، پرۆفایلەکەی بکەرەوە و «نامە» دابگرە.'),
+          Fmt.n(tr('ژمارەی مۆبایلەکەت بۆ شۆفێر شاراوەیە. نامەی خۆت تا ٥ خولەک دەتوانیت بگەڕێنیتەوە.')),
         ],
         mutedLast: true,
       );
     case 'wallet':
       return (
-        title: 'جزدانەکەم',
+        title: tr('جزدانەکەم'),
         body: [
-          'پارە دەخەیتە سەر جزدانەکەت (FIB، FastPay یان کاش)، پاشان پارەی هەر مانگێک خۆت لە «پارەدانی مانگ» دەدەیت، پێش یەکەم گەشت.',
-          'پارەکە لای یەکسا دەمێنێتەوە و ڕۆژ بە ڕۆژ، تەنها دوای تەواوبوونی هەر گەشتێک، دەچێتە سەر حیسابی شۆفێر.',
-          Fmt.n('بۆ هەر ${c['skipEvery'] ?? ''} ڕۆژ «نایەم» لە مانگێکدا، پارەی ${c['skipRefundDays'] ?? ''} ڕۆژ دەگەڕێتەوە سەر جزدانەکەت. ئەگەر شۆفێر نەهات و یەکسا پەسەندی کرد، قەرەبووەکەش لێرە دەبینیت.'),
+          tr('پارە دەخەیتە سەر جزدانەکەت (FIB، FastPay یان کاش)، پاشان پارەی هەر مانگێک خۆت لە «پارەدانی مانگ» دەدەیت، پێش یەکەم گەشت.'),
+          tr('پارەکە لای یەکسا دەمێنێتەوە و ڕۆژ بە ڕۆژ، تەنها دوای تەواوبوونی هەر گەشتێک، دەچێتە سەر حیسابی شۆفێر.'),
+          Fmt.n(tr('بۆ هەر {0} ڕۆژ «نایەم» لە مانگێکدا، پارەی {1} ڕۆژ دەگەڕێتەوە سەر جزدانەکەت. ئەگەر شۆفێر نەهات و یەکسا پەسەندی کرد، قەرەبووەکەش لێرە دەبینیت.', [c['skipEvery'] ?? '', c['skipRefundDays'] ?? ''])),
         ],
         mutedLast: false,
       );
@@ -68,7 +69,7 @@ void showHelp(BuildContext context, String key) {
             style: (h.mutedLast && i == h.body.length - 1 ? Ts.muted(c, size: 15) : TextStyle(fontSize: 15, color: t.text)).copyWith(height: 1.9)),
       ],
       const SizedBox(height: 16),
-      YkButton('تێگەیشتم', block: true, onPressed: () => Navigator.pop(c)),
+      YkButton(tr('تێگەیشتم'), block: true, onPressed: () => Navigator.pop(c)),
     ]);
   });
 }
@@ -82,7 +83,7 @@ class HelpButton extends StatelessWidget {
     final t = context.yk;
     return Semantics(
       button: true,
-      label: 'ڕوونکردنەوە',
+      label: tr('ڕوونکردنەوە'),
       child: GestureDetector(
         onTap: () => showHelp(context, helpKey),
         child: Container(

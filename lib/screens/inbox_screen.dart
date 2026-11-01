@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../core/chat.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/sel.dart';
 import '../ui/help.dart';
 import '../ui/parts.dart';
@@ -52,25 +53,25 @@ class InboxScreen extends StatelessWidget {
     final threads = cloud.threads;
     final unread = cloud.unreadMsgs;
     final subDrivers = cloud.subDriversNoThread;
-    return YkScreen(withNav: true, title: 'نامەکان', onRefresh: context.read<Cloud>().refresh, children: [
+    return YkScreen(withNav: true, title: tr('نامەکان'), onRefresh: context.read<Cloud>().refresh, children: [
       Row(children: [
-        Expanded(child: Text('نامەکان', style: Ts.h1(context))),
-        if (unread > 0) YkBadge(Fmt.n('$unread نەخوێندراوە'), tone: BadgeTone.danger),
+        Expanded(child: Text(tr('نامەکان'), style: Ts.h1(context))),
+        if (unread > 0) YkBadge(Fmt.n(tr('{0} نەخوێندراوە', [unread])), tone: BadgeTone.danger),
         const SizedBox(width: 8),
         const HelpButton('inbox'),
       ]),
       if (threads.isEmpty)
-        const YkEmpty(icon: 'chat', title: 'هێشتا نامەت نییە', text: 'کاتێک شۆفێرێکت هەبوو، لێرە ڕاستەوخۆ نامەی بۆ دەنێریت')
+        YkEmpty(icon: 'chat', title: tr('هێشتا نامەت نییە'), text: tr('کاتێک شۆفێرێکت هەبوو، لێرە ڕاستەوخۆ نامەی بۆ دەنێریت'))
       else
         Column(children: [
           for (var i = 0; i < threads.length; i++) _ThreadRow(th: threads[i], last: i == threads.length - 1),
         ]),
       if (subDrivers.isNotEmpty) ...[
-        Text('شۆفێرەکانت', style: Ts.h3(context)),
+        Text(tr('شۆفێرەکانت'), style: Ts.h3(context)),
         YkList(children: [
           for (final id in subDrivers)
             Builder(builder: (context) {
-              final d = cloud.driver(id) ?? {'id': id, 'name': 'شۆفێر'};
+              final d = cloud.driver(id) ?? {'id': id, 'name': tr('شۆفێر')};
               return InkWell(
                 onTap: () => openLink(context, 'chat/$id'),
                 child: Padding(
@@ -90,7 +91,7 @@ class InboxScreen extends StatelessWidget {
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
                         YkIcon('chat', size: 16, color: t.silverText),
                         const SizedBox(width: 6),
-                        Text('نامە', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.silverText)),
+                        Text(tr('نامە'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.silverText)),
                       ]),
                     ),
                   ]),
@@ -111,10 +112,10 @@ class _ThreadRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.yk;
     final cloud = context.read<Cloud>();
-    final d = cloud.driver(th.driverId) ?? {'id': th.driverId, 'name': 'شۆفێر'};
+    final d = cloud.driver(th.driverId) ?? {'id': th.driverId, 'name': tr('شۆفێر')};
     final m = th.last;
     final mine = m['system'] != true && m['fromDriver'] != true;
-    final preview = m['unsent'] == true ? 'نامەیەک گەڕێنرایەوە' : m['voice'] != null ? 'نامەی دەنگی' : str(m['text']);
+    final preview = m['unsent'] == true ? tr('نامەیەک گەڕێنرایەوە') : m['voice'] != null ? tr('نامەی دەنگی') : str(m['text']);
     final un = th.unread > 0;
     return InkWell(
       onTap: () => openLink(context, 'chat/${th.driverId}'),
@@ -138,7 +139,7 @@ class _ThreadRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Row(children: [
                   Expanded(
-                    child: Text('${mine ? 'تۆ: ' : ''}$preview',
+                    child: Text('${mine ? tr('تۆ: ') : ''}$preview', // i18n-keep
                         maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 14.4, color: un ? t.text : t.muted, fontWeight: un ? FontWeight.w700 : FontWeight.w400)),
                   ),
                   if (un)
@@ -174,7 +175,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final _scroll = ScrollController();
   int _lastCount = -1;
   Timer? _tick;
-  static const _quick = ['باشە، سوپاس', 'ئامادەین', '٥ خولەک چاوەڕێ بکە', 'ئەمڕۆ نایەین', 'لە بەردەم دەرگاین'];
+  // وەڵامە خێراکان بە کوردی دەنێردرێن (شۆفێر کوردی دەخوێنێتەوە)، تەنها دوگمەکە وەردەگێڕدرێت
+  static const _quick = ['باشە، سوپاس', 'ئامادەین', '٥ خولەک چاوەڕێ بکە', 'ئەمڕۆ نایەین', 'لە بەردەم دەرگاین']; // i18n-keep
 
   @override
   void initState() {
@@ -216,12 +218,12 @@ class _ChatScreenState extends State<ChatScreen> {
     final txt = str(m['text']);
     final ok = await askConfirm(
       context,
-      Fmt.n('«${txt.length > 80 ? txt.substring(0, 80) : txt}» دەگەڕێنرێتەوە و لای کەسەکەی تر «ئەم نامەیە گەڕێنرایەوە» دەردەکەوێت. ($left خولەکی ماوە)'),
-      yes: 'گەڕاندنەوە',
+      Fmt.n(tr('«{0}» دەگەڕێنرێتەوە و لای کەسەکەی تر «ئەم نامەیە گەڕێنرایەوە» دەردەکەوێت. ({1} خولەکی ماوە)', [txt.length > 80 ? txt.substring(0, 80) : txt, left])),
+      yes: trc('گەڕاندنەوە', 'سحب', 'Unsend'),
     );
     if (!ok || !mounted) return;
     final err = await cloud.unsendMessage(str(m['id']));
-    if (mounted) toast(context, err ?? 'نامەکە گەڕێنرایەوە');
+    if (mounted) toast(context, err ?? tr('نامەکە گەڕێنرایەوە'));
   }
 
   @override
@@ -230,7 +232,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final cloud = context.watch<Cloud>();
     final d = cloud.driver(widget.driverId);
     if (d == null) {
-      return const Scaffold(body: YkScreen(children: [YkHeader('نامە'), YkEmpty(icon: 'chat', title: 'شۆفێرەکە نەدۆزرایەوە')]));
+      return Scaffold(body: YkScreen(children: [YkHeader(tr('نامە')), YkEmpty(icon: 'chat', title: tr('شۆفێرەکە نەدۆزرایەوە'))]));
     }
     final msgs = cloud.threadMsgs(widget.driverId);
     if (msgs.length != _lastCount) {
@@ -252,7 +254,7 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.fromLTRB(8, 8, 12, 8),
             child: Row(children: [
               if (Navigator.of(context).canPop())
-                IconButton(tooltip: 'گەڕانەوە', onPressed: () => Navigator.of(context).maybePop(), icon: YkIcon('back', size: 22, color: t.text)),
+                IconButton(tooltip: tr('گەڕانەوە'), onPressed: () => Navigator.of(context).maybePop(), icon: YkIcon(L.rtl ? 'back' : 'forward', size: 22, color: t.text)),
               _Av(d, size: 42, online: d['online'] == true),
               const SizedBox(width: 10),
               Expanded(
@@ -261,7 +263,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   Text(carText(d), maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.muted(context, size: 12.8)),
                 ]),
               ),
-              if (phone.isNotEmpty) IconButton(tooltip: 'پەیوەندی', onPressed: () => callPhone(phone), icon: YkIcon('phone', size: 20, color: t.text)),
+              if (phone.isNotEmpty) IconButton(tooltip: tr('پەیوەندی'), onPressed: () => callPhone(phone), icon: YkIcon('phone', size: 20, color: t.text)),
             ]),
           ),
           Divider(height: 1, thickness: 1, color: t.line),
@@ -281,14 +283,14 @@ class _ChatScreenState extends State<ChatScreen> {
                           child: Column(children: [
                             if (phone.isNotEmpty)
                               Row(children: [
-                                Expanded(child: Text('ژمارەی شۆفێر', style: Ts.sm(context))),
+                                Expanded(child: Text(tr('ژمارەی شۆفێر'), style: Ts.sm(context))),
                                 GestureDetector(
                                   onTap: () => callPhone(phone),
                                   child: Text(Fmt.phone(phone), textDirection: TextDirection.ltr, style: TextStyle(fontWeight: FontWeight.w700, color: t.brand)),
                                 ),
                               ]),
                             Row(children: [
-                              Expanded(child: Text('ژمارەکەت بۆ شۆفێر شاراوەیە', style: Ts.sm(context))),
+                              Expanded(child: Text(tr('ژمارەکەت بۆ شۆفێر شاراوەیە'), style: Ts.sm(context))),
                               YkIcon('lock', size: 16, color: t.muted),
                             ]),
                           ]),
@@ -297,7 +299,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         if (msgs.isEmpty)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 30),
-                            child: Text('هێشتا هیچ نامەیەک نییە. یەکەم نامە بنووسە.', textAlign: TextAlign.center, style: Ts.muted(context, size: 14)),
+                            child: Text(tr('هێشتا هیچ نامەیەک نییە. یەکەم نامە بنووسە.'), textAlign: TextAlign.center, style: Ts.muted(context, size: 14)),
                           ),
                         ..._bubbles(context, cloud, msgs),
                       ]),
@@ -326,7 +328,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final key = day.toIso8601String();
       if (key != lastDay) {
         lastDay = key;
-        final label = day == today ? 'ئەمڕۆ' : day == today.subtract(const Duration(days: 1)) ? 'دوێنێ' : Fmt.ago(at);
+        final label = day == today ? tr('ئەمڕۆ') : day == today.subtract(const Duration(days: 1)) ? tr('دوێنێ') : Fmt.ago(at);
         out.add(Center(
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 8),
@@ -344,7 +346,7 @@ class _ChatScreenState extends State<ChatScreen> {
             constraints: const BoxConstraints(maxWidth: 400),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(color: t.noteBg, borderRadius: BorderRadius.circular(12), border: Border.all(color: t.noteLine)),
-            child: Text(str(m['text']), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
+            child: Text(trData(m['text']), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
           ),
         ));
         continue;
@@ -358,7 +360,7 @@ class _ChatScreenState extends State<ChatScreen> {
           YkIcon('x', size: 14, color: fg.withValues(alpha: .7)),
           const SizedBox(width: 6),
           Flexible(
-            child: Text(mine ? 'نامەکەت گەڕاندەوە' : 'ئەم نامەیە گەڕێنرایەوە',
+            child: Text(mine ? tr('نامەکەت گەڕاندەوە') : tr('ئەم نامەیە گەڕێنرایەوە'),
                 style: TextStyle(fontStyle: FontStyle.italic, color: fg.withValues(alpha: .7), fontSize: 15.2)),
           ),
         ]);
@@ -436,7 +438,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(color: t.silver, borderRadius: BorderRadius.circular(999), border: Border.all(color: t.silverLine)),
-                    child: Text(_quick[i], style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.silverText)),
+                    child: Text(tr(_quick[i]), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: t.silverText)),
                   ),
                 ),
               ),
@@ -449,7 +451,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   minLines: 1,
                   maxLines: 5,
                   textInputAction: TextInputAction.newline,
-                  decoration: ykInput(context, hint: 'نامە بنووسە...').copyWith(
+                  decoration: ykInput(context, hint: tr('نامە بنووسە...')).copyWith(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide(color: t.line, width: 1.5)),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide(color: t.line, width: 1.5)),
@@ -460,7 +462,7 @@ class _ChatScreenState extends State<ChatScreen> {
               const SizedBox(width: 8),
               Semantics(
                 button: true,
-                label: 'ناردن',
+                label: trc('ناردن', 'إرسال', 'Send'),
                 child: Material(
                   color: t.act,
                   shape: const CircleBorder(),

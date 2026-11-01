@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/sel.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -94,7 +95,7 @@ Future<int?> _wheelSheet(BuildContext context, {required String title, required 
             ),
           ),
           const SizedBox(height: 10),
-          YkButton('هەڵبژاردن', block: true, onPressed: () => Navigator.pop(c, sel)),
+          YkButton(tr('هەڵبژاردن'), block: true, onPressed: () => Navigator.pop(c, sel)),
         ]),
       );
     },
@@ -103,10 +104,10 @@ Future<int?> _wheelSheet(BuildContext context, {required String title, required 
 
 /// هەڵبژاردنی کات بە کوردی (لە جیاتی «07:30 AM»)
 class TimeField extends StatelessWidget {
-  const TimeField({super.key, required this.value, required this.onChanged, this.title = 'کات', this.dense = false});
+  const TimeField({super.key, required this.value, required this.onChanged, this.title, this.dense = false});
   final String value;
   final ValueChanged<String> onChanged;
-  final String title;
+  final String? title;
   final bool dense;
 
   @override
@@ -116,7 +117,7 @@ class TimeField extends StatelessWidget {
       dense: dense,
       onTap: () async {
         final opts = timeOptions(value);
-        final i = await _wheelSheet(context, title: title, labels: opts.map(Fmt.clock).toList(), initial: opts.contains(value) ? opts.indexOf(value) : 0);
+        final i = await _wheelSheet(context, title: title ?? tr('کات'), labels: opts.map(Fmt.clock).toList(), initial: opts.contains(value) ? opts.indexOf(value) : 0);
         if (i != null) onChanged(opts[i]);
       },
     );
@@ -132,23 +133,26 @@ String fmtDay(String? iso) {
 
 /// هەڵبژاردنی ڕۆژ لە ئەمڕۆوە تا ٤٥ ڕۆژی تر (ui.dateSelect)
 class DateField extends StatelessWidget {
-  const DateField({super.key, required this.value, required this.onChanged, this.days = 45, this.title = 'ڕۆژ'});
+  const DateField({super.key, required this.value, required this.onChanged, this.days = 45, this.title});
   final String value;
   final ValueChanged<String> onChanged;
   final int days;
-  final String title;
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final opts = [for (var n = 0; n <= days; n++) Fmt.todayIso(DateTime(now.year, now.month, now.day + n))];
-    String label(int n) => '${n == 0 ? 'ئەمڕۆ، ' : n == 1 ? 'سبەینێ، ' : ''}${Fmt.n(fmtDay(opts[n]))}';
+    String label(int n) {
+      final d = Fmt.n(fmtDay(opts[n]));
+      return n == 0 ? tr('ئەمڕۆ، {0}', [d]) : n == 1 ? tr('سبەینێ، {0}', [d]) : d;
+    }
     final idx = opts.indexOf(value);
     return _TapField(
       icon: 'calendar',
       text: idx >= 0 ? label(idx) : Fmt.n(fmtDay(value)),
       onTap: () async {
-        final i = await _wheelSheet(context, title: title, labels: [for (var n = 0; n < opts.length; n++) label(n)], initial: idx < 0 ? 0 : idx);
+        final i = await _wheelSheet(context, title: title ?? tr('ڕۆژ'), labels: [for (var n = 0; n < opts.length; n++) label(n)], initial: idx < 0 ? 0 : idx);
         if (i != null) onChanged(opts[i]);
       },
     );
@@ -205,7 +209,7 @@ class DaysPicker extends StatelessWidget {
         if (i > 0) const SizedBox(width: 6),
         Expanded(
           child: Semantics(
-            label: kWeekdays[i],
+            label: Fmt.weekday(i),
             selected: days[i],
             button: true,
             child: GestureDetector(
@@ -219,7 +223,7 @@ class DaysPicker extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: days[i] ? t.act : t.line, width: 1.5),
                 ),
-                child: Text(kWeekdayShort[i], style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: days[i] ? t.actText : t.text)),
+                child: Text(Fmt.weekdayShort(i), style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: days[i] ? t.actText : t.text)),
               ),
             ),
           ),
@@ -319,7 +323,7 @@ class RequestSummary extends StatelessWidget {
         IconLine('clock', fmtSchedule(r), muted: true),
         IconLine('calendar', fmtDays(asList(r['days'])), muted: true),
       ],
-      if (str(r['startDate']).isNotEmpty) IconLine('flag', Fmt.n('دەستپێکردن: ${fmtDay(str(r['startDate']))}'), muted: true),
+      if (str(r['startDate']).isNotEmpty) IconLine('flag', Fmt.n(tr('دەستپێکردن: {0}', [fmtDay(str(r['startDate']))])), muted: true),
     ]);
   }
 }
@@ -345,9 +349,9 @@ class PerDayList extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 3),
               child: Row(children: [
-                SizedBox(width: 82, child: Text(kWeekdays[i], style: TextStyle(fontSize: 13.4, fontWeight: FontWeight.w700, color: t.text))),
-                cell(asMap(pd['$i'])['go'] as String?, 'چوون', 'بێ چوون'),
-                cell(asMap(pd['$i'])['back'] as String?, 'هاتنەوە', 'بێ هاتنەوە'),
+                SizedBox(width: 82, child: Text(Fmt.weekday(i), style: TextStyle(fontSize: 13.4, fontWeight: FontWeight.w700, color: t.text))),
+                cell(asMap(pd['$i'])['go'] as String?, tr('چوون'), tr('بێ چوون')),
+                cell(asMap(pd['$i'])['back'] as String?, tr('هاتنەوە'), tr('بێ هاتنەوە')),
               ]),
             ),
       ]),
@@ -365,11 +369,11 @@ class RequestTags extends StatelessWidget {
     final riders = (r['riders'] as num?) ?? 1;
     return Wrap(spacing: 6, runSpacing: 6, children: [
       if (r['hasChild'] == true)
-        YkBadge(rt == 'private' ? 'تەنها منداڵەکانی خۆم' : rt == 'family' ? 'لەگەڵ خێزان' : 'تەنها لەگەڵ منداڵ', tone: BadgeTone.note)
+        YkBadge(rt == 'private' ? tr('تەنها منداڵەکانی خۆم') : rt == 'family' ? tr('لەگەڵ خێزان') : tr('تەنها لەگەڵ منداڵ'), tone: BadgeTone.note)
       else
-        YkBadge(rt == 'private' ? 'تەکسی تایبەت' : 'هاوبەش'),
-      if (r['womanOnly'] == true) const YkBadge('شۆفێری ئافرەت', tone: BadgeTone.woman),
-      if (riders > 1) YkBadge(Fmt.n('$riders سەرنشین'), tone: BadgeTone.info),
+        YkBadge(rt == 'private' ? tr('تەکسی تایبەت') : tr('هاوبەش')),
+      if (r['womanOnly'] == true) YkBadge(tr('شۆفێری ئافرەت'), tone: BadgeTone.woman),
+      if (riders > 1) YkBadge(Fmt.n(tr('{0} سەرنشین', [riders])), tone: BadgeTone.info),
     ]);
   }
 }

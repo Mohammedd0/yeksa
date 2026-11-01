@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../core/billing.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/sel.dart';
 import '../ui/form_parts.dart';
 import '../ui/parts.dart';
@@ -43,22 +44,22 @@ class _SubsScreenState extends State<SubsScreen> {
     final subs = _who.isEmpty ? all : all.where((x) => asList(x['memberIds']).map(str).contains(_who)).toList();
     return YkScreen(
       withNav: true,
-      title: 'بەشدارییەکان',
+      title: tr('بەشدارییەکان'),
       onRefresh: context.read<Cloud>().refresh,
       children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('بەشدارییەکان', style: Ts.h1(context)),
-          YkButton('نوێ', icon: 'plus', small: true, onPressed: () => openLink(context, 'new')),
+          Text(tr('بەشدارییەکان'), style: Ts.h1(context)),
+          YkButton(tr('نوێ'), icon: 'plus', small: true, onPressed: () => openLink(context, 'new')),
         ]),
         if (open.isNotEmpty) ...[
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('داواکارییە کراوەکان', style: Ts.h3(context).copyWith(fontSize: 16)),
-            YkLink('هەمووی', pill: true, onTap: () => push(context, const RequestsScreen())),
+            Text(tr('داواکارییە کراوەکان'), style: Ts.h3(context).copyWith(fontSize: 16)),
+            YkLink(tr('هەمووی'), pill: true, onTap: () => push(context, const RequestsScreen())),
           ]),
           for (final r in open) RequestCard(r),
         ],
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('بەشدارییە چالاکەکان', style: Ts.h3(context).copyWith(fontSize: 16)),
+          Text(tr('بەشدارییە چالاکەکان'), style: Ts.h3(context).copyWith(fontSize: 16)),
           if (all.isNotEmpty) CountPill(Fmt.n(all.length), section: true),
         ]),
         // فلتەر بە پێی سەرنشین، تەنها ئەگەر زیاتر لە یەک سەرنشین هەبێت
@@ -66,9 +67,9 @@ class _SubsScreenState extends State<SubsScreen> {
         if (all.isEmpty)
           YkEmpty(
             icon: 'calendar',
-            title: 'هێشتا هیچ بەشدارییەکت نییە',
-            text: 'شوێن و کات دیاری بکە و شۆفێرەکان نرخت بۆ دەنێرن',
-            button: YkButton('یەکەم بەشداری', onPressed: () => openLink(context, 'new')),
+            title: tr('هێشتا هیچ بەشدارییەکت نییە'),
+            text: tr('شوێن و کات دیاری بکە و شۆفێرەکان نرخت بۆ دەنێرن'),
+            button: YkButton(tr('یەکەم بەشداری'), onPressed: () => openLink(context, 'new')),
           ),
         for (final x in subs) SubTile(x),
         // گەڕان بەناو شۆفێرەکاندا (.sfind)
@@ -89,8 +90,8 @@ class _SubsScreenState extends State<SubsScreen> {
               const SizedBox(width: 14),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('گەڕان بەناو شۆفێرەکاندا', style: Ts.bold(context).copyWith(fontSize: 16.8)),
-                  Text('دۆزینەوەی شۆفێری نوێ بەپێی گەڕەک و کاتەکەت', style: Ts.muted(context, size: 13.1)),
+                  Text(tr('گەڕان بەناو شۆفێرەکاندا'), style: Ts.bold(context).copyWith(fontSize: 16.8)),
+                  Text(tr('دۆزینەوەی شۆفێری نوێ بەپێی گەڕەک و کاتەکەت'), style: Ts.muted(context, size: 13.1)),
                 ]),
               ),
               Container(
@@ -98,7 +99,7 @@ class _SubsScreenState extends State<SubsScreen> {
                 height: 40,
                 decoration: BoxDecoration(color: t.silver, borderRadius: BorderRadius.circular(12)),
                 alignment: Alignment.center,
-                child: YkIcon('forward', size: 18, color: t.muted),
+                child: YkIcon(L.rtl ? 'forward' : 'back', size: 18, color: t.muted),
               ),
             ]),
           ),
@@ -111,7 +112,7 @@ class _SubsScreenState extends State<SubsScreen> {
 /// فلتەری سەرنشین: [pick] کاتێک یەکێک هەڵدەبژێردرێت
 Widget _riderFilter(BuildContext context, Cloud cloud, int total, Map<String, int> riders, String who, ValueChanged<String> pick) {
     final opts = <(String, String)>[
-      ('', Fmt.n('هەمووی ($total)')),
+      ('', Fmt.n(tr('هەمووی ({0})', [total]))),
       for (final e in riders.entries) (e.key, Fmt.n('${cloud.names([e.key]).firstOrNull ?? ''} (${e.value})')),
     ];
     // تا ٣ هەڵبژاردن: کۆنترۆڵی بەشبەش؛ زیاتر: ڕیزێک چیپ کە بە لادا سکرۆڵ دەبێت
@@ -142,7 +143,7 @@ class SubTile extends StatelessWidget {
     final d = cloud.driver(sub['driverId']) ?? const <String, dynamic>{};
     final paused = sub['status'] == 'paused';
     final due = !paused && cloud.walletOn && !cloud.subPaid(sub);
-    String place(Object? x) => str(x).split('، ').first;
+    String place(Object? x) => str(x).split('، ').first; // i18n-keep
     Widget tag(String text, {bool off = false}) => Container(
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
           decoration: BoxDecoration(color: t.silver, borderRadius: BorderRadius.circular(10)),
@@ -169,20 +170,20 @@ class SubTile extends StatelessWidget {
                     _StateBadge(paused: paused),
                 ]),
                 const SizedBox(height: 2),
-                Text('${place(sub['from'])} ← ${place(sub['to'])}', maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.muted(context, size: 13.4)),
+                Text('${place(sub['from'])} ${L.rtl ? '←' : '→'} ${place(sub['to'])}', maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.muted(context, size: 13.4)),
               ]),
             ),
             const SizedBox(width: 6),
-            YkIcon('forward', size: 18, color: t.muted),
+            YkIcon(L.rtl ? 'forward' : 'back', size: 18, color: t.muted),
           ]),
           const SizedBox(height: 10),
           Row(children: [
             if (per)
-              tag('کاتی جیاواز بۆ هەر ڕۆژێک')
+              tag(tr('کاتی جیاواز بۆ هەر ڕۆژێک'))
             else ...[
-              go.isEmpty ? tag('بێ چوون', off: true) : tag('چوون ${Fmt.clock(go)}'),
+              go.isEmpty ? tag(tr('بێ چوون'), off: true) : tag(tr('چوون {0}', [Fmt.clock(go)])),
               const SizedBox(width: 6),
-              back.isEmpty ? tag('بێ هاتنەوە', off: true) : tag('هاتنەوە ${Fmt.clock(back)}'),
+              back.isEmpty ? tag(tr('بێ هاتنەوە'), off: true) : tag(tr('هاتنەوە {0}', [Fmt.clock(back)])),
             ],
             const SizedBox(width: 8),
             Expanded(child: Text(fmtDays(asList(sub['days'])), textAlign: TextAlign.end, maxLines: 1, overflow: TextOverflow.ellipsis, style: Ts.muted(context, size: 12.5))),
@@ -208,9 +209,9 @@ class SubDetailScreen extends StatelessWidget {
     final sub = cloud.mySubs.where((x) => str(x['id']) == id).firstOrNull;
     return Scaffold(
       body: YkScreen(children: [
-        YkHeader(sub == null ? 'بەشداری' : 'بەشداری ${Fmt.names(cloud.names(asList(sub['memberIds'])))}'),
+        YkHeader(sub == null ? tr('بەشداری') : tr('بەشداری {0}', [Fmt.names(cloud.names(asList(sub['memberIds'])))])),
         if (sub == null)
-          const YkEmpty(icon: 'calendar', title: 'ئەم بەشدارییە نەماوە', text: 'لەوانەیە هەڵوەشێنرابێتەوە')
+          YkEmpty(icon: 'calendar', title: tr('ئەم بەشدارییە نەماوە'), text: tr('لەوانەیە هەڵوەشێنرابێتەوە'))
         else
           SubCard(sub),
       ]),
@@ -239,9 +240,10 @@ class _SubCardState extends State<SubCard> {
     final names = cloud.names(ids);
     final paused = sub['status'] == 'paused';
     final per = hasPerDay(sub);
-    String place(Object? x) => str(x).split('، ').first;
+    String place(Object? x) => str(x).split('، ').first; // i18n-keep
 
-    Widget timeChip(Object? tm, String k) {
+    Widget timeChip(Object? tm, String dir) {
+      final k = dir == 'go' ? tr('چوون') : tr('هاتنەوە');
       if (per) return const SizedBox.shrink();
       final s = str(tm);
       if (s.isEmpty) {
@@ -249,7 +251,7 @@ class _SubCardState extends State<SubCard> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 3),
           decoration: BoxDecoration(color: t.silver, borderRadius: BorderRadius.circular(12)),
-          child: Text(k == 'چوون' ? 'بێ چوون' : 'بێ هاتنەوە', style: TextStyle(fontSize: 12.5, color: t.muted, fontWeight: FontWeight.w600)),
+          child: Text(dir == 'go' ? tr('بێ چوون') : tr('بێ هاتنەوە'), style: TextStyle(fontSize: 12.5, color: t.muted, fontWeight: FontWeight.w600)),
         );
       }
       return Container(
@@ -299,7 +301,7 @@ class _SubCardState extends State<SubCard> {
             SizedBox(width: 16, child: Center(child: dot(false))),
             const SizedBox(width: 12),
             Expanded(child: Text(place(sub['from']), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15.7, fontWeight: FontWeight.w700, color: t.text))),
-            timeChip(sub['go'], 'چوون'),
+            timeChip(sub['go'], 'go'),
           ]),
           Align(
             alignment: AlignmentDirectional.centerStart,
@@ -313,7 +315,7 @@ class _SubCardState extends State<SubCard> {
             SizedBox(width: 16, child: Center(child: dot(true))),
             const SizedBox(width: 12),
             Expanded(child: Text(place(sub['to']), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 15.7, fontWeight: FontWeight.w700, color: t.text))),
-            timeChip(sub['back'], 'هاتنەوە'),
+            timeChip(sub['back'], 'back'),
           ]),
           if (per) ...[
             const SizedBox(height: 14),
@@ -323,7 +325,7 @@ class _SubCardState extends State<SubCard> {
               child: Row(children: [
                 YkIcon('calendar', size: 16, color: t.text, stroke: 2),
                 const SizedBox(width: 8),
-                Text('کاتی جیاواز بۆ هەر ڕۆژێک', style: TextStyle(fontSize: 13.6, fontWeight: FontWeight.w700, color: t.text)),
+                Text(tr('کاتی جیاواز بۆ هەر ڕۆژێک'), style: TextStyle(fontSize: 13.6, fontWeight: FontWeight.w700, color: t.text)),
               ]),
             ),
           ],
@@ -336,7 +338,7 @@ class _SubCardState extends State<SubCard> {
               child: Row(children: [
                 YkIcon('doc', size: 16, color: t.muted, stroke: 2),
                 const SizedBox(width: 8),
-                Expanded(child: Text('وردەکاری زیاتر', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.muted))),
+                Expanded(child: Text(tr('وردەکاری زیاتر'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.muted))),
                 AnimatedRotation(turns: _more ? .5 : 0, duration: const Duration(milliseconds: 200), child: YkIcon('down', size: 16, color: t.muted, stroke: 2.4)),
               ]),
             ),
@@ -385,11 +387,12 @@ class _SubCardState extends State<SubCard> {
               boxShadow: t.dark ? null : const [BoxShadow(color: Color(0x291C1C1E), blurRadius: 16, offset: Offset(0, 6))],
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('نرخی مانگانە', style: TextStyle(color: t.dark ? const Color(0xFFF2F4F7) : t.actText, fontWeight: FontWeight.w700)),
+              Text(tr('نرخی مانگانە'), style: TextStyle(color: t.dark ? const Color(0xFFF2F4F7) : t.actText, fontWeight: FontWeight.w700)),
               Text.rich(
                 TextSpan(children: [
                   TextSpan(text: Fmt.n(Fmt.group((sub['price'] as num?) ?? 0))),
-                  const TextSpan(text: ' دینار', style: TextStyle(fontSize: 12.8)),
+                  const TextSpan(text: ' '),
+                  TextSpan(text: tr('دینار'), style: const TextStyle(fontSize: 12.8)),
                 ]),
                 style: TextStyle(color: t.dark ? const Color(0xFFF2F4F7) : t.actText, fontWeight: FontWeight.w700, fontSize: 20),
               ),
@@ -397,9 +400,9 @@ class _SubCardState extends State<SubCard> {
           ),
           const SizedBox(height: 14),
           Row(children: [
-            Expanded(child: _ActBtn(icon: paused ? 'play' : 'pause', label: paused ? 'دەستپێکردنەوە' : 'ڕاگرتنی کاتی', onTap: () => pauseSub(context, str(sub['id'])))),
+            Expanded(child: _ActBtn(icon: paused ? 'play' : 'pause', label: paused ? tr('دەستپێکردنەوە') : tr('ڕاگرتنی کاتی'), onTap: () => pauseSub(context, str(sub['id'])))),
             const SizedBox(width: 8),
-            Expanded(child: _ActBtn(icon: 'sliders', label: 'گۆڕانکاری', onTap: () => editSub(context, str(sub['id'])))),
+            Expanded(child: _ActBtn(icon: 'sliders', label: tr('گۆڕانکاری'), onTap: () => editSub(context, str(sub['id'])))),
             const SizedBox(width: 8),
             GestureDetector(
               onTap: () => openLink(context, 'chat/${d['id']}'),
@@ -463,7 +466,7 @@ class _StateBadge extends StatelessWidget {
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: due ? t.amber : fg)),
         const SizedBox(width: 6),
-        Text(due ? 'چاوەڕێی پارەدانە' : paused ? 'ڕاگیراوە' : 'چالاک', style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 12.8)),
+        Text(due ? tr('چاوەڕێی پارەدانە') : paused ? tr('ڕاگیراوە') : tr('چالاک'), style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 12.8)),
       ]),
     );
   }
@@ -477,12 +480,12 @@ class _SubDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.yk;
     final ride = sub['rideType'] == 'private'
-        ? 'تەکسی تایبەت'
+        ? tr('تەکسی تایبەت')
         : sub['rideType'] == 'family'
-            ? 'خێزان بە تەنها'
+            ? tr('خێزان بە تەنها')
             : sub['rideType'] == 'kids'
-                ? 'گەشتی منداڵان'
-                : 'تەکسی هاوبەش';
+                ? tr('گەشتی منداڵان')
+                : tr('تەکسی هاوبەش');
     Widget row(String k, String v) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 3),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -494,22 +497,22 @@ class _SubDetails extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        row('لە', str(sub['from'])),
-        row('بۆ', str(sub['to'])),
-        row('کات', fmtSchedule(sub)),
-        row('ڕۆژەکان', fmtDays(asList(sub['days']))),
-        row('جۆر', ride),
-        if (sub['womanOnly'] == true) row('تێبینی', 'تەنها ئافرەت'),
-        if (str(sub['note']).isNotEmpty) row('تێبینی', str(sub['note'])),
+        row(tr('لە'), str(sub['from'])),
+        row(tr('بۆ'), str(sub['to'])),
+        row(tr('کات'), fmtSchedule(sub)),
+        row(tr('ڕۆژەکان'), fmtDays(asList(sub['days']))),
+        row(tr('جۆر'), ride),
+        if (sub['womanOnly'] == true) row(tr('تێبینی'), tr('تەنها ئافرەت')),
+        if (str(sub['note']).isNotEmpty) row(tr('تێبینی'), trData(str(sub['note']))),
         if (pd.isNotEmpty)
           for (var i = 0; i < 7; i++)
             if (asMap(pd['$i']).isNotEmpty)
               row(
-                kWeekdays[i],
+                Fmt.weekday(i),
                 [
-                  str(asMap(pd['$i'])['go']).isEmpty ? 'بێ چوون' : 'چوون ${Fmt.clock(str(asMap(pd['$i'])['go']))}',
-                  str(asMap(pd['$i'])['back']).isEmpty ? 'بێ هاتنەوە' : 'هاتنەوە ${Fmt.clock(str(asMap(pd['$i'])['back']))}',
-                ].join('، '),
+                  str(asMap(pd['$i'])['go']).isEmpty ? tr('بێ چوون') : tr('چوون {0}', [Fmt.clock(str(asMap(pd['$i'])['go']))]),
+                  str(asMap(pd['$i'])['back']).isEmpty ? tr('بێ هاتنەوە') : tr('هاتنەوە {0}', [Fmt.clock(str(asMap(pd['$i'])['back']))]),
+                ].join(tr('، ')),
               ),
       ]),
     );
@@ -537,13 +540,13 @@ class _DashPainter extends CustomPainter {
 
 /// دۆخی داواکاری (reqStatus)
 Widget requestStatus(Json r) {
-  if (r['status'] == 'matched') return const YkBadge('ڕێککەوتن', tone: BadgeTone.ok);
+  if (r['status'] == 'matched') return YkBadge(tr('ڕێککەوتن'), tone: BadgeTone.ok);
   if (r['status'] == 'closed') {
-    final why = r['closedReason'] == 'expired' ? 'کاتی تەواو بوو' : r['closedReason'] == 'declined' ? 'ڕەتکرایەوە' : 'هەڵوەشێنرایەوە';
+    final why = r['closedReason'] == 'expired' ? tr('کاتی تەواو بوو') : r['closedReason'] == 'declined' ? tr('ڕەتکرایەوە') : tr('هەڵوەشێنرایەوە');
     return YkBadge(why, tone: BadgeTone.danger);
   }
   final n = asList(r['offers']).where((o) => asMap(o)['status'] == 'pending').length;
-  return n > 0 ? YkBadge(Fmt.n('$n نرخ هات'), tone: BadgeTone.danger) : const YkBadge('چاوەڕێ', tone: BadgeTone.note);
+  return n > 0 ? YkBadge(Fmt.n(tr('{0} نرخ هات', [n])), tone: BadgeTone.danger) : YkBadge(tr('چاوەڕێ'), tone: BadgeTone.note);
 }
 
 class RequestCard extends StatelessWidget {
@@ -554,7 +557,7 @@ class RequestCard extends StatelessWidget {
     final t = context.yk;
     final cloud = context.watch<Cloud>();
     final all = r['target'] == 'all';
-    final tgt = all ? 'بڵاوکراوە بۆ هەمووان' : 'ڕاستەوخۆ بۆ ${str(cloud.driver(r['target'])?['name'])}';
+    final tgt = all ? tr('بڵاوکراوە بۆ هەمووان') : tr('ڕاستەوخۆ بۆ {0}', [str(cloud.driver(r['target'])?['name'])]);
     final open = r['status'] == 'open';
     final boxBg = open ? t.silver : r['status'] == 'matched' ? t.okBg : t.dangerBg;
     return YkCard(
@@ -571,15 +574,15 @@ class RequestCard extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('${str(r['riderNames'])}، ${str(r['to'])}', style: Ts.bold(context)),
-              Text('$tgt${open && r['expiresAt'] is num ? '، ${fmtLeft(r['expiresAt'] as num)}' : ''}', style: Ts.muted(context, size: 12.8)),
+              Text(tr('{0}، {1}', [str(r['riderNames']), str(r['to'])]), style: Ts.bold(context)),
+              Text(open && r['expiresAt'] is num ? tr('{0}، {1}', [tgt, fmtLeft(r['expiresAt'] as num)]) : tgt, style: Ts.muted(context, size: 12.8)),
             ]),
           ),
           requestStatus(r),
         ]),
         const SizedBox(height: 10),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Expanded(child: Text('${fmtSchedule(r)}، ${fmtDays(asList(r['days']))}', style: Ts.muted(context, size: 14))),
+          Expanded(child: Text(tr('{0}، {1}', [fmtSchedule(r), fmtDays(asList(r['days']))]), style: Ts.muted(context, size: 14))),
           Text(Fmt.money((r['price'] as num?) ?? 0), style: TextStyle(fontWeight: FontWeight.w700, color: t.brand)),
         ]),
       ]),
@@ -603,16 +606,16 @@ class _RequestsScreenState extends State<RequestsScreen> {
     final list = all.where((r) => inTab(r, _tab)).toList();
     return Scaffold(
       body: YkScreen(onRefresh: context.read<Cloud>().refresh, children: [
-        YkHeader('داواکارییەکانم',
+        YkHeader(tr('داواکارییەکانم'),
             right: IconButton(
-              tooltip: 'نوێ',
+              tooltip: tr('نوێ'),
               onPressed: () => openLink(context, 'new'),
               icon: YkIcon('plus', size: 22, color: context.yk.text),
             )),
         YkSeg<String>(
           options: [
-            for (final k in const [('open', 'کراوە'), ('matched', 'ڕێککەوتوو'), ('closed', 'داخراو')])
-              (k.$1, Fmt.n('${k.$2} (${all.where((r) => inTab(r, k.$1)).length})')),
+            for (final k in [('open', tr('کراوە')), ('matched', tr('ڕێککەوتوو')), ('closed', tr('داخراو'))])
+              (k.$1, Fmt.n(tr('{0} ({1})', [k.$2, all.where((r) => inTab(r, k.$1)).length]))),
           ],
           value: _tab,
           onChanged: (v) => setState(() => _tab = v),
@@ -620,9 +623,9 @@ class _RequestsScreenState extends State<RequestsScreen> {
         if (list.isEmpty)
           YkEmpty(
             icon: 'megaphone',
-            title: 'هیچ داواکارییەک نییە',
-            text: 'بەشدارییەکی نوێ دروست بکە و بۆ شۆفێرەکان بڵاوی بکەرەوە',
-            button: _tab == 'open' ? YkButton('بەشداری نوێ', onPressed: () => openLink(context, 'new')) : null,
+            title: tr('هیچ داواکارییەک نییە'),
+            text: tr('بەشدارییەکی نوێ دروست بکە و بۆ شۆفێرەکان بڵاوی بکەرەوە'),
+            button: _tab == 'open' ? YkButton(tr('بەشداری نوێ'), onPressed: () => openLink(context, 'new')) : null,
           ),
         for (final r in list) RequestCard(r),
       ]),

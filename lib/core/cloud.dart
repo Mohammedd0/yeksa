@@ -142,7 +142,7 @@ class Cloud extends ChangeNotifier {
   StreamSubscription _listen(_Spec sp, {int wait = 2000}) {
     void onError(Object err) {
       final code = err is FirebaseException ? err.code : '$err';
-      debugPrint('گوێگرتن سەرکەوتوو نەبوو ${sp.id} $code');
+      debugPrint('گوێگرتن سەرکەوتوو نەبوو ${sp.id} $code'); // i18n-keep
       error = code;
       _unsynced.remove(sp.id);
       if (!code.contains('permission')) {

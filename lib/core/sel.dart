@@ -1,12 +1,26 @@
 // هەڵبژێرەرەکان (sel ـی core.js) و یاسا بچووکەکانی گەشت و بەشداری بۆ سەرنشینی ئێستا
 import 'cloud.dart';
 import 'format.dart';
+import 'i18n.dart';
 
 typedef Json = Map<String, dynamic>;
 
 Json asMap(Object? v) => v is Map ? v.cast<String, dynamic>() : <String, dynamic>{};
 List<dynamic> asList(Object? v) => v is List ? v : const [];
 String str(Object? v) => v == null ? '' : '$v';
+
+/// دەقی هەڵگیراو (Firestore، شۆفێر، بەڕێوەبەر) هەمیشە بە کوردی دروست دەکرێت:
+/// [f] بە زمانی کوردی جێبەجێ دەکرێت (Fmt.weekday، Fmt.clock، fmtDays... هەموو کوردی دەبن)
+/// تەنها بۆ کۆدی هاوکات (بێ await).
+T inKu<T>(T Function() f) {
+  final prev = L.lang;
+  L.lang = 'ku';
+  try {
+    return f();
+  } finally {
+    L.lang = prev;
+  }
+}
 
 /// «07:30» ← خولەک لە سەرەتای ڕۆژ
 int toMin(String hhmm) => (int.tryParse(hhmm.substring(0, 2)) ?? 0) * 60 + (int.tryParse(hhmm.substring(3, 5)) ?? 0);
@@ -28,13 +42,13 @@ String fmtDays(List<dynamic> days) {
   for (var i = 0; i < days.length; i++) {
     if (days[i] == true) on.add(i);
   }
-  if (on.length == 7) return 'هەموو ڕۆژێک';
+  if (on.length == 7) return tr('هەموو ڕۆژێک');
   var range = on.length > 2;
   for (var i = 1; i < on.length; i++) {
     if (on[i] != on[i - 1] + 1) range = false;
   }
-  if (range) return '${kWeekdays[on.first]} تا ${kWeekdays[on.last]}';
-  return on.map((i) => kWeekdays[i]).join('، ');
+  if (range) return tr('{0} تا {1}', [Fmt.weekday(on.first), Fmt.weekday(on.last)]);
+  return on.map((i) => Fmt.weekday(i)).join(tr('، '));
 }
 
 bool hasPerDay(Json x) => asMap(x['perDay']).isNotEmpty;
@@ -120,7 +134,7 @@ extension YkSel on Cloud {
   static String newsKind(Json n) {
     final k = n['kind'];
     if (k is String && k.isNotEmpty) return k;
-    return (str(n['code']).isNotEmpty || str(n['tag']).contains('ئۆفەر')) ? 'offer' : 'ad';
+    return (str(n['code']).isNotEmpty || str(n['tag']).contains('ئۆفەر')) ? 'offer' : 'ad'; // i18n-keep
   }
 }
 
@@ -231,17 +245,17 @@ int coRidersOthers(Json t) => coRiders(t).where((c) => c['mine'] != true).fold(0
 
 /// کاتەکانی چوون و هاتنەوە بە دەق (fmt.schedule)
 String fmtSchedule(Json x) {
-  if (hasPerDay(x)) return 'کاتی جیاواز بۆ هەر ڕۆژێک';
+  if (hasPerDay(x)) return tr('کاتی جیاواز بۆ هەر ڕۆژێک');
   final go = x['go'] as String?, back = x['back'] as String?;
-  if ((go ?? '').isNotEmpty && (back ?? '').isNotEmpty) return '${Fmt.clock(go)}، هاتنەوە ${Fmt.clock(back)}';
-  if ((go ?? '').isNotEmpty) return '${Fmt.clock(go)}، تەنها چوون';
-  if ((back ?? '').isNotEmpty) return 'تەنها هاتنەوە، ${Fmt.clock(back)}';
+  if ((go ?? '').isNotEmpty && (back ?? '').isNotEmpty) return tr('{0}، هاتنەوە {1}', [Fmt.clock(go), Fmt.clock(back)]);
+  if ((go ?? '').isNotEmpty) return tr('{0}، تەنها چوون', [Fmt.clock(go)]);
+  if ((back ?? '').isNotEmpty) return tr('تەنها هاتنەوە، {0}', [Fmt.clock(back)]);
   return '';
 }
 
 /// چەند ماوە (fmt.left)
 String fmtLeft(num until) {
   final mins = ((until - DateTime.now().millisecondsSinceEpoch) / 60000).floor().clamp(0, 1 << 30);
-  if (mins < 60) return Fmt.n('$mins خولەک ماوە');
-  return Fmt.n('${mins ~/ 60} کاتژمێر ماوە');
+  if (mins < 60) return Fmt.n(tr('{0} خولەک ماوە', [mins]));
+  return Fmt.n(tr('{0} کاتژمێر ماوە', [mins ~/ 60]));
 }

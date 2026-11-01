@@ -10,6 +10,7 @@ import '../core/account.dart';
 import '../core/auth.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/pricing.dart';
 import '../core/sel.dart';
 import '../core/trips.dart';
@@ -32,8 +33,8 @@ class FamilyScreen extends StatelessWidget {
     final subs = cloud.mySubs;
     return Scaffold(
       body: YkScreen(children: [
-        YkHeader('خێزان', right: YkButton('ئەندام', icon: 'plus', small: true, onPressed: () => _addMember(context))),
-        Text('هەموو ئەندامانی خێزان لە یەک ئەکاونت. هەر ئەندامێک دەتوانێت تەکسی خۆی هەبێت.', style: Ts.muted(context, size: 14)),
+        YkHeader(tr('خێزان'), right: YkButton(tr('ئەندام'), icon: 'plus', small: true, onPressed: () => _addMember(context))),
+        Text(tr('هەموو ئەندامانی خێزان لە یەک ئەکاونت. هەر ئەندامێک دەتوانێت تەکسی خۆی هەبێت.'), style: Ts.muted(context, size: 14)),
         YkList(children: [
           for (var i = 0; i < members.length; i++)
             Builder(builder: (context) {
@@ -49,20 +50,20 @@ class FamilyScreen extends StatelessWidget {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                         Text(str(m['name']), style: Ts.bold(context)),
-                        if (kid) YkBadge(Fmt.n('منداڵ${m['age'] != null ? '، ${m['age']} ساڵ' : ''}'), tone: BadgeTone.note),
+                        if (kid) YkBadge(Fmt.n(m['age'] != null ? tr('منداڵ، {0} ساڵ', [m['age']]) : tr('منداڵ')), tone: BadgeTone.note),
                       ]),
-                      Text('${str(m['relation'])}، ${mine.isEmpty ? 'هیچ بەشدارییەک' : mine.map((x) => str(x['to'])).join('، ')}', style: Ts.muted(context, size: 12.8)),
+                      Text(tr('{0}، {1}', [trData(str(m['relation'])), mine.isEmpty ? tr('هیچ بەشدارییەک') : mine.map((x) => str(x['to'])).join(tr('، '))]), style: Ts.muted(context, size: 12.8)),
                     ]),
                   ),
                   if (i > 0)
                     IconButton(
-                      tooltip: 'لابردن',
+                      tooltip: tr('لابردن'),
                       onPressed: () async {
                         if (mine.isNotEmpty) {
-                          toast(context, '${m['name']} بەشداری چالاکی هەیە. سەرەتا بەشدارییەکە ڕابگرە');
+                          toast(context, tr('{0} بەشداری چالاکی هەیە. سەرەتا بەشدارییەکە ڕابگرە', [m['name']]));
                           return;
                         }
-                        if (!await askConfirm(context, '${m['name']} لاببرێت؟', yes: 'لابردن')) return;
+                        if (!await askConfirm(context, tr('{0} لاببرێت؟', [m['name']]), yes: tr('لابردن'))) return;
                         await cloud.removeMember(str(m['id']));
                       },
                       icon: YkIcon('x', size: 18, color: t.muted),
@@ -72,19 +73,19 @@ class FamilyScreen extends StatelessWidget {
             }),
         ]),
         Row(children: [
-          Expanded(child: Text('سەرپەرشتیارەکان', style: Ts.h3(context))),
-          YkLink('زیادکردن', pill: true, onTap: () => _addGuardian(context)),
+          Expanded(child: Text(tr('سەرپەرشتیارەکان'), style: Ts.h3(context))),
+          YkLink(trc('زیادکردن', 'إضافة', 'Add'), pill: true, onTap: () => _addGuardian(context)),
         ]),
-        Text('ئەم کەسانە ئاگادارکردنەوەی سوار بوون و گەیشتنی منداڵەکان وەردەگرن و گەشتەکان بە لایڤ دەبینن.', style: Ts.muted(context, size: 14)),
+        Text(tr('ئەم کەسانە ئاگادارکردنەوەی سوار بوون و گەیشتنی منداڵەکان وەردەگرن و گەشتەکان بە لایڤ دەبینن.'), style: Ts.muted(context, size: 14)),
         if (cloud.guardians.isNotEmpty)
           YkList(children: [
             for (final g in cloud.guardians)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 child: Row(children: [
-                  PersonAvatar(size: 40, imageId: str(g['name']).contains('(تۆ)') ? cloud.passenger['photo'] as String? : null),
+                  PersonAvatar(size: 40, imageId: str(g['name']).contains('(تۆ)') ? cloud.passenger['photo'] as String? : null), // i18n-keep
                   const SizedBox(width: 12),
-                  Expanded(child: Text(str(g['name']), style: Ts.bold(context))),
+                  Expanded(child: Text(str(g['name']).replaceAll('(تۆ)', tr('(تۆ)')), style: Ts.bold(context))), // i18n-keep
                   YkIcon('bell', size: 18, color: t.success),
                 ]),
               ),
@@ -94,7 +95,7 @@ class FamilyScreen extends StatelessWidget {
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             YkIcon('shield', size: 20, color: t.infoText),
             const SizedBox(width: 10),
-            Expanded(child: Text('منداڵ هەرگیز لەگەڵ کەسی گەورەی نەناسراو سوار ناکرێت. گەشتی منداڵان تەنها بە شۆفێری پشکنراوی منداڵانە.', style: TextStyle(fontSize: 14, color: t.infoText))),
+            Expanded(child: Text(tr('منداڵ هەرگیز لەگەڵ کەسی گەورەی نەناسراو سوار ناکرێت. گەشتی منداڵان تەنها بە شۆفێری پشکنراوی منداڵانە.'), style: TextStyle(fontSize: 14, color: t.infoText))),
           ]),
         ),
       ]),
@@ -110,37 +111,37 @@ class FamilyScreen extends StatelessWidget {
     showYkSheet(context, builder: (c) {
       return StatefulBuilder(builder: (c, setS) {
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('زیادکردنی ئەندام', style: Ts.h2(c)),
+          Text(tr('زیادکردنی ئەندام'), style: Ts.h2(c)),
           const SizedBox(height: 12),
-          YkField(label: 'ناو', child: TextField(controller: name, decoration: ykInput(c, hint: 'بۆ نموونە: ئارام'))),
+          YkField(label: tr('ناو'), child: TextField(controller: name, decoration: ykInput(c, hint: tr('بۆ نموونە: ئارام')))),
           const SizedBox(height: 12),
-          YkSeg<String>(options: const [('child', 'منداڵ'), ('adult', 'گەورە')], value: kind, onChanged: (v) => setS(() => kind = v)),
+          YkSeg<String>(options: [('child', tr('منداڵ')), ('adult', tr('گەورە'))], value: kind, onChanged: (v) => setS(() => kind = v)),
           const SizedBox(height: 10),
-          YkSeg<bool>(options: const [(false, 'کوڕ / پیاو'), (true, 'کچ / ئافرەت')], value: woman, onChanged: (v) => setS(() => woman = v)),
+          YkSeg<bool>(options: [(false, tr('کوڕ / پیاو')), (true, tr('کچ / ئافرەت'))], value: woman, onChanged: (v) => setS(() => woman = v)),
           if (kind == 'child') ...[
             const SizedBox(height: 12),
             YkField(
-              label: 'تەمەن',
+              label: tr('تەمەن'),
               child: Row(children: [
                 IconButton(onPressed: age > 3 ? () => setS(() => age--) : null, icon: YkIcon('minus', size: 20, color: c.yk.text)),
-                Expanded(child: Text(Fmt.n('$age ساڵ'), textAlign: TextAlign.center, style: Ts.h3(c))),
+                Expanded(child: Text(Fmt.n(tr('{0} ساڵ', [age])), textAlign: TextAlign.center, style: Ts.h3(c))),
                 IconButton(onPressed: age < 17 ? () => setS(() => age++) : null, icon: YkIcon('plus', size: 20, color: c.yk.text)),
               ]),
             ),
           ],
           const SizedBox(height: 14),
-          YkButton('زیادکردن', block: true, onPressed: () async {
+          YkButton(trc('زیادکردن', 'إضافة', 'Add'), block: true, onPressed: () async {
             final n = name.text.trim();
             if (n.length < 2) {
-              toast(c, 'ناوەکە بنووسە');
+              toast(c, tr('ناوەکە بنووسە'));
               return;
             }
             Navigator.pop(c);
             await cloud.addMember(n, kind, woman, kind == 'child' ? age : null);
-            if (context.mounted) toast(context, '$n زیاد کرا');
+            if (context.mounted) toast(context, tr('{0} زیاد کرا', [n]));
           }),
           const SizedBox(height: 8),
-          YkButton('پاشگەزبوونەوە', kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
+          YkButton(tr('پاشگەزبوونەوە'), kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
         ]);
       });
     });
@@ -151,24 +152,24 @@ class FamilyScreen extends StatelessWidget {
     final name = TextEditingController();
     showYkSheet(context, builder: (c) {
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('زیادکردنی سەرپەرشتیار', style: Ts.h2(c)),
+        Text(tr('زیادکردنی سەرپەرشتیار'), style: Ts.h2(c)),
         const SizedBox(height: 6),
-        Text('بۆ نموونە باپیرە، داپیرە یان مامۆستا، کە لە کاتی نەبوونی تۆ منداڵەکان وەردەگرێت. ناوەکەی بۆ شۆفێر دەردەکەوێت.', style: Ts.muted(c, size: 14)),
+        Text(tr('بۆ نموونە باپیرە، داپیرە یان مامۆستا، کە لە کاتی نەبوونی تۆ منداڵەکان وەردەگرێت. ناوەکەی بۆ شۆفێر دەردەکەوێت.'), style: Ts.muted(c, size: 14)),
         const SizedBox(height: 12),
-        YkField(label: 'ناو', child: TextField(controller: name, decoration: ykInput(c, hint: 'ناوی سەرپەرشتیار'))),
+        YkField(label: tr('ناو'), child: TextField(controller: name, decoration: ykInput(c, hint: tr('ناوی سەرپەرشتیار')))),
         const SizedBox(height: 14),
-        YkButton('زیادکردن', block: true, onPressed: () async {
+        YkButton(trc('زیادکردن', 'إضافة', 'Add'), block: true, onPressed: () async {
           final n = name.text.trim();
           if (n.length < 2) {
-            toast(c, 'ناوەکە بنووسە');
+            toast(c, tr('ناوەکە بنووسە'));
             return;
           }
           Navigator.pop(c);
           await cloud.addGuardian(n);
-          if (context.mounted) toast(context, 'زیاد کرا');
+          if (context.mounted) toast(context, tr('زیاد کرا'));
         }),
         const SizedBox(height: 8),
-        YkButton('پاشگەزبوونەوە', kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
+        YkButton(tr('پاشگەزبوونەوە'), kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
       ]);
     });
   }
@@ -176,14 +177,14 @@ class FamilyScreen extends StatelessWidget {
 
 /* ---------------- پاداشت ---------------- */
 
-const _refSt = {
-  'joined': ('چاوەڕێی بەشداری', BadgeTone.normal),
-  'subscribed': ('بەشداری کرد', BadgeTone.ok),
-  'cancelled': ('هەڵوەشاوە', BadgeTone.danger),
-  'revoked': ('لابراوە', BadgeTone.danger),
+Map<String, (String, BadgeTone)> get _refSt => {
+  'joined': (tr('چاوەڕێی بەشداری'), BadgeTone.normal),
+  'subscribed': (tr('بەشداری کرد'), BadgeTone.ok),
+  'cancelled': (tr('هەڵوەشاوە'), BadgeTone.danger),
+  'revoked': (tr('لابراوە'), BadgeTone.danger),
 };
 
-String rewardValue(Json x) => x['kind'] == 'days' ? Fmt.n('${x['amount']} ڕۆژی بەخۆڕایی') : '${Fmt.money((x['amount'] as num?) ?? 0)} داشکاندن';
+String rewardValue(Json x) => x['kind'] == 'days' ? Fmt.n(tr('{0} ڕۆژی بەخۆڕایی', [x['amount']])) : tr('{0} داشکاندن', [Fmt.money((x['amount'] as num?) ?? 0)]);
 
 class RewardsScreen extends StatefulWidget {
   const RewardsScreen({super.key});
@@ -218,9 +219,9 @@ class _RewardsScreenState extends State<RewardsScreen> {
     final pend = <(String, num)>[
       for (final p in asList(r['pending']).map(asMap)) (str(p['title']), p['kind'] == 'days' ? 0 : ((p['amount'] as num?) ?? 0)),
       if (cloud.refAsInvitee case final ri? when ri['status'] == 'subscribed' && ri['inviteeUsedAt'] == null)
-        ('داشکاندنی بانگهێشت (یەکەم مانگ)', (ri['amount'] as num?) ?? 0),
+        (tr('داشکاندنی بانگهێشت (یەکەم مانگ)'), (ri['amount'] as num?) ?? 0),
       for (final x in mine.where((x) => x['status'] == 'subscribed' && x['inviterUsedAt'] == null))
-        ('بانگهێشتی ${str(x['inviteeName']).isEmpty ? 'هاوڕێ' : x['inviteeName']}', (x['amount'] as num?) ?? 0),
+        (tr('بانگهێشتی {0}', [str(x['inviteeName']).isEmpty ? tr('هاوڕێ') : x['inviteeName']]), (x['amount'] as num?) ?? 0),
     ];
     final pendSum = pend.fold<num>(0, (n, d) => n + d.$2);
     final refOn = cloud.config['refOn'] == true;
@@ -228,13 +229,13 @@ class _RewardsScreenState extends State<RewardsScreen> {
 
     return Scaffold(
       body: YkScreen(children: [
-        const YkHeader('پاداشت'),
+        YkHeader(tr('پاداشت')),
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(color: const Color(0xFF1C1C1E), borderRadius: BorderRadius.circular(Yk.rXl)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
-              const Expanded(child: Text('خاڵەکانت', style: TextStyle(color: Colors.white70, fontSize: 15))),
+              Expanded(child: Text(tr('خاڵەکانت'), style: const TextStyle(color: Colors.white70, fontSize: 15))),
               YkIcon('medal', size: 26, color: t.amber),
             ]),
             Text(Fmt.n(Fmt.group(points)), style: const TextStyle(color: Colors.white, fontSize: 38, fontWeight: FontWeight.w700, height: 1.3)),
@@ -251,7 +252,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                points >= (next['cost'] as num) ? 'دەتوانیت پاداشتێک وەربگریت' : Fmt.n('${Fmt.group((next['cost'] as num) - points)} خاڵی تر بۆ «${next['title']}»'),
+                points >= (next['cost'] as num) ? tr('دەتوانیت پاداشتێک وەربگریت') : Fmt.n(tr('{0} خاڵی تر بۆ «{1}»', [Fmt.group((next['cost'] as num) - points), next['title']])),
                 style: const TextStyle(color: Colors.white70, fontSize: 12.8),
               ),
             ],
@@ -262,7 +263,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
             tone: CardTone.ok,
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Row(children: [
-                const Expanded(child: Text('داشکاندنی چاوەڕوان', style: TextStyle(fontWeight: FontWeight.w700))),
+                Expanded(child: Text(tr('داشکاندنی چاوەڕوان'), style: const TextStyle(fontWeight: FontWeight.w700))),
                 Text(Fmt.money(pendSum), style: const TextStyle(fontWeight: FontWeight.w700)),
               ]),
               for (final d in pend)
@@ -272,7 +273,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
                 ]),
               const SizedBox(height: 4),
               Text(
-                '${cloud.mySubs.isNotEmpty ? 'لە فاتورەی داهاتووت دەبڕدرێت' : 'کاتێک بەشداری بکەیت، لە یەکەم فاتورەت دەبڕدرێت'}. پارە نییە و ناکێشرێتەوە.',
+                cloud.mySubs.isNotEmpty ? tr('لە فاتورەی داهاتووت دەبڕدرێت. پارە نییە و ناکێشرێتەوە.') : tr('کاتێک بەشداری بکەیت، لە یەکەم فاتورەت دەبڕدرێت. پارە نییە و ناکێشرێتەوە.'),
                 style: Ts.muted(context, size: 12.8),
               ),
             ]),
@@ -286,8 +287,8 @@ class _RewardsScreenState extends State<RewardsScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('بانگهێشتی هاوڕێ', style: Ts.h3(context)),
-                    Text('کاتێک هاوڕێکەت بە کۆدەکەت بەشداری دەکات، هەردووکتان ${auth.refText()} داشکاندن وەردەگرن', style: Ts.muted(context, size: 14)),
+                    Text(tr('بانگهێشتی هاوڕێ'), style: Ts.h3(context)),
+                    Text(tr('کاتێک هاوڕێکەت بە کۆدەکەت بەشداری دەکات، هەردووکتان {0} داشکاندن وەردەگرن', [auth.refText()]), style: Ts.muted(context, size: 14)),
                   ]),
                 ),
               ]),
@@ -302,27 +303,27 @@ class _RewardsScreenState extends State<RewardsScreen> {
                   child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     Flexible(child: Text(code, maxLines: 1, textDirection: TextDirection.ltr, style: TextStyle(fontFamily: 'Arial', fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: 3.4, color: t.text))),
                     const SizedBox(width: 10),
-                    YkButton('کۆپی', icon: 'copy', small: true, kind: BtnKind.secondary, onPressed: () {
+                    YkButton(tr('کۆپی'), icon: 'copy', small: true, kind: BtnKind.secondary, onPressed: () {
                       Clipboard.setData(ClipboardData(text: code));
-                      toast(context, 'کۆپی کرا');
+                      toast(context, tr('کۆپی کرا'));
                     }),
                   ]),
                 ),
                 ),
                 const SizedBox(height: 10),
-                YkButton('ناردنی کۆد بۆ هاوڕێ', icon: 'send', block: true, onPressed: () {
-                  SharePlus.instance.share(ShareParams(text: 'لە یەکسا بە کۆدی $code تۆمار بکە و ${auth.refText()} داشکاندن لە یەکەم مانگت وەربگرە'));
+                YkButton(tr('ناردنی کۆد بۆ هاوڕێ'), icon: 'send', block: true, onPressed: () {
+                  SharePlus.instance.share(ShareParams(text: tr('لە یەکسا بە کۆدی {0} تۆمار بکە و {1} داشکاندن لە یەکەم مانگت وەربگرە', [code, auth.refText()])));
                 }),
               ] else ...[
                 Container(height: 56, decoration: BoxDecoration(color: t.chip, borderRadius: BorderRadius.circular(16))),
                 const SizedBox(height: 6),
-                Text('کۆدەکەت ئامادە دەکرێت...', textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
+                Text(tr('کۆدەکەت ئامادە دەکرێت...'), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
               ],
               if (mine.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Row(children: [
-                  Expanded(child: Text(Fmt.n('$joined هاوڕێ هاتوون'), style: Ts.muted(context, size: 14))),
-                  Text(Fmt.n('$subd بەشدارییان کردووە'), style: Ts.muted(context, size: 14)),
+                  Expanded(child: Text(Fmt.n(tr('{0} هاوڕێ هاتوون', [joined])), style: Ts.muted(context, size: 14))),
+                  Text(Fmt.n(tr('{0} بەشدارییان کردووە', [subd])), style: Ts.muted(context, size: 14)),
                 ]),
                 const SizedBox(height: 6),
                 YkList(children: [
@@ -339,7 +340,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
                           ]),
                         ),
                         if (x['status'] == 'subscribed' && x['inviterUsedAt'] != null)
-                          const YkBadge('بەکارهات')
+                          YkBadge(tr('بەکارهات'))
                         else if (x['status'] == 'subscribed')
                           YkBadge(Fmt.money((x['amount'] as num?) ?? 0), tone: BadgeTone.ok)
                         else
@@ -351,7 +352,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
             ]),
           ),
         if (list.isNotEmpty) ...[
-          Text('گۆڕینەوەی خاڵ', style: Ts.h3(context)),
+          Text(tr('گۆڕینەوەی خاڵ'), style: Ts.h3(context)),
           for (final x in list)
             Builder(builder: (context) {
               final got = x['repeat'] != true && redeemed.contains(x['id']);
@@ -363,14 +364,14 @@ class _RewardsScreenState extends State<RewardsScreen> {
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(str(x['title']), style: Ts.bold(context)),
-                      Text('${Fmt.n(Fmt.group(x['cost'] as num))} خاڵ، ${rewardValue(x)}', style: Ts.muted(context, size: 12.8)),
+                      Text(tr('{0} خاڵ، {1}', [Fmt.n(Fmt.group(x['cost'] as num)), rewardValue(x)]), style: Ts.muted(context, size: 12.8)),
                     ]),
                   ),
-                  YkButton(got ? 'وەرگیرا' : 'وەرگرتن', small: true, kind: can ? BtnKind.primary : BtnKind.secondary, onPressed: can ? () => _redeem(context, x) : null),
+                  YkButton(got ? tr('وەرگیرا') : tr('وەرگرتن'), small: true, kind: can ? BtnKind.primary : BtnKind.secondary, onPressed: can ? () => _redeem(context, x) : null),
                 ]),
               );
             }),
-          Text('پاداشت دەبێت بە داشکاندن و لە فاتورەی داهاتووت دەبڕدرێت.', style: Ts.muted(context, size: 12.8)),
+          Text(tr('پاداشت دەبێت بە داشکاندن و لە فاتورەی داهاتووت دەبڕدرێت.'), style: Ts.muted(context, size: 12.8)),
         ],
       ]),
     );
@@ -379,13 +380,13 @@ class _RewardsScreenState extends State<RewardsScreen> {
   Future<void> _redeem(BuildContext context, Json x) async {
     final ok = await askConfirm(
       context,
-      '«${x['title']}» بە ${Fmt.n(Fmt.group(x['cost'] as num))} خاڵ وەردەگریت؟ ${rewardValue(x)} لە فاتورەی داهاتووت دەبڕدرێت.',
-      yes: 'وەرگرتن',
+      tr('«{0}» بە {1} خاڵ وەردەگریت؟ {2} لە فاتورەی داهاتووت دەبڕدرێت.', [x['title'], Fmt.n(Fmt.group(x['cost'] as num)), rewardValue(x)]),
+      yes: tr('وەرگرتن'),
       danger: false,
     );
     if (!ok || !context.mounted) return;
     final got = await context.read<Cloud>().redeem(str(x['id']));
-    if (got != null && context.mounted) toast(context, '«${x['title']}» وەرگیرا');
+    if (got != null && context.mounted) toast(context, tr('«{0}» وەرگیرا', [x['title']]));
   }
 }
 
@@ -399,10 +400,10 @@ class SupportScreen extends StatelessWidget {
     final t = context.yk;
     final cloud = context.watch<Cloud>();
     final tickets = asList(cloud.pax['tickets']).map(asMap).toList();
-    const st = {
-      'open': ('کراوە', BadgeTone.note),
-      'progress': ('لە کاردایە', BadgeTone.info),
-      'resolved': ('چارەسەر کرا', BadgeTone.ok),
+    final st = {
+      'open': (tr('کراوە'), BadgeTone.note),
+      'progress': (tr('لە کاردایە'), BadgeTone.info),
+      'resolved': (tr('چارەسەر کرا'), BadgeTone.ok),
     };
     Widget sos(String label, String tel) => Expanded(
           child: Material(
@@ -424,25 +425,25 @@ class SupportScreen extends StatelessWidget {
         );
     return Scaffold(
       body: YkScreen(children: [
-        const YkHeader('یارمەتی و سکاڵاکان'),
+        YkHeader(tr('یارمەتی و سکاڵاکان')),
         YkCard(
           tone: CardTone.danger,
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            const Text('فریاکەوتن', style: TextStyle(fontWeight: FontWeight.w700)),
-            const Text('لە کاتی مەترسیدا', style: TextStyle(fontSize: 14)),
+            Text(tr('فریاکەوتن'), style: const TextStyle(fontWeight: FontWeight.w700)),
+            Text(tr('لە کاتی مەترسیدا'), style: const TextStyle(fontSize: 14)),
             const SizedBox(height: 10),
-            Row(children: [sos('پۆلیس ١٠٤', '104'), const SizedBox(width: 10), sos('فریاگوزاری ١٢٢', '122')]),
+            Row(children: [sos(tr('پۆلیس ١٠٤'), '104'), const SizedBox(width: 10), sos(tr('فریاگوزاری ١٢٢'), '122')]),
           ]),
         ),
         Row(children: [
-          Expanded(child: Text('سکاڵاکان', style: Ts.h3(context))),
-          YkLink('نوێ', pill: true, onTap: () => _newTicket(context)),
+          Expanded(child: Text(tr('سکاڵاکان'), style: Ts.h3(context))),
+          YkLink(tr('نوێ'), pill: true, onTap: () => _newTicket(context)),
         ]),
         // وێنەی پەڕەی بەتاڵ لە ژێر «سکاڵاکان» (Padding: تا YkScreen نەیباتە ناوەڕاستی شاشە)
         if (tickets.isEmpty)
-          const Padding(
-            padding: EdgeInsets.only(top: 28),
-            child: YkEmpty(icon: 'tickets', title: 'هیچ سکاڵایەکی نێردراو نییە', text: 'هەر سکاڵایەک بنێریت لێرە دەردەکەوێت'),
+          Padding(
+            padding: const EdgeInsets.only(top: 28),
+            child: YkEmpty(icon: 'tickets', title: tr('هیچ سکاڵایەکی نێردراو نییە'), text: tr('هەر سکاڵایەک بنێریت لێرە دەردەکەوێت')),
           )
         else
           YkList(children: [
@@ -455,8 +456,8 @@ class SupportScreen extends StatelessWidget {
                     const SizedBox(width: 6),
                     YkBadge(st[tk['status']]?.$1 ?? str(tk['status']), tone: st[tk['status']]?.$2 ?? BadgeTone.normal),
                   ]),
-                  Text(str(tk['subject']), style: Ts.sm(context)),
-                  if (str(tk['reply']).isNotEmpty) Text('وەڵام: ${tk['reply']}', style: Ts.muted(context, size: 12.8)),
+                  Text(trData(str(tk['subject'])), style: Ts.sm(context)),
+                  if (str(tk['reply']).isNotEmpty) Text(tr('وەڵام: {0}', [tk['reply']]), style: Ts.muted(context, size: 12.8)),
                 ]),
               ),
           ]),
@@ -467,33 +468,35 @@ class SupportScreen extends StatelessWidget {
   void _newTicket(BuildContext context) {
     final cloud = context.read<Cloud>();
     final ctrl = TextEditingController();
-    const presets = ['دواکەوتنی شۆفێر', 'گۆڕینی کات', 'گۆڕینی شۆفێر', 'پارەدان', 'شتی تر'];
+    // بابەتی ئامادە بە کوردی هەڵدەگیرێت (ئەدمین کوردییە)؛ تەنها پیشاندان وەردەگێڕدرێت
+    const presets = ['دواکەوتنی شۆفێر', 'گۆڕینی کات', 'گۆڕینی شۆفێر', 'پارەدان', 'شتی تر']; // i18n-keep
     showYkSheet(context, builder: (c) {
       return StatefulBuilder(builder: (c, setS) {
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text('سکاڵای نوێ', style: Ts.h2(c)),
+          Text(tr('سکاڵای نوێ'), style: Ts.h2(c)),
           const SizedBox(height: 12),
           Wrap(spacing: 6, runSpacing: 6, children: [
-            for (final p in presets) YkChip(p, on: ctrl.text == p, onTap: () => setS(() => ctrl.text = p)),
+            for (final p in presets) YkChip(tr(p), on: ctrl.text == tr(p), onTap: () => setS(() => ctrl.text = tr(p))),
           ]),
           const SizedBox(height: 12),
           YkField(
-            label: 'کێشەکە بنووسە',
-            child: TextField(controller: ctrl, minLines: 3, maxLines: 6, onChanged: (_) => setS(() {}), decoration: ykInput(c, hint: 'بە کورتی...')),
+            label: tr('کێشەکە بنووسە'),
+            child: TextField(controller: ctrl, minLines: 3, maxLines: 6, onChanged: (_) => setS(() {}), decoration: ykInput(c, hint: tr('بە کورتی...'))),
           ),
           const SizedBox(height: 14),
-          YkButton('ناردن', block: true, onPressed: () async {
-            final v = ctrl.text.trim();
+          YkButton(trc('ناردن', 'إرسال', 'Send'), block: true, onPressed: () async {
+            final typed = ctrl.text.trim();
+            final v = presets.firstWhere((p) => tr(p) == typed, orElse: () => typed);
             if (v.length < 3) {
-              toast(c, 'کێشەکە بنووسە');
+              toast(c, tr('کێشەکە بنووسە'));
               return;
             }
             Navigator.pop(c);
             await cloud.addTicket(v);
-            if (context.mounted) toast(context, 'داواکارییەکەت نێردرا. بەم زووانە وەڵام دەدرێتەوە');
+            if (context.mounted) toast(context, tr('داواکارییەکەت نێردرا. بەم زووانە وەڵام دەدرێتەوە'));
           }),
           const SizedBox(height: 8),
-          YkButton('پاشگەزبوونەوە', kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
+          YkButton(tr('پاشگەزبوونەوە'), kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
         ]);
       });
     });
@@ -512,9 +515,9 @@ class FaqScreen extends StatelessWidget {
     final list = cloud.faqList;
     return Scaffold(
       body: YkScreen(children: [
-        const YkHeader('پرسیارە باوەکان'),
+        YkHeader(tr('پرسیارە باوەکان')),
         if (list.isEmpty)
-          const YkEmpty(icon: 'help', title: 'هیچ پرسیارێک نییە', text: 'تیمی یەکسا لێرە وەڵامی پرسیارە باوەکان دادەنێت')
+          YkEmpty(icon: 'help', title: tr('هیچ پرسیارێک نییە'), text: tr('تیمی یەکسا لێرە وەڵامی پرسیارە باوەکان دادەنێت'))
         else
           Container(
             decoration: BoxDecoration(color: t.glass, borderRadius: BorderRadius.circular(Yk.rLg), border: Border.all(color: t.glassLine)),
@@ -549,10 +552,10 @@ void showContactSheet(BuildContext context) {
   showYkSheet(context, builder: (c) {
     final t = c.yk;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text('پەیوەندی بە یەکسا', textAlign: TextAlign.center, style: Ts.h2(c)),
+      Text(tr('پەیوەندی بە یەکسا'), textAlign: TextAlign.center, style: Ts.h2(c)),
       const SizedBox(height: 12),
       if (l.isEmpty)
-        Text('هێشتا هیچ ژمارەیەک دانەنراوە', textAlign: TextAlign.center, style: Ts.muted(c, size: 14))
+        Text(tr('هێشتا هیچ ژمارەیەک دانەنراوە'), textAlign: TextAlign.center, style: Ts.muted(c, size: 14))
       else
         YkList(children: [
           for (final x in l)
@@ -573,7 +576,7 @@ void showContactSheet(BuildContext context) {
             ),
         ]),
       const SizedBox(height: 12),
-      YkButton('داخستن', kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
+      YkButton(tr('داخستن'), kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
     ]);
   });
 }

@@ -8,7 +8,7 @@ import 'format.dart';
 import 'pricing.dart';
 import 'sel.dart';
 
-String _first(Object? s) => str(s).split('، ').first;
+String _first(Object? s) => str(s).split('، ').first; // i18n-keep
 
 extension YkRequests on Cloud {
   Json? request(Object? id) {
@@ -66,12 +66,12 @@ extension YkRequests on Cloud {
         'city': city,
         'memberIds': g.map((m) => m['id']).toList(),
         'riders': g.length,
-        'riderNames': Fmt.names(g.map((m) => str(m['name'])).toList()),
+        'riderNames': inKu(() => Fmt.names(g.map((m) => str(m['name'])).toList())), // stored: Kurdish joining
         'hasChild': hasChild,
         'fromId': dr.fromId,
         'toId': dr.toId,
-        'from': '${str(from?['name'])}${dr.fromNote.trim().isNotEmpty ? '، ${dr.fromNote.trim()}' : ''}',
-        'to': '${str(to?['name'])}${dr.toNote.trim().isNotEmpty ? '، ${dr.toNote.trim()}' : ''}',
+        'from': '${str(from?['name'])}${dr.fromNote.trim().isNotEmpty ? '، ${dr.fromNote.trim()}' : ''}', // i18n-keep
+        'to': '${str(to?['name'])}${dr.toNote.trim().isNotEmpty ? '، ${dr.toNote.trim()}' : ''}', // i18n-keep
         'km': km,
         'go': sched['go'],
         'back': sched['back'],
@@ -111,12 +111,12 @@ extension YkRequests on Cloud {
     for (final r in reqs) {
       for (final d in drivers) {
         if (d['online'] == true && fits(d, r)) {
-          await addDNotice(str(d['id']), {
+          await addDNotice(str(d['id']), inKu(() => {
             'kind': 'offer',
-            'title': r['target'] == d['id'] ? 'داواکاری ڕاستەوخۆ لە $ownerName' : 'داواکاری نوێ لە $ownerName',
-            'body': '${r['riderNames']}، ${_first(r['from'])} ← ${_first(r['to'])}، ${Fmt.money(r['price'] as num)}',
+            'title': r['target'] == d['id'] ? 'داواکاری ڕاستەوخۆ لە $ownerName' : 'داواکاری نوێ لە $ownerName', // i18n-keep
+            'body': '${r['riderNames']}، ${_first(r['from'])} ← ${_first(r['to'])}، ${Fmt.money(r['price'] as num)}', // i18n-keep
             'link': 'requests',
-          });
+          }));
         }
       }
     }
@@ -135,8 +135,8 @@ extension YkRequests on Cloud {
     for (final o in offers) {
       await addDNotice(str(o['driverId']), {
         'kind': 'info',
-        'title': 'داواکارییەک هەڵوەشێنرایەوە',
-        'body': '${r['ownerName']}، ${_first(r['to'])}',
+        'title': 'داواکارییەک هەڵوەشێنرایەوە', // i18n-keep
+        'body': '${r['ownerName']}، ${_first(r['to'])}', // i18n-keep
         'link': 'requests',
       });
     }
@@ -162,8 +162,8 @@ extension YkRequests on Cloud {
       if (d['online'] == true && fits(d, next) && !declined.contains(d['id'])) {
         await addDNotice(str(d['id']), {
           'kind': 'offer',
-          'title': 'داواکاری نوێ لە ${r['ownerName']}',
-          'body': '${r['riderNames']}، ${_first(r['from'])} ← ${_first(r['to'])}',
+          'title': 'داواکاری نوێ لە ${r['ownerName']}', // i18n-keep
+          'body': '${r['riderNames']}، ${_first(r['from'])} ← ${_first(r['to'])}', // i18n-keep
           'link': 'requests',
         });
       }
@@ -258,12 +258,12 @@ extension YkRequests on Cloud {
       });
       final inviter = str(ref['inviter']);
       if (inviter.isNotEmpty) {
-        await addNotice(inviter, {
+        await addNotice(inviter, inKu(() => {
           'kind': 'info',
-          'title': '${str(ref['inviteeName']).isEmpty ? 'هاوڕێکەت' : ref['inviteeName']} بەشداری کرد',
-          'body': '${Fmt.money(amount)} داشکاندن لە فاتورەی داهاتووت دەبڕدرێت',
+          'title': '${str(ref['inviteeName']).isEmpty ? 'هاوڕێکەت' : ref['inviteeName']} بەشداری کرد', // i18n-keep
+          'body': '${Fmt.money(amount)} داشکاندن لە فاتورەی داهاتووت دەبڕدرێت', // i18n-keep
           'link': 'rewards',
-        });
+        }));
       }
     }
     if (r['replacesSub'] != null) await endSub(str(r['replacesSub']), 'change');
@@ -277,23 +277,23 @@ extension YkRequests on Cloud {
       } catch (_) {}
     }
 
-    final dName = str(d?['name']).isEmpty ? 'شۆفێر' : str(d!['name']);
-    await addNotice(uid, {
+    final dName = str(d?['name']).isEmpty ? 'شۆفێر' : str(d!['name']); // i18n-keep
+    await addNotice(uid, inKu(() => {
       'kind': 'info',
-      'title': 'بەشدارییەکەت چالاک کرا',
-      'body': '${r['riderNames']} لەگەڵ $dName، ${Fmt.money(price)} مانگانە',
-    });
-    await addDNotice(driverId, {
+      'title': 'بەشدارییەکەت چالاک کرا', // i18n-keep
+      'body': '${r['riderNames']} لەگەڵ $dName، ${Fmt.money(price)} مانگانە', // i18n-keep
+    }));
+    await addDNotice(driverId, inKu(() => {
       'kind': 'ok',
-      'title': '${r['ownerName']} تۆی هەڵبژارد',
-      'body': '${r['from']} ← ${r['to']}، ${Fmt.money(price)} مانگانە',
+      'title': '${r['ownerName']} تۆی هەڵبژارد', // i18n-keep
+      'body': '${r['from']} ← ${r['to']}، ${Fmt.money(price)} مانگانە', // i18n-keep
       'link': 'routes',
-    });
+    }));
     for (final o in offers.where((o) => o['driverId'] != driverId)) {
       await addDNotice(str(o['driverId']), {
         'kind': 'info',
-        'title': 'سەرنشین شۆفێرێکی تری هەڵبژارد',
-        'body': '${r['ownerName']}، ${_first(r['from'])} ← ${_first(r['to'])}. داواکارییەکە داخرا.',
+        'title': 'سەرنشین شۆفێرێکی تری هەڵبژارد', // i18n-keep
+        'body': '${r['ownerName']}، ${_first(r['from'])} ← ${_first(r['to'])}. داواکارییەکە داخرا.', // i18n-keep
         'link': 'requests',
       });
     }
@@ -307,7 +307,7 @@ extension YkRequests on Cloud {
     if (x == null) return;
     final uid = me!;
     // جزدان: پارەی گەشتە ماوەکانی ئەم مانگە دەگەڕێتەوە (بەڕێوەبەر پەسەندی دەکات)
-    await refundRequest(x, x['status'] == 'paused' ? 0 : legsLeft(x), why == 'change' ? 'گۆڕینی شۆفێر' : 'هەڵوەشاندنەوەی بەشداری');
+    await refundRequest(x, x['status'] == 'paused' ? 0 : legsLeft(x), why == 'change' ? 'گۆڕینی شۆفێر' : 'هەڵوەشاندنەوەی بەشداری'); // i18n-keep
     await delete('subscriptions/$id');
     if (why != 'change') {
       for (final ref in list('referrals')) {
@@ -321,10 +321,10 @@ extension YkRequests on Cloud {
     }
     final names = str(x['riderNames']);
     final did = str(x['driverId']);
-    final reason = why == 'change' ? 'شۆفێری گۆڕی' : why == 'deleted' ? 'هەژمارەکەی سڕییەوە' : 'بەشدارییەکەی هەڵوەشاندەوە';
-    final who = why == 'deleted' ? 'سەرنشینێک' : str(passenger['name']).split(' ').first;
-    await addSystemMessage(did, '$who $reason ($names، ${x['to']})');
-    await addDNotice(did, {'kind': 'info', 'title': '$who $reason', 'body': '$names، ${x['to']}، گەشتەکانی داهاتوو لابران'});
+    final reason = why == 'change' ? 'شۆفێری گۆڕی' : why == 'deleted' ? 'هەژمارەکەی سڕییەوە' : 'بەشدارییەکەی هەڵوەشاندەوە'; // i18n-keep
+    final who = why == 'deleted' ? 'سەرنشینێک' : str(passenger['name']).split(' ').first; // i18n-keep
+    await addSystemMessage(did, '$who $reason ($names، ${x['to']})'); // i18n-keep
+    await addDNotice(did, {'kind': 'info', 'title': '$who $reason', 'body': '$names، ${x['to']}، گەشتەکانی داهاتوو لابران'}); // i18n-keep
   }
 
   /* ---------------- گەشتی ڕۆژانە ---------------- */
@@ -387,7 +387,7 @@ extension YkRequests on Cloud {
         'subId': sub['id'],
         'reqId': sub['reqId'],
         'owner': owner,
-        'title': dir == 'back' ? 'هاتنەوە، ${sub['riderNames']}' : '${sub['riderNames']}، ${_first(sub['to'])}',
+        'title': dir == 'back' ? 'هاتنەوە، ${sub['riderNames']}' : '${sub['riderNames']}، ${_first(sub['to'])}', // i18n-keep
         'memberIds': List.from(asList(sub['memberIds'])),
         'kind': sub['hasChild'] == true ? 'kids' : sub['rideType'] == 'private' ? 'private' : 'shared',
         'time': time,

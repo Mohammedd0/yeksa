@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../core/cloud.dart';
 import '../core/draft.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/live.dart' show toGeo;
 import '../core/maps_status.dart';
 import '../core/pricing.dart';
@@ -57,7 +58,7 @@ Future<void> sendDirect(BuildContext context, String driverId) async {
   }
   final ids = await cloud.createRequests(dr, driverId);
   if (!context.mounted) return;
-  afterSend(context, ids, 'داواکارییەکە بۆ ${str(cloud.driver(driverId)?['name'])} نێردرا');
+  afterSend(context, ids, tr('داواکارییەکە بۆ {0} نێردرا', [str(cloud.driver(driverId)?['name'])]));
 }
 
 Future<void> broadcast(BuildContext context) async {
@@ -65,7 +66,7 @@ Future<void> broadcast(BuildContext context) async {
   if (dr == null) return;
   final ids = await context.read<Cloud>().createRequests(dr, 'all');
   if (!context.mounted) return;
-  afterSend(context, ids, 'داواکارییەکەت بڵاو کرایەوە');
+  afterSend(context, ids, tr('داواکارییەکەت بڵاو کرایەوە'));
 }
 
 class NewSubScreen extends StatefulWidget {
@@ -106,7 +107,7 @@ class _NewSubScreenState extends State<NewSubScreen> {
   Widget build(BuildContext context) {
     final t = context.yk;
     context.watch<Cloud>();
-    const steps = ['سەرنشینەکان', 'شوێن و کات', 'نرخ و ناردن'];
+    final steps = [tr('سەرنشینەکان'), tr('شوێن و کات'), tr('نرخ و ناردن')];
     final d = dr;
     final body = d.step == 1
         ? _step1(context)
@@ -130,7 +131,7 @@ class _NewSubScreenState extends State<NewSubScreen> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 480),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  YkHeader('بەشداری نوێ', sub: Fmt.n('هەنگاوی ${d.step} لە ٣، ${steps[d.step - 1]}')),
+                  YkHeader(tr('بەشداری نوێ'), sub: Fmt.n(tr('هەنگاوی {0} لە ٣، {1}', [d.step, steps[d.step - 1]]))),
                   const SizedBox(height: 14),
                   Row(children: [
                     for (var i = 0; i < 3; i++) ...[
@@ -201,15 +202,15 @@ class _NewSubScreenState extends State<NewSubScreen> {
     final typeBlock = <Widget>[];
     if (mem.isNotEmpty) {
       if (mixed && d.mode == 'one') {
-        typeBlock.add(shieldCard('تەنها خێزانەکەت لە ئۆتۆمبێلەکەدا دەبن.', 'چونکە منداڵ لەگەڵ کەسی گەورەی خێزانەکەیەتی، کەسی نەناسراو سوار ناکرێت. تەنها شۆفێری پشکنراوی منداڵان.'));
+        typeBlock.add(shieldCard(tr('تەنها خێزانەکەت لە ئۆتۆمبێلەکەدا دەبن.'), tr('چونکە منداڵ لەگەڵ کەسی گەورەی خێزانەکەیەتی، کەسی نەناسراو سوار ناکرێت. تەنها شۆفێری پشکنراوی منداڵان.')));
       } else {
         final lbl = hasChild && !hasAdult
-            ? const [('shared', 'لەگەڵ منداڵانی تر', 'تەنها منداڵ لە ئۆتۆمبێلەکەدا دەبن، هەرزانتر'), ('private', 'تەنها منداڵەکانی خۆم', 'کەسی تر سوار ناکرێت')]
+            ? [('shared', tr('لەگەڵ منداڵانی تر'), tr('تەنها منداڵ لە ئۆتۆمبێلەکەدا دەبن، هەرزانتر')), ('private', tr('تەنها منداڵەکانی خۆم'), tr('کەسی تر سوار ناکرێت'))]
             : hasChild
-                ? const [('shared', 'هاوبەش', 'منداڵ تەنها لەگەڵ منداڵ، گەورە لەگەڵ گەورە'), ('private', 'تایبەت', 'هەر کەسێک تەکسی تایبەتی خۆی')]
-                : const [('shared', 'هاوبەش لەگەڵ کەسانی تر', 'هەرزانتر، لەسەر ڕێگاکەت'), ('private', 'تەکسی تایبەت', 'تەنها تۆ، ٤٠٪ زیاتر')];
+                ? [('shared', tr('هاوبەش'), tr('منداڵ تەنها لەگەڵ منداڵ، گەورە لەگەڵ گەورە')), ('private', tr('تایبەت'), tr('هەر کەسێک تەکسی تایبەتی خۆی'))]
+                : [('shared', tr('هاوبەش لەگەڵ کەسانی تر'), tr('هەرزانتر، لەسەر ڕێگاکەت')), ('private', tr('تەکسی تایبەت'), tr('تەنها تۆ، ٤٠٪ زیاتر'))];
         typeBlock.add(_gap([
-          Text('جۆری گەشت', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.muted)),
+          Text(tr('جۆری گەشت'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.muted)),
           for (final o in lbl)
             Semantics(
               selected: d.rideType == o.$1,
@@ -228,14 +229,14 @@ class _NewSubScreenState extends State<NewSubScreen> {
               ),
             ),
         ], 8));
-        if (hasChild) typeBlock.add(shieldCard('', 'منداڵ هەرگیز لەگەڵ کەسی گەورەی نەناسراو سوار ناکرێت. تەنها شۆفێرانی پشکنراوی منداڵان دەیبینن.'));
+        if (hasChild) typeBlock.add(shieldCard('', tr('منداڵ هەرگیز لەگەڵ کەسی گەورەی نەناسراو سوار ناکرێت. تەنها شۆفێرانی پشکنراوی منداڵان دەیبینن.')));
       }
     }
 
     return _gap([
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('کێ سوار دەبێت؟', style: Ts.h3(context)),
-        Text('دەتوانیت چەند کەسێک هەڵبژێریت', style: Ts.muted(context, size: 14)),
+        Text(tr('کێ سوار دەبێت؟'), style: Ts.h3(context)),
+        Text(tr('دەتوانیت چەند کەسێک هەڵبژێریت'), style: Ts.muted(context, size: 14)),
       ]),
       YkList(children: [
         for (final m in all)
@@ -252,14 +253,14 @@ class _NewSubScreenState extends State<NewSubScreen> {
       ]),
       Align(
         alignment: AlignmentDirectional.centerStart,
-        child: YkButton('زیادکردنی ئەندام', icon: 'plus', kind: BtnKind.ghost, small: true, onPressed: () => openLink(context, 'family')),
+        child: YkButton(tr('زیادکردنی ئەندام'), icon: 'plus', kind: BtnKind.ghost, small: true, onPressed: () => openLink(context, 'family')),
       ),
       if (mem.length > 1)
         _gap([
-          Text(Fmt.n('${mem.length} کەس هەڵبژێردران. چۆن بڕۆن؟'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.muted)),
-          YkSeg<String>(options: const [('one', 'یەک تەکسی پێکەوە'), ('separate', 'تەکسی جیا')], value: d.mode, onChanged: (v) => _set(() => d.mode = v)),
+          Text(Fmt.n(tr('{0} کەس هەڵبژێردران. چۆن بڕۆن؟', [mem.length])), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.muted)),
+          YkSeg<String>(options: [('one', tr('یەک تەکسی پێکەوە')), ('separate', tr('تەکسی جیا'))], value: d.mode, onChanged: (v) => _set(() => d.mode = v)),
           Text(
-            d.mode == 'one' ? 'هەموویان پێکەوە لە یەک ئۆتۆمبێلدا. کەسی دووەم بەدواوە ٣٠٪ هەرزانترە.' : 'بۆ هەر کەسێک داواکارییەکی جیا دروست دەکرێت و هەر یەکەی شۆفێری خۆی دەبێت.',
+            d.mode == 'one' ? tr('هەموویان پێکەوە لە یەک ئۆتۆمبێلدا. کەسی دووەم بەدواوە ٣٠٪ هەرزانترە.') : tr('بۆ هەر کەسێک داواکارییەکی جیا دروست دەکرێت و هەر یەکەی شۆفێری خۆی دەبێت.'),
             style: Ts.muted(context, size: 12.8),
           ),
         ], 8),
@@ -271,15 +272,15 @@ class _NewSubScreenState extends State<NewSubScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('تەنها شۆفێری ئافرەت', style: Ts.bold(context)),
-                Text('تەنها شۆفێرە ئافرەتەکان داواکارییەکە دەبینن', style: Ts.muted(context, size: 12.8)),
+                Text(tr('تەنها شۆفێری ئافرەت'), style: Ts.bold(context)),
+                Text(tr('تەنها شۆفێرە ئافرەتەکان داواکارییەکە دەبینن'), style: Ts.muted(context, size: 12.8)),
               ]),
             ),
             YkToggle(value: d.womanOnly, onChanged: (v) => _set(() => d.womanOnly = v)),
           ]),
         ),
-      YkButton('دواتر', block: true, onPressed: mem.isEmpty ? null : () => _step(1)),
-      if (mem.isEmpty) const YkHint('سەرەتا کەسێک هەڵبژێرە کە سوار دەبێت'),
+      YkButton(tr('دواتر'), block: true, onPressed: mem.isEmpty ? null : () => _step(1)),
+      if (mem.isEmpty) YkHint(tr('سەرەتا کەسێک هەڵبژێرە کە سوار دەبێت')),
     ]);
   }
 
@@ -305,7 +306,7 @@ class _NewSubScreenState extends State<NewSubScreen> {
             initialValue: key == 'from' ? d.fromNote : d.toNote,
             onChanged: (v) => key == 'from' ? d.fromNote = v : d.toNote = v,
             decoration: ykInput(context,
-                hint: key == 'from' ? 'وردەکاری: ناوی کۆڵان، نزیک... (ئارەزوومەندانە)' : 'وردەکاری: دەرگای سەرەکی، نهۆم... (ئارەزوومەندانە)'),
+                hint: key == 'from' ? tr('وردەکاری: ناوی کۆڵان، نزیک... (ئارەزوومەندانە)') : tr('وردەکاری: دەرگای سەرەکی، نهۆم... (ئارەزوومەندانە)')),
           ),
         );
     final ok = d.fromId.isNotEmpty && d.toId.isNotEmpty && d.schedOk;
@@ -313,45 +314,45 @@ class _NewSubScreenState extends State<NewSubScreen> {
         ? <Widget>[]
         : <Widget>[
             _gap([
-              Text('جۆری هاتووچۆ', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.text)),
+              Text(tr('جۆری هاتووچۆ'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.text)),
               YkSeg<String>(
-                options: const [('both', 'چوون و هاتنەوە'), ('go', 'تەنها چوون'), ('back', 'تەنها هاتنەوە')],
+                options: [('both', tr('چوون و هاتنەوە')), ('go', tr('تەنها چوون')), ('back', tr('تەنها هاتنەوە'))],
                 value: d.dir,
                 onChanged: (v) => _set(() => d.dir = v),
               ),
             ], 8),
             Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               if (d.dir != 'back')
-                Expanded(child: YkField(label: 'کاتی چوون', child: TimeField(value: d.go, title: 'کاتی چوون', onChanged: (v) => _set(() => d.go = v)))),
+                Expanded(child: YkField(label: tr('کاتی چوون'), child: TimeField(value: d.go, title: tr('کاتی چوون'), onChanged: (v) => _set(() => d.go = v)))),
               if (d.dir == 'both') const SizedBox(width: 10),
               if (d.dir != 'go')
                 Expanded(
-                    child: YkField(label: 'کاتی هاتنەوە', child: TimeField(value: d.backTime, title: 'کاتی هاتنەوە', onChanged: (v) => _set(() => d.backTime = v)))),
+                    child: YkField(label: tr('کاتی هاتنەوە'), child: TimeField(value: d.backTime, title: tr('کاتی هاتنەوە'), onChanged: (v) => _set(() => d.backTime = v)))),
             ]),
             if (d.dir != 'both')
-              Text('${d.dir == 'go' ? 'تەنها لە ماڵەوە بۆ شوێنی مەبەست' : 'تەنها لە شوێنی مەبەستەوە بۆ ماڵەوە'}، نرخ کەمترە', style: Ts.muted(context, size: 12.8)),
+              Text(d.dir == 'go' ? tr('تەنها لە ماڵەوە بۆ شوێنی مەبەست، نرخ کەمترە') : tr('تەنها لە شوێنی مەبەستەوە بۆ ماڵەوە، نرخ کەمترە'), style: Ts.muted(context, size: 12.8)),
           ];
     return _gap([
       YkCard(
         child: _gap([
           Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            lbl('لە کوێوە (شوێنی سوار بوون)', t.success),
+            lbl(tr('لە کوێوە (شوێنی سوار بوون)'), t.success),
             PlaceField(draftKey: 'from', draft: d, onChanged: () => _set(() {})),
             if (d.fromId.isNotEmpty) note('from'),
           ]),
           Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            lbl('بۆ کوێ (شوێنی مەبەست)', t.amber),
+            lbl(tr('بۆ کوێ (شوێنی مەبەست)'), t.amber),
             PlaceField(draftKey: 'to', draft: d, onChanged: () => _set(() {})),
             if (d.toId.isNotEmpty) note('to'),
           ]),
-          if (km > 0) IconLine('route', Fmt.n('نزیکەی ${km.toStringAsFixed(1)} کیلۆمەتر، ${(km * 2.5 + 8).round()} خولەک'), muted: true),
+          if (km > 0) IconLine('route', Fmt.n(tr('نزیکەی {0} کیلۆمەتر، {1} خولەک', [km.toStringAsFixed(1), (km * 2.5 + 8).round()])), muted: true),
         ]),
       ),
       YkCard(
         child: _gap([
           ...timesBlock,
-          YkField(label: 'ڕۆژی دەستپێکردن', child: DateField(value: d.startDate, title: 'ڕۆژی دەستپێکردن', onChanged: (v) => _set(() => d.startDate = v))),
-          Text('مانگی یەکەم بە پێی ڕۆژە ماوەکان حیساب دەکرێت', style: Ts.muted(context, size: 12.8)),
+          YkField(label: tr('ڕۆژی دەستپێکردن'), child: DateField(value: d.startDate, title: tr('ڕۆژی دەستپێکردن'), onChanged: (v) => _set(() => d.startDate = v))),
+          Text(tr('مانگی یەکەم بە پێی ڕۆژە ماوەکان حیساب دەکرێت'), style: Ts.muted(context, size: 12.8)),
         ], 12),
       ),
       YkCard(
@@ -359,8 +360,8 @@ class _NewSubScreenState extends State<NewSubScreen> {
           Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('هەموو ڕۆژەکان هەمان کات نین', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.text)),
-                Text('بۆ نموونە هەندێک ڕۆژ دەوامی بەیانی و هەندێک ڕۆژ نیوەڕۆ، یان هەندێک ڕۆژ تەنها چوون', style: Ts.muted(context, size: 12.8)),
+                Text(tr('هەموو ڕۆژەکان هەمان کات نین'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.text)),
+                Text(tr('بۆ نموونە هەندێک ڕۆژ دەوامی بەیانی و هەندێک ڕۆژ نیوەڕۆ، یان هەندێک ڕۆژ تەنها چوون'), style: Ts.muted(context, size: 12.8)),
               ]),
             ),
             const SizedBox(width: 10),
@@ -372,8 +373,8 @@ class _NewSubScreenState extends State<NewSubScreen> {
       YkCard(
         child: _gap([
           Row(children: [
-            Expanded(child: Text('ڕۆژەکانی هەفتە', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.text))),
-            Text(d.days.contains(true) ? fmtDays(d.days) : 'هیچ ڕۆژێک', style: Ts.muted(context, size: 12.8)),
+            Expanded(child: Text(tr('ڕۆژەکانی هەفتە'), style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: t.text))),
+            Text(d.days.contains(true) ? fmtDays(d.days) : tr('هیچ ڕۆژێک'), style: Ts.muted(context, size: 12.8)),
           ]),
           DaysPicker(days: d.days, onToggle: (i) => _set(() => d.toggleDay(i))),
           Wrap(spacing: 6, runSpacing: 6, children: [
@@ -382,16 +383,16 @@ class _NewSubScreenState extends State<NewSubScreen> {
         ], 12),
       ),
       Row(children: [
-        YkButton('گەڕانەوە', kind: BtnKind.secondary, onPressed: () => _step(-1)),
+        YkButton(tr('گەڕانەوە'), kind: BtnKind.secondary, onPressed: () => _step(-1)),
         const SizedBox(width: 10),
-        Expanded(child: YkButton('بینینی نرخ', block: true, onPressed: ok ? () => _step(1) : null)),
+        Expanded(child: YkButton(tr('بینینی نرخ'), block: true, onPressed: ok ? () => _step(1) : null)),
       ]),
       if (d.toId.isEmpty)
-        const YkHint('شوێنی مەبەست هەڵبژێرە بۆ بینینی نرخ')
+        YkHint(tr('شوێنی مەبەست هەڵبژێرە بۆ بینینی نرخ'))
       else if (d.fromId.isEmpty)
-        const YkHint('شوێنی سوار بوون هەڵبژێرە')
+        YkHint(tr('شوێنی سوار بوون هەڵبژێرە'))
       else if (!d.schedOk)
-        YkHint('لانیکەم یەک ڕۆژی هەفتە هەڵبژێرە${d.perDay != null ? ' و چوون یان هاتنەوەی بۆ دیاری بکە' : ''}'),
+        YkHint(d.perDay != null ? tr('لانیکەم یەک ڕۆژی هەفتە هەڵبژێرە و چوون یان هاتنەوەی بۆ دیاری بکە') : tr('لانیکەم یەک ڕۆژی هەفتە هەڵبژێرە')),
     ]);
   }
 
@@ -400,7 +401,7 @@ class _NewSubScreenState extends State<NewSubScreen> {
     final t = context.yk;
     final d = dr;
     final rows = [for (var i = 0; i < 7; i++) if (d.days[i]) i];
-    if (rows.isEmpty) return Text('سەرەتا ڕۆژەکان هەڵبژێرە', style: Ts.muted(context, size: 12.8));
+    if (rows.isEmpty) return Text(tr('سەرەتا ڕۆژەکان هەڵبژێرە'), style: Ts.muted(context, size: 12.8));
     Widget cell(int i, String dir) {
       final v = d.perDay?['$i']?[dir];
       if (v == null) {
@@ -413,18 +414,18 @@ class _NewSubScreenState extends State<NewSubScreen> {
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               YkIcon('plus', size: 14, color: t.muted),
               const SizedBox(width: 4),
-              Text(dir == 'go' ? 'چوون' : 'هاتنەوە', style: TextStyle(fontSize: 13, color: t.muted, fontWeight: FontWeight.w600)),
+              Text(dir == 'go' ? tr('چوون') : tr('هاتنەوە'), style: TextStyle(fontSize: 13, color: t.muted, fontWeight: FontWeight.w600)),
             ]),
           ),
         );
       }
       return Row(children: [
-        Expanded(child: TimeField(value: v, dense: true, title: '${kWeekdays[i]}، ${dir == 'go' ? 'چوون' : 'هاتنەوە'}', onChanged: (x) => _set(() => d.setLegTime(i, dir, x)))),
+        Expanded(child: TimeField(value: v, dense: true, title: tr('{0}، {1}', [Fmt.weekday(i), dir == 'go' ? tr('چوون') : tr('هاتنەوە')]), onChanged: (x) => _set(() => d.setLegTime(i, dir, x)))),
         SizedBox(
           width: 30,
           child: IconButton(
             padding: EdgeInsets.zero,
-            tooltip: 'لابردن',
+            tooltip: tr('لابردن'),
             onPressed: () => _set(() => d.toggleLeg(i, dir)),
             icon: YkIcon('x', size: 14, color: t.muted, stroke: 2.4),
           ),
@@ -435,15 +436,15 @@ class _NewSubScreenState extends State<NewSubScreen> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Row(children: [
         const SizedBox(width: 74),
-        Expanded(child: Text('چوون', textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8))),
+        Expanded(child: Text(tr('چوون'), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8))),
         const SizedBox(width: 8),
-        Expanded(child: Text('هاتنەوە', textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8))),
+        Expanded(child: Text(tr('هاتنەوە'), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8))),
       ]),
       for (final i in rows)
         Padding(
           padding: const EdgeInsets.only(top: 6),
           child: Row(children: [
-            SizedBox(width: 74, child: Text(kWeekdays[i], style: TextStyle(fontSize: 13.6, fontWeight: FontWeight.w700, color: t.text))),
+            SizedBox(width: 74, child: Text(Fmt.weekday(i), style: TextStyle(fontSize: 13.6, fontWeight: FontWeight.w700, color: t.text))),
             Expanded(child: cell(i, 'go')),
             const SizedBox(width: 8),
             Expanded(child: cell(i, 'back')),
@@ -453,7 +454,7 @@ class _NewSubScreenState extends State<NewSubScreen> {
       Row(children: [
         YkIcon('x', size: 12, color: t.muted),
         const SizedBox(width: 4),
-        Expanded(child: Text('واتە ئەو ڕۆژە ئەو بەشەی نییە، بۆ نموونە «بەیانی خۆم دەیبەم».', style: Ts.muted(context, size: 12.8))),
+        Expanded(child: Text(tr('واتە ئەو ڕۆژە ئەو بەشەی نییە، بۆ نموونە «بەیانی خۆم دەیبەم».'), style: Ts.muted(context, size: 12.8))),
       ]),
     ]);
   }
@@ -473,8 +474,8 @@ class _NewSubScreenState extends State<NewSubScreen> {
     final prefFits = pref != null && cloud.fits(pref, cloud.draftAsReq(d, str(pref['id'])));
     final b = cloud.offerBounds(total);
     final summary = <String, dynamic>{
-      'from': '${str(cloud.place(d.fromId)?['name'])}${d.fromNote.trim().isNotEmpty ? '، ${d.fromNote.trim()}' : ''}',
-      'to': '${str(cloud.place(d.toId)?['name'])}${d.toNote.trim().isNotEmpty ? '، ${d.toNote.trim()}' : ''}',
+      'from': '${str(cloud.place(d.fromId)?['name'])}${d.fromNote.trim().isNotEmpty ? '، ${d.fromNote.trim()}' : ''}', // i18n-keep
+      'to': '${str(cloud.place(d.toId)?['name'])}${d.toNote.trim().isNotEmpty ? '، ${d.toNote.trim()}' : ''}', // i18n-keep
       'startDate': d.startDate,
       ...d.sched(),
     };
@@ -485,7 +486,7 @@ class _NewSubScreenState extends State<NewSubScreen> {
       try {
         await f();
       } catch (e) {
-        if (context.mounted) toast(context, 'هەڵەیەک ڕوویدا، دووبارە هەوڵ بدەرەوە');
+        if (context.mounted) toast(context, tr('هەڵەیەک ڕوویدا، دووبارە هەوڵ بدەرەوە'));
       } finally {
         if (mounted) setState(() => _busy = false);
       }
@@ -504,7 +505,7 @@ class _NewSubScreenState extends State<NewSubScreen> {
                 Text(sub, style: Ts.muted(context, size: 12.8)),
               ]),
             ),
-            YkIcon('forward', size: 20, color: t.muted),
+            YkIcon(L.rtl ? 'forward' : 'back', size: 20, color: t.muted),
           ]),
         );
 
@@ -518,17 +519,20 @@ class _NewSubScreenState extends State<NewSubScreen> {
             YkIcon('swap', size: 20, color: t.brand),
             const SizedBox(width: 10),
             Expanded(
-              child: Text.rich(
-                TextSpan(children: [
-                  const TextSpan(text: 'گۆڕینی شۆفێر: کاتێک لەگەڵ شۆفێری نوێ ڕێککەوتیت، بەشدارییەکەت لەگەڵ '),
-                  TextSpan(text: str((cloud.driver(old['driverId']) ?? const {})['name']).isEmpty ? 'شۆفێری ئێستا' : str(cloud.driver(old['driverId'])!['name']), style: const TextStyle(fontWeight: FontWeight.w700)),
-                  const TextSpan(text: ' هەڵدەوەشێتەوە.'),
-                ]),
-                style: Ts.sm(context),
-              ),
+              child: Builder(builder: (_) {
+                final parts = tr('گۆڕینی شۆفێر: کاتێک لەگەڵ شۆفێری نوێ ڕێککەوتیت، بەشدارییەکەت لەگەڵ {0} هەڵدەوەشێتەوە.').split('{0}');
+                return Text.rich(
+                  TextSpan(children: [
+                    TextSpan(text: parts.first),
+                    TextSpan(text: str((cloud.driver(old['driverId']) ?? const {})['name']).isEmpty ? tr('شۆفێری ئێستا') : str(cloud.driver(old['driverId'])!['name']), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    TextSpan(text: parts.length > 1 ? parts[1] : ''),
+                  ]),
+                  style: Ts.sm(context),
+                );
+              }),
             ),
             const SizedBox(width: 8),
-            YkButton('هەڵوەشاندنەوە', small: true, kind: BtnKind.secondary, onPressed: () {
+            YkButton(tr('هەڵوەشاندنەوە'), small: true, kind: BtnKind.secondary, onPressed: () {
               DraftHolder.current = null;
               Navigator.of(context).popUntil((r) => r.isFirst);
               ShellTabs.index.value = 2;
@@ -539,12 +543,12 @@ class _NewSubScreenState extends State<NewSubScreen> {
         big: true,
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
-            Expanded(child: Text('نرخی پێشنیارکراوی مانگانە', style: Ts.bold(context))),
-            const YkBadge('مەزەندە', tone: BadgeTone.note),
+            Expanded(child: Text(tr('نرخی پێشنیارکراوی مانگانە'), style: Ts.bold(context))),
+            YkBadge(tr('مەزەندە'), tone: BadgeTone.note),
           ]),
           const SizedBox(height: 4),
           Text(Fmt.money(total), style: Ts.h1(context).copyWith(color: t.brand)),
-          Text(Fmt.n('شۆفێرەکان دەتوانن لە نێوان ${Fmt.group(b.min)} تا ${Fmt.group(b.max)} دینار نرخی خۆیان پێشنیار بکەن. تۆ هەموو نرخەکان دەبینیت و هەڵدەبژێریت.'),
+          Text(Fmt.n(tr('شۆفێرەکان دەتوانن لە نێوان {0} تا {1} دینار نرخی خۆیان پێشنیار بکەن. تۆ هەموو نرخەکان دەبینیت و هەڵدەبژێریت.', [Fmt.group(b.min), Fmt.group(b.max)])),
               style: Ts.muted(context, size: 12.8)),
           if (q.length > 1) ...[
             const YkHr(),
@@ -563,7 +567,7 @@ class _NewSubScreenState extends State<NewSubScreen> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
             Expanded(child: Text(Fmt.names(mem.map((m) => str(m['name'])).toList()), style: Ts.sm(context).copyWith(fontWeight: FontWeight.w700))),
-            if (q.length > 1) YkBadge(Fmt.n('${q.length} داواکاری'), tone: BadgeTone.info),
+            if (q.length > 1) YkBadge(Fmt.n(tr('{0} داواکاری', [q.length])), tone: BadgeTone.info),
           ]),
           const SizedBox(height: 4),
           RequestSummary(summary),
@@ -572,40 +576,40 @@ class _NewSubScreenState extends State<NewSubScreen> {
         ]),
       ),
       YkField(
-        label: 'تێبینی بۆ شۆفێر',
+        label: tr('تێبینی بۆ شۆفێر'),
         optional: true,
         child: TextFormField(
           initialValue: d.note,
           minLines: 2,
           maxLines: 5,
           onChanged: (v) => d.note = v,
-          decoration: ykInput(context, hint: 'بۆ نموونە: کورسیی منداڵ پێویستە'),
+          decoration: ykInput(context, hint: tr('بۆ نموونە: کورسیی منداڵ پێویستە')),
         ),
       ),
       if (pref != null) ...[
-        YkButton('ناردن بۆ ${str(pref['name'])}',
+        YkButton(tr('ناردن بۆ {0}', [str(pref['name'])]),
             icon: 'send', block: true, busy: _busy, onPressed: prefFits ? () => run(() => sendDirect(context, str(pref['id']))) : null),
-        if (!prefFits) YkError('${str(pref['name'])} بۆ ئەم گەشتە ناگونجێت (کورسی، منداڵ یان ئافرەت)'),
-        YkButton('بڵاوکردنەوە بۆ هەموو شۆفێرەکان', icon: 'megaphone', kind: BtnKind.secondary, block: true, onPressed: _busy ? null : () => run(() => broadcast(context))),
+        if (!prefFits) YkError(tr('{0} بۆ ئەم گەشتە ناگونجێت (کورسی، منداڵ یان ئافرەت)', [str(pref['name'])])),
+        YkButton(tr('بڵاوکردنەوە بۆ هەموو شۆفێرەکان'), icon: 'megaphone', kind: BtnKind.secondary, block: true, onPressed: _busy ? null : () => run(() => broadcast(context))),
       ] else ...[
         pickCard(
           icon: 'megaphone',
           bg: t.silver,
           ic: t.act,
-          title: 'بڵاوکردنەوە بۆ هەموو شۆفێرەکان',
-          sub: Fmt.n('$fitsN شۆفێری گونجاو دەیبینن و نرخ دەنێرن، پێشنیارکراو'),
+          title: tr('بڵاوکردنەوە بۆ هەموو شۆفێرەکان'),
+          sub: Fmt.n(tr('{0} شۆفێری گونجاو دەیبینن و نرخ دەنێرن، پێشنیارکراو', [fitsN])),
           onTap: () => run(() => broadcast(context)),
         ),
         pickCard(
           icon: 'search',
           bg: t.chip,
           ic: t.text,
-          title: 'خۆم شۆفێر هەڵدەبژێرم',
-          sub: 'لیستی شۆفێرەکان ببینە و ڕاستەوخۆ بۆ یەکێکیان بنێرە',
+          title: tr('خۆم شۆفێر هەڵدەبژێرم'),
+          sub: tr('لیستی شۆفێرەکان ببینە و ڕاستەوخۆ بۆ یەکێکیان بنێرە'),
           onTap: () => push(context, const DriversScreen()),
         ),
       ],
-      YkButton('گەڕانەوە', kind: BtnKind.ghost, block: true, onPressed: () => _step(-1)),
+      YkButton(tr('گەڕانەوە'), kind: BtnKind.ghost, block: true, onPressed: () => _step(-1)),
     ]);
   }
 }
@@ -656,10 +660,10 @@ class _MemberRow extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(str(m['name']), style: Ts.bold(context).copyWith(height: 1.4)),
-              Text(Fmt.n('${str(m['relation'])}${kid && age != null ? '، $age ساڵ' : ''}'), style: Ts.muted(context, size: 12.8)),
+              Text(Fmt.n(kid && age != null ? tr('{0}، {1} ساڵ', [trData(str(m['relation'])), age]) : trData(str(m['relation']))), style: Ts.muted(context, size: 12.8)),
             ]),
           ),
-          if (kid) ...[const YkBadge('منداڵ', tone: BadgeTone.note), const SizedBox(width: 8)],
+          if (kid) ...[YkBadge(tr('منداڵ'), tone: BadgeTone.note), const SizedBox(width: 8)],
           YkCheck(on),
         ]),
       ),
@@ -726,14 +730,14 @@ class _PlaceFieldState extends State<PlaceField> {
       final (pos, err) = await currentLocation();
       if (!mounted) return;
       if (pos == null) {
-        toast(context, err ?? 'نەتوانرا شوێنەکەت بدۆزرێتەوە');
+        toast(context, err ?? tr('نەتوانرا شوێنەکەت بدۆزرێتەوە'));
         return;
       }
       d.setGeo(key, {'lat': pos.lat, 'lng': pos.lng});
       widget.onChanged();
       return;
     }
-    final g = await pickLocation(context, title: key == 'from' ? 'شوێنی سوار بوون' : 'شوێنی مەبەست', center: cur, useHere: here);
+    final g = await pickLocation(context, title: key == 'from' ? tr('شوێنی سوار بوون') : tr('شوێنی مەبەست'), center: cur, useHere: here);
     if (g == null || !mounted) return;
     d.setGeo(key, {'lat': g.lat, 'lng': g.lng});
     widget.onChanged();
@@ -759,7 +763,7 @@ class _PlaceFieldState extends State<PlaceField> {
             YkIcon(placeIcon(pl['kind']), size: 20, color: color),
             const SizedBox(width: 10),
             Expanded(child: Text(str(pl['name']), style: Ts.bold(context))),
-            YkLink('گۆڕین', onTap: _clear),
+            YkLink(tr('گۆڕین'), onTap: _clear),
           ]),
         ),
         const SizedBox(height: 6),
@@ -767,10 +771,10 @@ class _PlaceFieldState extends State<PlaceField> {
           YkIcon(geo != null ? 'check' : 'pin', size: 16, color: geo != null ? t.okText : t.muted, stroke: geo != null ? 2.6 : 2),
           const SizedBox(width: 6),
           Expanded(
-            child: Text(geo != null ? 'شوێنی ورد لەسەر نەخشە دیاری کرا' : pg != null ? 'شوێنی گشتی ئەم ناوچەیە' : 'شوێنی ورد دیاری نەکراوە',
+            child: Text(geo != null ? tr('شوێنی ورد لەسەر نەخشە دیاری کرا') : pg != null ? tr('شوێنی گشتی ئەم ناوچەیە') : tr('شوێنی ورد دیاری نەکراوە'),
                 style: TextStyle(fontSize: 13, color: geo != null ? t.okText : t.muted)),
           ),
-          if (!MapsStatus.failed.value) YkLink(geo != null ? 'گۆڕین' : 'دیاریکردن لەسەر نەخشە', size: 13, onTap: () => _pin(false)),
+          if (!MapsStatus.failed.value) YkLink(geo != null ? tr('گۆڕین') : tr('دیاریکردن لەسەر نەخشە'), size: 13, onTap: () => _pin(false)),
         ]),
       ]);
     }
@@ -786,7 +790,7 @@ class _PlaceFieldState extends State<PlaceField> {
           child: Row(children: [
             YkIcon('check', size: 16, color: t.okText, stroke: 2.6),
             const SizedBox(width: 6),
-            Expanded(child: Text('شوێنی ورد وەرگیرا. ئێستا ناوی گەڕەکەکە بنووسە', style: TextStyle(fontSize: 13, color: t.okText))),
+            Expanded(child: Text(tr('شوێنی ورد وەرگیرا. ئێستا ناوی گەڕەکەکە بنووسە'), style: TextStyle(fontSize: 13, color: t.okText))),
           ]),
         ),
       TextField(
@@ -797,7 +801,7 @@ class _PlaceFieldState extends State<PlaceField> {
         onChanged: (v) => setState(() => d.setQ(key, v)),
         decoration: ykInput(
           context,
-          hint: key == 'from' ? 'بنووسە، بۆ نموونە: ئازادی' : 'بنووسە، بۆ نموونە: بەخت',
+          hint: key == 'from' ? tr('بنووسە، بۆ نموونە: ئازادی') : tr('بنووسە، بۆ نموونە: بەخت'),
           prefix: Padding(padding: const EdgeInsets.all(14), child: YkIcon('search', size: 20, color: t.muted)),
         ),
       ),
@@ -809,17 +813,17 @@ class _PlaceFieldState extends State<PlaceField> {
           child: Column(children: [
             for (final p in list) _sugg(context, placeIcon(p['kind']), t.muted, _mark(context, str(p['name']), qq), () => _pick(str(p['id']))),
             if (qq.length >= 2 && !list.any((p) => p['name'] == qq))
-              _sugg(context, 'pin', t.brand, Text('بەکارهێنانی «$qq»', style: Ts.sm(context)), () => _pick('c:$qq')),
+              _sugg(context, 'pin', t.brand, Text(tr('بەکارهێنانی «{0}»', [qq]), style: Ts.sm(context)), () => _pick('c:$qq')),
           ]),
         ),
       if (geo == null) ...[
         const SizedBox(height: 8),
         Row(children: [
           if (!MapsStatus.failed.value) ...[
-            YkButton('لەسەر نەخشە', icon: 'pin', small: true, kind: BtnKind.secondary, onPressed: () => _pin(false)),
+            YkButton(tr('لەسەر نەخشە'), icon: 'pin', small: true, kind: BtnKind.secondary, onPressed: () => _pin(false)),
             const SizedBox(width: 8),
           ],
-          YkButton('شوێنی ئێستام', icon: 'navigate', small: true, kind: BtnKind.secondary, onPressed: () => _pin(true)),
+          YkButton(tr('شوێنی ئێستام'), icon: 'navigate', small: true, kind: BtnKind.secondary, onPressed: () => _pin(true)),
         ]),
       ],
     ]);

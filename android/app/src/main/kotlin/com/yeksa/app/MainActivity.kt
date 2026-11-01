@@ -1,4 +1,4 @@
-package com.example.yeksa
+package com.yeksa.app
 
 import io.flutter.embedding.android.FlutterActivity
 

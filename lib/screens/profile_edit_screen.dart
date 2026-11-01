@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../core/account.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/images.dart';
 import '../core/pricing.dart';
 import '../core/sel.dart';
@@ -23,20 +24,20 @@ Future<void> pickMyPhoto(BuildContext context) async {
   try {
     final f = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1000, maxHeight: 1000, imageQuality: 72);
     if (f == null) return;
-    if (context.mounted) toast(context, 'وێنەکە ئامادە دەکرێت...');
+    if (context.mounted) toast(context, tr('وێنەکە ئامادە دەکرێت...'));
     final bytes = await f.readAsBytes();
     // data URL ـی base64 ≈ ١.٣٣ × قەبارە؛ بەڵگەنامەی Firestore لە ١ مێگابایت زیاتر نابێت (وێب: ٧٠٠٬٠٠٠ پیت)
     if (bytes.length > 500 * 1024) {
-      if (context.mounted) toast(context, 'وێنەکە زۆر گەورەیە. وێنەیەکی بچووکتر هەڵبژێرە');
+      if (context.mounted) toast(context, tr('وێنەکە زۆر گەورەیە. وێنەیەکی بچووکتر هەڵبژێرە'));
       return;
     }
     final old = cloud.passenger['photo'] as String?;
     final id = await store.save(bytes);
     await cloud.setMyPhoto(id);
     if (old != null && old != id) await store.remove(old);
-    if (context.mounted) toast(context, 'وێنەکەت دانرا');
+    if (context.mounted) toast(context, tr('وێنەکەت دانرا'));
   } catch (_) {
-    if (context.mounted) toast(context, 'ئەم وێنەیە ناخوێندرێتەوە. وێنەیەکی تر هەڵبژێرە');
+    if (context.mounted) toast(context, tr('ئەم وێنەیە ناخوێندرێتەوە. وێنەیەکی تر هەڵبژێرە'));
   }
 }
 
@@ -70,17 +71,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   Future<void> _save() async {
     final name = _name.text.trim();
     if (name.length < 2) {
-      toast(context, 'ناوەکە بنووسە');
+      toast(context, tr('ناوەکە بنووسە'));
       return;
     }
     setState(() => _busy = true);
     try {
       await context.read<Cloud>().updateProfile(name, _home, _city, _gender);
       if (!mounted) return;
-      toast(context, 'پاشەکەوت کرا');
+      toast(context, tr('پاشەکەوت کرا'));
       Navigator.of(context).maybePop();
     } catch (_) {
-      if (mounted) toast(context, 'هەڵەیەک ڕوویدا، دووبارە هەوڵ بدەرەوە');
+      if (mounted) toast(context, tr('هەڵەیەک ڕوویدا، دووبارە هەوڵ بدەرەوە'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -113,7 +114,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         );
     return Scaffold(
       body: YkScreen(children: [
-        const YkHeader('زانیاری پرۆفایل'),
+        YkHeader(tr('زانیاری پرۆفایل')),
         Center(
           child: GestureDetector(
             onTap: () => pickMyPhoto(context),
@@ -135,8 +136,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         ),
         if (photo != null)
           Center(
-            child: YkLink('لابردنی وێنە', onTap: () async {
-              if (!await askConfirm(context, 'وێنەی پرۆفایلەکەت لادەبرێت؟', yes: 'لابردن')) return;
+            child: YkLink(tr('لابردنی وێنە'), onTap: () async {
+              if (!await askConfirm(context, tr('وێنەی پرۆفایلەکەت لادەبرێت؟'), yes: tr('لابردن'))) return;
               if (!context.mounted) return;
               final store = context.read<ImageStore>();
               await cloud.setMyPhoto(null);
@@ -145,10 +146,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
         YkCard(
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            YkField(label: 'ناوی تەواو', child: TextField(controller: _name, autofillHints: const [AutofillHints.name], decoration: ykInput(context))),
+            YkField(label: tr('ناوی تەواو'), child: TextField(controller: _name, autofillHints: const [AutofillHints.name], decoration: ykInput(context))),
             const SizedBox(height: 12),
             YkField(
-              label: 'ژمارەی مۆبایل',
+              label: tr('ژمارەی مۆبایل'),
               child: Container(
                 height: 50,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -162,38 +163,38 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             ),
             const SizedBox(height: 12),
             YkField(
-              label: 'شار',
+              label: tr('شار'),
               child: YkSelect<String>(
-                title: 'شار',
-                items: [for (final c in cloud.cities) (str(c['id']), str(c['name']))],
+                title: tr('شار'),
+                items: [for (final c in cloud.cities) (str(c['id']), trData(c['name']))],
                 value: _city,
                 onChanged: (v) => setState(() => _city = v),
               ),
             ),
             const SizedBox(height: 12),
             YkField(
-              label: 'گەڕەکی ماڵ',
+              label: tr('گەڕەکی ماڵ'),
               child: YkSelect<String>(
-                title: 'گەڕەکی ماڵ',
-                items: [for (final x in homes) (str(x['id']), '${str(x['name'])}، ${str(cloud.city(str(x['city']))?['name'])}')],
+                title: tr('گەڕەکی ماڵ'),
+                items: [for (final x in homes) (str(x['id']), tr('{0}، {1}', [trData(x['name']), trData(cloud.city(str(x['city']))?['name'])]))],
                 value: _home.isEmpty ? null : _home,
                 onChanged: (v) => setState(() => _home = v),
               ),
             ),
             const SizedBox(height: 12),
-            YkField(label: 'ڕەگەز', child: Row(children: [gbtn('m', 'نێر'), const SizedBox(width: 10), gbtn('f', 'مێ')])),
+            YkField(label: tr('ڕەگەز'), child: Row(children: [gbtn('m', tr('نێر')), const SizedBox(width: 10), gbtn('f', tr('مێ'))])),
           ]),
         ),
         YkList(children: [
-          YkListItem(icon: 'lock', label: 'گۆڕینی وشەی نهێنی', onTap: () => changePasswordSheet(context)),
+          YkListItem(icon: 'lock', label: tr('گۆڕینی وشەی نهێنی'), onTap: () => changePasswordSheet(context)),
         ]),
-        YkButton('پاشەکەوت', block: true, busy: _busy, onPressed: _save),
+        YkButton(tr('پاشەکەوت'), block: true, busy: _busy, onPressed: _save),
         const SizedBox(height: 10),
         Center(
           child: TextButton.icon(
             onPressed: () => _deleteAccount(context),
             icon: YkIcon('trash', size: 17, color: t.dangerText),
-            label: Text('سڕینەوەی هەژمار', style: TextStyle(color: t.dangerText, fontWeight: FontWeight.w700)),
+            label: Text(tr('سڕینەوەی هەژمار'), style: TextStyle(color: t.dangerText, fontWeight: FontWeight.w700)),
           ),
         ),
       ]),
@@ -216,8 +217,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('سڕینەوەی هەژمار', style: Ts.h2(c)),
-                Text('ئەمە ناگەڕێتەوە.', style: Ts.muted(c, size: 14)),
+                Text(tr('سڕینەوەی هەژمار'), style: Ts.h2(c)),
+                Text(tr('ئەمە ناگەڕێتەوە.'), style: Ts.muted(c, size: 14)),
               ]),
             ),
           ]),
@@ -226,17 +227,17 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(color: t.card, borderRadius: BorderRadius.circular(Yk.rMd), border: Border.all(color: t.line)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('ئەمانە دەسڕێنەوە:', style: TextStyle(fontWeight: FontWeight.w700)),
-              line('• ناو، ژمارەی مۆبایل و ئەندامانی خێزان'),
-              line('• شوێنەکانی سەر نەخشە، ئاگادارکردنەوەکان و مێژووی گەشتەکانت'),
-              if (subs > 0) line(Fmt.n('• $subs بەشداری هەڵدەوەشێتەوە و شۆفێرەکە ئاگادار دەکرێتەوە')),
+              Text(tr('ئەمانە دەسڕێنەوە:'), style: const TextStyle(fontWeight: FontWeight.w700)),
+              line(tr('• ناو، ژمارەی مۆبایل و ئەندامانی خێزان')),
+              line(tr('• شوێنەکانی سەر نەخشە، ئاگادارکردنەوەکان و مێژووی گەشتەکانت')),
+              if (subs > 0) line(Fmt.n(tr('• {0} بەشداری هەڵدەوەشێتەوە و شۆفێرەکە ئاگادار دەکرێتەوە', [subs]))),
               const SizedBox(height: 6),
-              const Text('ئەمانە بێ ناو دەمێننەوە:', style: TextStyle(fontWeight: FontWeight.w700)),
-              line('• گەشتە کراوەکان و نامەکان، بۆ حیسابی شۆفێر و چارەسەرکردنی سکاڵا'),
+              Text(tr('ئەمانە بێ ناو دەمێننەوە:'), style: const TextStyle(fontWeight: FontWeight.w700)),
+              line(tr('• گەشتە کراوەکان و نامەکان، بۆ حیسابی شۆفێر و چارەسەرکردنی سکاڵا')),
             ]),
           ),
           const SizedBox(height: 12),
-          YkField(label: 'وشەی نهێنی بۆ پشتڕاستکردنەوە', child: PasswordInput(controller: pass)),
+          YkField(label: tr('وشەی نهێنی بۆ پشتڕاستکردنەوە'), child: PasswordInput(controller: pass)),
           if (err != null) ...[const SizedBox(height: 8), YkError(err!)],
           const SizedBox(height: 14),
           Material(
@@ -248,7 +249,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   ? null
                   : () async {
                       if (pass.text.isEmpty) {
-                        setS(() => err = 'وشەی نهێنی بنووسە');
+                        setS(() => err = tr('وشەی نهێنی بنووسە'));
                         return;
                       }
                       setS(() {
@@ -272,13 +273,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 child: Center(
                   child: busy
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white))
-                      : const Text('سڕینەوەی هەمیشەیی', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
+                      : Text(tr('سڕینەوەی هەمیشەیی'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
                 ),
               ),
             ),
           ),
           const SizedBox(height: 8),
-          YkButton('پاشگەزبوونەوە', kind: BtnKind.ghost, block: true, onPressed: busy ? null : () => Navigator.pop(c)),
+          YkButton(tr('پاشگەزبوونەوە'), kind: BtnKind.ghost, block: true, onPressed: busy ? null : () => Navigator.pop(c)),
         ]);
       });
     });

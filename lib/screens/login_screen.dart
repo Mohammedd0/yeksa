@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/auth.dart';
+import '../core/i18n.dart';
 import '../core/invite_link.dart';
+import '../core/settings.dart';
 import '../ui/logo.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
@@ -51,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _err = err;
     });
     if (err == null) {
-      toastAfterNav(context, 'بەخێربێیتەوە');
+      toastAfterNav(context, tr('بەخێربێیتەوە'));
       // AuthGate خۆی دەچێتە سەرەکی؛ هەر پەڕەیەکی تر کە لەسەرەوەیە دادەخرێت
       Navigator.of(context).popUntil((r) => r.isFirst);
     }
@@ -62,11 +64,11 @@ class _LoginScreenState extends State<LoginScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('وشەی نهێنیت لەبیر چووە؟', style: Ts.h2(c)),
+          Text(tr('وشەی نهێنیت لەبیر چووە؟'), style: Ts.h2(c)),
           const SizedBox(height: 8),
-          Text('پەیوەندی بە تیمی پشتگیری یەکسا بکە بۆ یارمەتی.', style: Ts.muted(c, size: 14).copyWith(height: 1.9)),
+          Text(tr('پەیوەندی بە تیمی پشتگیری یەکسا بکە بۆ یارمەتی.'), style: Ts.muted(c, size: 14).copyWith(height: 1.9)),
           const SizedBox(height: 16),
-          YkButton('باشە', kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
+          YkButton(tr('باشە'), kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
         ],
       );
     });
@@ -75,34 +77,37 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final t = context.yk;
+    final st = context.watch<LocalSettings>();
     return Scaffold(
       body: AutofillGroup(
         child: YkScreen(
           center: true,
           gap: 12,
           children: [
+            // هەڵبژاردنی زمان پێش چوونەژوورەوە
+            Align(alignment: AlignmentDirectional.centerEnd, child: YkLangPill(value: st.lang, onChanged: st.setLang)),
             Column(children: [
               const YLogo.big(),
               const SizedBox(height: 20),
-              Text('بەخێربێیتەوە', style: Ts.h1(context)),
+              Text(tr('بەخێربێیتەوە'), style: Ts.h1(context)),
               const SizedBox(height: 6),
-              Text('بە ژمارەی مۆبایل و وشەی نهێنی بچۆ ژوورەوە', style: Ts.muted(context, size: 14)),
+              Text(tr('بە ژمارەی مۆبایل و وشەی نهێنی بچۆ ژوورەوە'), textAlign: TextAlign.center, style: Ts.muted(context, size: 14)),
               const SizedBox(height: 10),
             ]),
-            YkField(label: 'ژمارەی مۆبایل', child: PhoneInput(controller: _phone, textInputAction: TextInputAction.next)),
+            YkField(label: tr('ژمارەی مۆبایل'), child: PhoneInput(controller: _phone, textInputAction: TextInputAction.next)),
             YkField(
-              label: 'وشەی نهێنی',
+              label: tr('وشەی نهێنی'),
               child: PasswordInput(controller: _pass, textInputAction: TextInputAction.done, onSubmitted: (_) => _submit()),
             ),
-            Row(mainAxisAlignment: MainAxisAlignment.end, children: [YkLink('وشەی نهێنیت لەبیر چووە؟', onTap: _forgot)]),
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [YkLink(tr('وشەی نهێنیت لەبیر چووە؟'), onTap: _forgot)]),
             if (_err != null) YkError(_err!),
-            YkButton('چوونەژوورەوە', block: true, busy: _busy, onPressed: _submit),
+            YkButton(tr('چوونەژوورەوە'), block: true, busy: _busy, onPressed: _submit),
             const SizedBox(height: 2),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('ئەکاونتت نییە؟ ', style: TextStyle(fontSize: 14, color: t.text)),
-                YkLink('ئەکاونتی نوێ دروست بکە', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RegisterScreen()))),
+                Text(tr('ئەکاونتت نییە؟ '), style: TextStyle(fontSize: 14, color: t.text)),
+                YkLink(tr('ئەکاونتی نوێ دروست بکە'), onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RegisterScreen()))),
               ],
             ),
           ],

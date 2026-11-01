@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../core/i18n.dart';
 import '../core/images.dart';
 import 'empty_art.dart';
 import 'theme.dart';
@@ -77,10 +78,15 @@ class _YkButtonState extends State<YkButton> {
         else ...[
           if (w.icon != null) ...[YkIcon(w.icon!, size: w.small ? 16 : 20, color: fg), const SizedBox(width: 8)],
           Flexible(
-            child: Text(w.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: fs, fontFamily: kFont)),
+            // دوگمەی بچووک (سێ دوگمە لە یەک ڕیز): دەقی درێژی ئینگلیزی/عەرەبی بچووک دەبێتەوە لە جیاتی «...»
+            child: w.small
+                ? FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(w.label, maxLines: 1, style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: fs, fontFamily: kFont)))
+                : Text(w.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: fs, fontFamily: kFont)),
           ),
         ],
       ],
@@ -157,6 +163,64 @@ class YkLink extends StatelessWidget {
         child: Text(label, style: TextStyle(color: context.yk.brand, fontWeight: FontWeight.w700, fontSize: size)),
       ),
     );
+  }
+}
+
+/// گۆڕینی زمان بۆ پەڕەکانی پێش چوونەژوورەوە: دوگمەیەکی خڕی بچووک (وەک YkLink pill)
+/// کە ناوی زمانەکە پیشان دەدات و پەڕەیەکی خوارەوە بۆ هەڵبژاردن دەکاتەوە
+class YkLangPill extends StatelessWidget {
+  const YkLangPill({super.key, required this.value, required this.onChanged});
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.yk;
+    var name = L.options.first.$2;
+    for (final o in L.options) {
+      if (o.$1 == value) name = o.$2;
+    }
+    return Semantics(
+      button: true,
+      label: tr('زمان'),
+      child: Material(
+        color: t.silver,
+        shape: StadiumBorder(side: BorderSide(color: t.silverLine)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _open(context),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(top: 5, bottom: 5, start: 14, end: 10),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Text(name, style: TextStyle(color: t.text, fontWeight: FontWeight.w700, fontSize: 12.8, height: 1.4)),
+              const SizedBox(width: 4),
+              YkIcon('down', size: 16, color: t.muted),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _open(BuildContext context) {
+    showYkSheet<String>(
+      context,
+      builder: (c) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+        Text(tr('زمان'), style: Ts.h2(c)),
+        const SizedBox(height: 12),
+        YkList(children: [
+          for (final o in L.options)
+            YkListItem(
+              label: o.$2,
+              chevron: false,
+              trailing: o.$1 == value ? YkIcon('check', size: 20, color: c.yk.act) : null,
+              onTap: () => Navigator.of(c).pop(o.$1),
+            ),
+        ]),
+      ]),
+    ).then((v) {
+      if (v != null && v != value) onChanged(v);
+    });
   }
 }
 
@@ -251,7 +315,7 @@ class YkField extends StatelessWidget {
       children: [
         Text.rich(TextSpan(children: [
           TextSpan(text: label),
-          if (optional) TextSpan(text: ' (ئارەزوومەندانە)', style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12.8, color: t.muted)),
+          if (optional) TextSpan(text: tr(' (ئارەزوومەندانە)'), style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12.8, color: t.muted)),
         ]), style: TextStyle(fontSize: 13.4, fontWeight: FontWeight.w700, color: t.muted)),
         const SizedBox(height: 6),
         child,
@@ -320,8 +384,8 @@ class PhoneInput extends StatelessWidget {
 class _PhoneFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    const ku = '٠١٢٣٤٥٦٧٨٩';
-    var d = newValue.text.replaceAllMapped(RegExp('[٠-٩]'), (m) => '${ku.indexOf(m[0]!)}').replaceAll(RegExp(r'\D'), '');
+    const ku = '٠١٢٣٤٥٦٧٨٩'; // i18n-keep
+    var d = newValue.text.replaceAllMapped(RegExp('[٠-٩]'), (m) => '${ku.indexOf(m[0]!)}').replaceAll(RegExp(r'\D'), ''); // i18n-keep
     if (d.startsWith('964')) d = d.substring(3);
     if (d.startsWith('0')) d = d.substring(1);
     if (d.length > 10) d = d.substring(0, 10);
@@ -353,6 +417,11 @@ class _PasswordInputState extends State<PasswordInput> {
   @override
   Widget build(BuildContext context) {
     final t = context.yk;
+    final eye = IconButton(
+      tooltip: _show ? tr('شاردنەوەی وشەی نهێنی') : tr('پیشاندانی وشەی نهێنی'),
+      onPressed: () => setState(() => _show = !_show),
+      icon: YkIcon(_show ? 'eyeOff' : 'eye', size: 20, color: t.muted),
+    );
     return Directionality(
       textDirection: TextDirection.ltr,
       child: TextField(
@@ -361,15 +430,13 @@ class _PasswordInputState extends State<PasswordInput> {
         autofillHints: [widget.newPassword ? AutofillHints.newPassword : AutofillHints.password],
         textInputAction: widget.textInputAction,
         onSubmitted: widget.onSubmitted,
-        textAlign: TextAlign.right,
+        // لە کوردی/عەرەبی خاڵەکان لە ڕاستن و چاو لە چەپ، لە ئینگلیزی بە پێچەوانەوە
+        textAlign: L.rtl ? TextAlign.right : TextAlign.left,
         style: TextStyle(fontSize: 16, color: t.text),
         decoration: ykInput(context,
             hint: widget.hint,
-            prefix: IconButton(
-              tooltip: _show ? 'شاردنەوەی وشەی نهێنی' : 'پیشاندانی وشەی نهێنی',
-              onPressed: () => setState(() => _show = !_show),
-              icon: YkIcon(_show ? 'eyeOff' : 'eye', size: 20, color: t.muted),
-            )),
+            prefix: L.rtl ? eye : null,
+            suffix: L.rtl ? null : eye),
       ),
     );
   }
@@ -398,10 +465,10 @@ class YkHeader extends StatelessWidget {
               height: 42,
               decoration: BoxDecoration(color: t.glass, shape: BoxShape.circle, border: Border.all(color: t.glassLine)),
               child: IconButton(
-                tooltip: 'گەڕانەوە',
+                tooltip: tr('گەڕانەوە'),
                 padding: EdgeInsets.zero,
                 onPressed: () => Navigator.of(context).maybePop(),
-                icon: YkIcon('back', size: 22, color: t.text),
+                icon: YkIcon(L.rtl ? 'back' : 'forward', size: 22, color: t.text),
               ),
             ),
           if (canBack) const SizedBox(width: 10),
@@ -637,7 +704,11 @@ class _YkScreenState extends State<YkScreen> with SingleTickerProviderStateMixin
     if (size == null) return;
     // بنی ناونیشانەکە (بێ دێڕی ڕوونکردنەوە) لە ژێر شریتەکە ون بوو؟ هاوتای barSync ـی وێب
     final h = _header?.sub != null ? size.height - 21 : size.height;
-    final on = _scroll.offset > 14 + h - 42;
+    // پەڕەیەک کە سکرۆڵ ناکات (بۆ نموونە پەڕەی بەتاڵ) شریتی ناونیشانی پیشان نادات: لەرینەوەی دەستلێدان
+    // (bounce) چەند پیکسڵێک دەیجوڵاند و ناونیشانی بچووک لەسەر ناونیشانە گەورەکە دەردەکەوت.
+    // هەروەها لانیکەم ٢٤ پیکسڵ سکرۆڵ پێویستە، چونکە ناونیشانی خاوەن دێڕی ڕوونکردنەوە زۆر نزیکی شریتەکەیە
+    final p = _scroll.position;
+    final on = p.maxScrollExtent > 0 && _scroll.offset > math.max(24.0, 14 + h - 42);
     if (on != _bar) setState(() => _bar = on);
   }
 
@@ -788,10 +859,10 @@ class _TitleBar extends StatelessWidget {
                   width: 40,
                   height: 40,
                   child: IconButton(
-                    tooltip: 'گەڕانەوە',
+                    tooltip: tr('گەڕانەوە'),
                     padding: EdgeInsets.zero,
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: YkIcon('back', size: 22, color: t.text),
+                    icon: YkIcon(L.rtl ? 'back' : 'forward', size: 22, color: t.text),
                   ),
                 ),
               ),
@@ -875,7 +946,7 @@ class YkListItem extends StatelessWidget {
                 ]),
               ),
               if (trailing != null) ...[const SizedBox(width: 8), trailing!],
-              if (chevron && onTap != null) ...[const SizedBox(width: 8), YkIcon('forward', size: 18, color: t.muted)],
+              if (chevron && onTap != null) ...[const SizedBox(width: 8), YkIcon(L.rtl ? 'forward' : 'back', size: 18, color: t.muted)],
             ],
           ),
         ),
@@ -991,11 +1062,11 @@ class YkSeg<T> extends StatelessWidget {
 /// هەڵبژاردن لە لیستێک: وەک خانەی نووسین دەردەکەوێت و لیستێکی بچووک لە خوارەوە دەکاتەوە
 /// (لە جیاتی لیستی گەورەی Material)
 class YkSelect<T> extends StatelessWidget {
-  const YkSelect({super.key, required this.items, required this.value, required this.onChanged, this.hint = 'هەڵبژێرە', this.title});
+  const YkSelect({super.key, required this.items, required this.value, required this.onChanged, this.hint, this.title});
   final List<(T, String)> items;
   final T? value;
   final ValueChanged<T> onChanged;
-  final String hint;
+  final String? hint;
   final String? title;
 
   @override
@@ -1020,7 +1091,7 @@ class YkSelect<T> extends StatelessWidget {
             border: Border.all(color: t.line, width: 1.5),
           ),
           child: Row(children: [
-            Expanded(child: Text(label ?? hint, style: TextStyle(fontSize: 16, color: label == null ? t.muted : t.text))),
+            Expanded(child: Text(label ?? hint ?? tr('هەڵبژێرە'), style: TextStyle(fontSize: 16, color: label == null ? t.muted : t.text))),
             YkIcon('down', size: 18, color: t.muted),
           ]),
         ),
@@ -1037,7 +1108,7 @@ class YkSelect<T> extends StatelessWidget {
     showGeneralDialog<T>(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'داخستن',
+      barrierLabel: tr('داخستن'),
       barrierColor: Colors.transparent,
       transitionDuration: const Duration(milliseconds: 180),
       pageBuilder: (c, a1, a2) => _SelectMenu<T>(anchor: rect, items: items, value: value),
@@ -1338,7 +1409,7 @@ class _PtrIndicator extends StatelessWidget {
     final t = context.yk;
     final p = (pull / 84).clamp(0.0, 1.0);
     final dy = (pull - 64).clamp(0.0, double.infinity) / 2 + (pull < 64 ? pull : 64) - 56;
-    final label = busy ? '' : (p >= 1 ? 'بەری بدە بۆ نوێکردنەوە' : 'ڕابکێشە بۆ نوێکردنەوە');
+    final label = busy ? '' : (p >= 1 ? tr('بەری بدە بۆ نوێکردنەوە') : tr('ڕابکێشە بۆ نوێکردنەوە'));
     return Transform.translate(
       offset: Offset(0, dy),
       child: Opacity(

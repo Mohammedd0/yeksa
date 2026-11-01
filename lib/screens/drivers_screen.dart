@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/cloud.dart';
 import '../core/draft.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/images.dart';
 import '../core/pricing.dart';
 import '../core/sel.dart';
@@ -37,17 +38,17 @@ class DriverRow extends StatelessWidget {
     final area = str(d['area']);
     return YkCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        DriverHead(d, onTap: () => push(context, DriverScreen(id: str(d['id']), reqId: reqId)), trailing: YkIcon('forward', size: 18, color: t.muted)),
+        DriverHead(d, onTap: () => push(context, DriverScreen(id: str(d['id']), reqId: reqId)), trailing: YkIcon(L.rtl ? 'forward' : 'back', size: 18, color: t.muted)),
         if (d['woman'] == true || d['kidsDriver'] == true || area.isNotEmpty) ...[
           const SizedBox(height: 10),
           Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            if (d['woman'] == true) const YkBadge('شۆفێری ئافرەت', tone: BadgeTone.woman),
-            if (d['kidsDriver'] == true) const YkBadge('شۆفێری منداڵان', tone: BadgeTone.note),
+            if (d['woman'] == true) YkBadge(tr('شۆفێری ئافرەت'), tone: BadgeTone.woman),
+            if (d['kidsDriver'] == true) YkBadge(tr('شۆفێری منداڵان'), tone: BadgeTone.note),
             if (area.isNotEmpty)
               Row(mainAxisSize: MainAxisSize.min, children: [
                 YkIcon('pin', size: 14, color: t.muted),
                 const SizedBox(width: 4),
-                Text(area, style: Ts.muted(context, size: 12.8)),
+                Text(trData(area), style: Ts.muted(context, size: 12.8)),
               ]),
           ]),
         ],
@@ -80,23 +81,23 @@ class _DriversScreenState extends State<DriversScreen> {
     final q = normalizeText(_q);
     if (q.isNotEmpty) {
       list = list.where((d) {
-        final hay = [d['name'], d['car'], d['carMake'], d['carModel'], d['area'], d['woman'] == true ? 'ئافرەت' : '', d['kidsDriver'] == true ? 'منداڵ' : ''].map(str).join(' ');
+        final hay = [d['name'], d['car'], d['carMake'], d['carModel'], d['area'], d['woman'] == true ? 'ئافرەت ${tr('ئافرەت')}' : '', d['kidsDriver'] == true ? 'منداڵ ${tr('منداڵ')}' : ''].map(str).join(' '); // i18n-keep
         return normalizeText(hay).contains(q);
       }).toList();
     }
     return Scaffold(
       body: YkScreen(children: [
-        YkHeader(dr != null ? 'هەڵبژاردنی شۆفێر' : 'شۆفێرەکان', sub: dr != null ? 'تەنها ئەو شۆفێرانەی بۆ گەشتەکەت دەگونجێن' : 'هەموو شۆفێرەکان پشکنراون'),
+        YkHeader(dr != null ? tr('هەڵبژاردنی شۆفێر') : tr('شۆفێرەکان'), sub: dr != null ? tr('تەنها ئەو شۆفێرانەی بۆ گەشتەکەت دەگونجێن') : tr('هەموو شۆفێرەکان پشکنراون')),
         TextField(
           onChanged: (v) => setState(() => _q = v),
           autocorrect: false,
           decoration: ykInput(context,
-              hint: 'گەڕان: ناو، ئۆتۆمبێل یان ناوچە', prefix: Padding(padding: const EdgeInsets.all(14), child: YkIcon('search', size: 20, color: context.yk.muted))),
+              hint: tr('گەڕان: ناو، ئۆتۆمبێل یان ناوچە'), prefix: Padding(padding: const EdgeInsets.all(14), child: YkIcon('search', size: 20, color: context.yk.muted))),
         ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(children: [
-            for (final f in const [('all', 'هەمووی'), ('woman', 'شۆفێری ئافرەت'), ('kids', 'شۆفێری منداڵان')]) ...[
+            for (final f in [('all', tr('هەمووی')), ('woman', tr('شۆفێری ئافرەت')), ('kids', tr('شۆفێری منداڵان'))]) ...[
               YkChip(f.$2, on: _f == f.$1, onTap: () => setState(() => _f = f.$1)),
               const SizedBox(width: 6),
             ],
@@ -105,17 +106,17 @@ class _DriversScreenState extends State<DriversScreen> {
         if (all == 0)
           YkEmpty(
             icon: 'search',
-            title: 'هیچ شۆفێرێکی گونجاو نییە',
-            text: 'داواکارییەکەت بڵاو بکەرەوە، شۆفێری نوێ دەیبینن',
-            button: dr != null ? YkButton('بڵاوکردنەوە', onPressed: () => broadcast(context)) : null,
+            title: tr('هیچ شۆفێرێکی گونجاو نییە'),
+            text: tr('داواکارییەکەت بڵاو بکەرەوە، شۆفێری نوێ دەیبینن'),
+            button: dr != null ? YkButton(tr('بڵاوکردنەوە'), onPressed: () => broadcast(context)) : null,
           )
         else if (list.isEmpty)
-          const YkEmpty(icon: 'search', title: 'هیچ شۆفێرێک نەدۆزرایەوە', text: 'وشەیەکی تر تاقی بکەرەوە'),
+          YkEmpty(icon: 'search', title: tr('هیچ شۆفێرێک نەدۆزرایەوە'), text: tr('وشەیەکی تر تاقی بکەرەوە')),
         for (final d in list)
           DriverRow(
             d,
             action: dr != null
-                ? YkButton('ناردنی داواکاری بۆ ${str(d['name']).split(' ').first}',
+                ? YkButton(tr('ناردنی داواکاری بۆ {0}', [str(d['name']).split(' ').first]),
                     icon: 'send', small: true, block: true, kind: BtnKind.secondary, onPressed: () => sendDirect(context, str(d['id'])))
                 : null,
           ),
@@ -136,7 +137,7 @@ class DriverScreen extends StatelessWidget {
     final cloud = context.watch<Cloud>();
     final d = cloud.driver(id);
     if (d == null) {
-      return const Scaffold(body: YkScreen(children: [YkHeader('شۆفێر'), YkEmpty(icon: 'user', title: 'نەدۆزرایەوە')]));
+      return Scaffold(body: YkScreen(children: [YkHeader(tr('شۆفێر')), YkEmpty(icon: 'user', title: tr('نەدۆزرایەوە'))]));
     }
     final joined = d['joinedAt'] is num ? DateTime.fromMillisecondsSinceEpoch((d['joinedAt'] as num).toInt()) : null;
     final tags = asList(d['tags']).map(asMap).toList();
@@ -152,7 +153,7 @@ class DriverScreen extends StatelessWidget {
         );
     return Scaffold(
       body: YkScreen(children: [
-        const YkHeader('پرۆفایلی شۆفێر'),
+        YkHeader(tr('پرۆفایلی شۆفێر')),
         if (str(d['phone']).isNotEmpty)
           InkWell(
             onTap: () => callPhone(str(d['phone'])),
@@ -163,7 +164,7 @@ class DriverScreen extends StatelessWidget {
               child: Row(children: [
                 YkIcon('phone', size: 16, color: t.muted),
                 const SizedBox(width: 8),
-                Expanded(child: Text('ژمارەی شۆفێر', style: Ts.sm(context))),
+                Expanded(child: Text(tr('ژمارەی شۆفێر'), style: Ts.sm(context))),
                 Text(Fmt.phone(str(d['phone'])), textDirection: TextDirection.ltr, style: TextStyle(fontWeight: FontWeight.w700, color: t.brand)),
               ]),
             ),
@@ -183,35 +184,35 @@ class DriverScreen extends StatelessWidget {
             if (str(d['plate']).isNotEmpty) Plate(str(d['plate']), type: str(d['plateType']).isEmpty ? 'taxi' : str(d['plateType'])),
             const SizedBox(height: 8),
             Wrap(alignment: WrapAlignment.center, spacing: 6, runSpacing: 6, children: [
-              const YkBadge('پشکنراو', tone: BadgeTone.ok),
-              if (d['woman'] == true) const YkBadge('شۆفێری ئافرەت', tone: BadgeTone.woman),
-              if (d['kidsDriver'] == true) const YkBadge('شۆفێری منداڵان', tone: BadgeTone.note),
-              if (joined != null) YkBadge(Fmt.n('لەگەڵ یەکسا لە ${kMonths[joined.month - 1]}ی ${joined.year}ەوە')),
+              YkBadge(tr('پشکنراو'), tone: BadgeTone.ok),
+              if (d['woman'] == true) YkBadge(tr('شۆفێری ئافرەت'), tone: BadgeTone.woman),
+              if (d['kidsDriver'] == true) YkBadge(tr('شۆفێری منداڵان'), tone: BadgeTone.note),
+              if (joined != null) YkBadge(Fmt.n(tr('لەگەڵ یەکسا لە {0}ی {1}ەوە', [Fmt.month(joined.month - 1), joined.year]))),
             ]),
           ]),
         ),
         Row(children: [
-          stat('★ ${d['rating'] ?? 0}', Fmt.n('${d['reviews'] ?? 0} هەڵسەنگاندن'), color: t.brand),
+          stat('★ ${d['rating'] ?? 0}', Fmt.n(tr('{0} هەڵسەنگاندن', [d['reviews'] ?? 0])), color: t.brand),
           const SizedBox(width: 8),
-          stat('${d['trips'] ?? 0}', 'گەشت'),
+          stat('${d['trips'] ?? 0}', trc('گەشت', 'رحلة', 'Trips')),
           const SizedBox(width: 8),
-          stat('${d['onTime'] ?? 0}٪', 'لەکاتی خۆیدا'),
+          stat('${d['onTime'] ?? 0}${L.en ? '%' : '٪'}', tr('لەکاتی خۆیدا')), // i18n-keep
         ]),
         YkCard(
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            IconLine('pin', 'ناوچەکانی کار: ${str(d['area'])}'),
-            IconLine('seat', Fmt.n('${d['seats'] ?? 4} کورسی بۆ سەرنشین')),
+            IconLine('pin', tr('ناوچەکانی کار: {0}', [trData(d['area'])])),
+            IconLine('seat', Fmt.n(tr('{0} کورسی بۆ سەرنشین', [d['seats'] ?? 4]))),
           ]),
         ),
         if (tags.isNotEmpty) ...[
-          Text('سەرنشینەکان چی دەڵێن', style: Ts.h3(context)),
+          Text(tr('سەرنشینەکان چی دەڵێن'), style: Ts.h3(context)),
           Wrap(spacing: 6, runSpacing: 6, children: [
             for (final tg in tags)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(color: t.card, borderRadius: BorderRadius.circular(999), border: Border.all(color: t.line, width: 1.5)),
                 child: Text.rich(TextSpan(children: [
-                  TextSpan(text: '${str(tg['label'])}، '),
+                  TextSpan(text: tr('{0}، ', [trData(tg['label'])])),
                   TextSpan(text: Fmt.n(tg['count']), style: const TextStyle(fontWeight: FontWeight.w700)),
                 ]), style: Ts.sm(context)),
               ),
@@ -224,7 +225,7 @@ class DriverScreen extends StatelessWidget {
                 const PersonAvatar(size: 32),
                 const SizedBox(width: 8),
                 Expanded(child: Text(str(review['by']), style: Ts.sm(context).copyWith(fontWeight: FontWeight.w700))),
-                Text(str(review['ago']), style: Ts.muted(context, size: 12.8)),
+                Text(trData(review['ago']), style: Ts.muted(context, size: 12.8)),
               ]),
               const SizedBox(height: 6),
               Text('«${str(review['text'])}»', style: Ts.sm(context)),
@@ -242,9 +243,9 @@ class DriverScreen extends StatelessWidget {
     final first = str(d['name']).split(' ').first;
     final did = str(d['id']);
     final msg = Row(children: [
-      Expanded(child: YkButton('نامە', icon: 'chat', kind: BtnKind.secondary, block: true, onPressed: () => openLink(context, 'chat/$did'))),
+      Expanded(child: YkButton(tr('نامە'), icon: 'chat', kind: BtnKind.secondary, block: true, onPressed: () => openLink(context, 'chat/$did'))),
       const SizedBox(width: 10),
-      Expanded(child: YkButton('پەیوەندی', icon: 'phone', kind: BtnKind.secondary, block: true, onPressed: () => callPhone(str(d['phone'])))),
+      Expanded(child: YkButton(tr('پەیوەندی'), icon: 'phone', kind: BtnKind.secondary, block: true, onPressed: () => callPhone(str(d['phone'])))),
     ]);
     // ئەگەر ئەم شۆفێرە نرخی بۆ یەکێک لە داواکارییەکانت ناردووە، ڕاستەوخۆ هەڵیبژێرە
     final offers = <(Json, Json)>[];
@@ -261,16 +262,16 @@ class DriverScreen extends StatelessWidget {
             tone: CardTone.note,
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Text.rich(TextSpan(children: [
-                TextSpan(text: '$first نرخی ناردووە بۆ '),
-                TextSpan(text: '${str(r['riderNames'])}، ${str(r['to']).split('، ').first}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                TextSpan(text: tr('{0} نرخی ناردووە بۆ ', [first])),
+                TextSpan(text: tr('{0}، {1}', [str(r['riderNames']), str(r['to']).split('، ').first]), style: const TextStyle(fontWeight: FontWeight.w700)), // i18n-keep
               ]), style: Ts.sm(context)),
               Row(children: [
                 Expanded(child: Text(Fmt.money(o['price'] as num), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: t.brand))),
-                Text('مانگانە', style: Ts.muted(context, size: 12.8)),
+                Text(tr('مانگانە'), style: Ts.muted(context, size: 12.8)),
               ]),
               if (str(o['note']).isNotEmpty) Text('«${str(o['note'])}»', style: Ts.sm(context)),
               const SizedBox(height: 8),
-              YkButton('هەڵبژاردنی $first', icon: 'check', block: true, onPressed: () => pickOffer(context, str(r['id']), did)),
+              YkButton(tr('هەڵبژاردنی {0}', [first]), icon: 'check', block: true, onPressed: () => pickOffer(context, str(r['id']), did)),
             ]),
           ),
         msg,
@@ -280,13 +281,13 @@ class DriverScreen extends StatelessWidget {
     if (dr != null && dr.ready && dr.step == 3) {
       final ok = cloud.fits(d, cloud.draftAsReq(dr, did));
       return [
-        YkButton('ناردنی داواکاری بۆ $first', icon: 'send', block: true, onPressed: ok ? () => sendDirect(context, did) : null),
-        if (!ok) YkError('$first بۆ ئەم گەشتە ناگونجێت'),
+        YkButton(tr('ناردنی داواکاری بۆ {0}', [first]), icon: 'send', block: true, onPressed: ok ? () => sendDirect(context, did) : null),
+        if (!ok) YkError(tr('{0} بۆ ئەم گەشتە ناگونجێت', [first])),
         msg,
       ];
     }
     return [
-      YkButton('بەشداری لەگەڵ $first', block: true, onPressed: () => startSub(context, prefDriver: did)),
+      YkButton(tr('بەشداری لەگەڵ {0}', [first]), block: true, onPressed: () => startSub(context, prefDriver: did)),
       msg,
     ];
   }
@@ -297,7 +298,7 @@ class DriverScreen extends StatelessWidget {
     if (ids.isEmpty) return const [];
     final one = ids.length == 1;
     return [
-      Text('ئۆتۆمبێلەکە', style: Ts.h3(context)),
+      Text(tr('ئۆتۆمبێلەکە'), style: Ts.h3(context)),
       GridView.count(
         crossAxisCount: one ? 1 : 2,
         shrinkWrap: true,
@@ -364,7 +365,7 @@ class _CarViewerState extends State<_CarViewer> {
             top: 8,
             right: 8,
             child: IconButton(
-              tooltip: 'داخستن',
+              tooltip: tr('داخستن'),
               onPressed: () => Navigator.pop(context),
               icon: const YkIcon('x', size: 26, color: Colors.white, stroke: 2.4),
             ),

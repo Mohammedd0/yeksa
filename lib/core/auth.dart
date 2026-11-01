@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'cloud.dart';
 import 'defaults.dart';
 import 'format.dart';
+import 'i18n.dart';
+import 'sel.dart' show inKu;
 
 /// ئەنجامی پشکنینی کۆدی بانگهێشت
 class Invite {
@@ -41,14 +43,14 @@ class AuthService {
   /// هەڵەکانی Firebase بە کوردی
   static String authErr(Object e) {
     final c = e is FirebaseException ? e.code : '$e';
-    if (RegExp('invalid-credential|wrong-password|user-not-found|invalid-login|invalid-email').hasMatch(c)) return 'ژمارە یان وشەی نهێنی هەڵەیە';
-    if (c.contains('email-already-in-use')) return 'ئەم ژمارەیە پێشتر تۆمار کراوە. بچۆ ژوورەوە';
-    if (c.contains('weak-password')) return 'وشەی نهێنی دەبێت لانیکەم ٦ پیت بێت';
-    if (c.contains('too-many-requests')) return 'زۆر هەوڵت دا. چەند خولەکێک چاوەڕێ بکە';
-    if (c.contains('network')) return 'ئینتەرنێت نییە. دووبارە هەوڵ بدەرەوە';
-    if (c.contains('operation-not-allowed')) return 'چوونەژوورەوە بە ئیمەیڵ و وشەی نهێنی لە Firebase چالاک نەکراوە';
-    if (RegExp('no-user|requires-recent-login').hasMatch(c)) return 'دووبارە بچۆ ژوورەوە';
-    return 'هەڵەیەک ڕوویدا ($c)';
+    if (RegExp('invalid-credential|wrong-password|user-not-found|invalid-login|invalid-email').hasMatch(c)) return tr('ژمارە یان وشەی نهێنی هەڵەیە');
+    if (c.contains('email-already-in-use')) return tr('ئەم ژمارەیە پێشتر تۆمار کراوە. بچۆ ژوورەوە');
+    if (c.contains('weak-password')) return tr('وشەی نهێنی دەبێت لانیکەم ٦ پیت بێت');
+    if (c.contains('too-many-requests')) return tr('زۆر هەوڵت دا. چەند خولەکێک چاوەڕێ بکە');
+    if (c.contains('network')) return tr('ئینتەرنێت نییە. دووبارە هەوڵ بدەرەوە');
+    if (c.contains('operation-not-allowed')) return tr('چوونەژوورەوە بە ئیمەیڵ و وشەی نهێنی لە Firebase چالاک نەکراوە');
+    if (RegExp('no-user|requires-recent-login').hasMatch(c)) return tr('دووبارە بچۆ ژوورەوە');
+    return tr('هەڵەیەک ڕوویدا ({0})', [c]);
   }
 
   /// چوونەژوورەوە بە ژمارە. ئەگەر هەژمارێکی کۆن بە ژمارەی 0ـدار دروست کرابێت، ئەویش تاقی دەکرێتەوە
@@ -72,8 +74,8 @@ class AuthService {
 
   Future<String?> _login(String phone, String pass) async {
     final p = cleanPhone(phone);
-    if (!RegExp(r'^7\d{9}$').hasMatch(p)) return 'ژمارەی مۆبایل دروست نییە (وەک 7xx xxx xxxx)';
-    if (pass.isEmpty) return 'وشەی نهێنی بنووسە';
+    if (!RegExp(r'^7\d{9}$').hasMatch(p)) return tr('ژمارەی مۆبایل دروست نییە (وەک 7xx xxx xxxx)');
+    if (pass.isEmpty) return tr('وشەی نهێنی بنووسە');
     User u;
     try {
       u = await _signInPhone(p, pass);
@@ -84,7 +86,7 @@ class AuthService {
     final acc = cloud.account;
     if (acc != null && acc['blocked'] == true) {
       await _auth.signOut();
-      return 'ئەم ئەکاونتە ڕاگیراوە. پەیوەندی بە پشتگیری بکە';
+      return tr('ئەم ئەکاونتە ڕاگیراوە. پەیوەندی بە پشتگیری بکە');
     }
     try {
       // ئەگەر تۆمارکردن نیوەچڵ مابوو (ئینتەرنێت بڕا)، هەژمارەکە تەواو دەکرێت
@@ -132,7 +134,7 @@ class AuthService {
   String refText() {
     final c = cloud.config;
     if (c['refType'] == 'pct') {
-      return Fmt.n('${((c['refPct'] as num) * 100).round()}٪');
+      return Fmt.n(tr('{0}٪', [((c['refPct'] as num) * 100).round()]));
     }
     return Fmt.money(c['refFixed'] as num);
   }
@@ -158,13 +160,13 @@ class AuthService {
   }) async {
     final p = cleanPhone(phone);
     final nm = name.trim();
-    if (nm.split(RegExp(r'\s+')).length < 2) return 'ناوی تەواوت بنووسە (ناو و ناوی باوک)';
-    if (!RegExp(r'^7\d{9}$').hasMatch(p)) return 'ژمارەی مۆبایل دروست نییە (وەک 7xx xxx xxxx)';
-    if (pass.length < 6) return 'وشەی نهێنی دەبێت لانیکەم ٦ پیت یان ژمارە بێت';
-    if (gender != 'm' && gender != 'f') return 'ڕەگەز هەڵبژێرە (نێر یان مێ)';
+    if (nm.split(RegExp(r'\s+')).length < 2) return tr('ناوی تەواوت بنووسە (ناو و ناوی باوک)');
+    if (!RegExp(r'^7\d{9}$').hasMatch(p)) return tr('ژمارەی مۆبایل دروست نییە (وەک 7xx xxx xxxx)');
+    if (pass.length < 6) return tr('وشەی نهێنی دەبێت لانیکەم ٦ پیت یان ژمارە بێت');
+    if (gender != 'm' && gender != 'f') return tr('ڕەگەز هەڵبژێرە (نێر یان مێ)');
 
     final inv = await resolveInvite(ref);
-    if (inv != null && inv.bad) return 'کۆدی بانگهێشت نەدۆزرایەوە. دڵنیابە لە کۆدەکە یان بەتاڵی بهێڵەوە';
+    if (inv != null && inv.bad) return tr('کۆدی بانگهێشت نەدۆزرایەوە. دڵنیابە لە کۆدەکە یان بەتاڵی بهێڵەوە');
     final partner = inv?.partner;
     final friend = inv?.friend;
 
@@ -217,8 +219,8 @@ class AuthService {
         });
         await cloud.addNotice(friend['uid'] as String, {
           'kind': 'info',
-          'title': '$first بە کۆدەکەت هات',
-          'body': 'کاتێک بەشداری بکات، هەردووکتان داشکاندن وەردەگرن',
+          'title': '$first بە کۆدەکەت هات', // i18n-keep
+          'body': 'کاتێک بەشداری بکات، هەردووکتان داشکاندن وەردەگرن', // i18n-keep
           'link': 'rewards',
         });
       }
@@ -226,16 +228,16 @@ class AuthService {
       // ٤. بەخێرهاتن
       await cloud.addNotice(u.uid, {
         'kind': 'info',
-        'title': 'بەخێربێیت $first',
-        'body': 'یەکەم بەشداری مانگانەت دروست بکە. شوێن و کات دیاری بکە و شۆفێرەکان نرخت بۆ دەنێرن.',
+        'title': 'بەخێربێیت $first', // i18n-keep
+        'body': 'یەکەم بەشداری مانگانەت دروست بکە. شوێن و کات دیاری بکە و شۆفێرەکان نرخت بۆ دەنێرن.', // i18n-keep
       });
       if (friendOk) {
-        await cloud.addNotice(u.uid, {
+        await cloud.addNotice(u.uid, inKu(() => {
           'kind': 'info',
-          'title': 'بانگهێشتی ${(friend['name'] as String?)?.isNotEmpty == true ? friend['name'] : 'هاوڕێکەت'}',
-          'body': '${refText()} داشکاندن لە یەکەم مانگی بەشدارییەکەت',
+          'title': 'بانگهێشتی ${(friend['name'] as String?)?.isNotEmpty == true ? friend['name'] : 'هاوڕێکەت'}', // i18n-keep
+          'body': '${refText()} داشکاندن لە یەکەم مانگی بەشدارییەکەت', // i18n-keep
           'link': 'rewards',
-        });
+        }));
       }
     } catch (e) {
       return authErr(e);
@@ -292,15 +294,15 @@ class AuthService {
 
   /// گۆڕینی وشەی نهێنی
   Future<String?> changePassword(String oldPass, String newPass) async {
-    if (newPass.length < 6) return 'وشەی نهێنی نوێ دەبێت لانیکەم ٦ پیت بێت';
+    if (newPass.length < 6) return tr('وشەی نهێنی نوێ دەبێت لانیکەم ٦ پیت بێت');
     final u = _auth.currentUser;
-    if (u == null) return 'دووبارە بچۆ ژوورەوە';
+    if (u == null) return tr('دووبارە بچۆ ژوورەوە');
     try {
       await u.reauthenticateWithCredential(EmailAuthProvider.credential(email: u.email!, password: oldPass));
       await u.updatePassword(newPass);
       return null;
     } on FirebaseAuthException catch (e) {
-      return RegExp('invalid-credential|wrong-password').hasMatch(e.code) ? 'وشەی نهێنی ئێستا هەڵەیە' : authErr(e);
+      return RegExp('invalid-credential|wrong-password').hasMatch(e.code) ? tr('وشەی نهێنی ئێستا هەڵەیە') : authErr(e);
     }
   }
 

@@ -58,13 +58,13 @@ const Map<String, dynamic> kConfigDefaults = {
 const List<Map<String, dynamic>> kCitiesDefaults = [
   {
     'id': 'erbil',
-    'name': 'هەولێر',
-    'districts': ['ناوەندی شار', 'عەینکاوە', 'خەبات', 'شەقڵاوە', 'سۆران', 'کۆیە', 'مەخموور', 'چۆمان', 'مێرگەسۆر'],
+    'name': 'هەولێر', // i18n-keep
+    'districts': ['ناوەندی شار', 'عەینکاوە', 'خەبات', 'شەقڵاوە', 'سۆران', 'کۆیە', 'مەخموور', 'چۆمان', 'مێرگەسۆر'], // i18n-keep
   },
   {
     'id': 'sulaimani',
-    'name': 'سلێمانی',
-    'districts': ['ناوەندی شار', 'بازیان', 'تانجەرۆ', 'دوکان', 'ڕانیە', 'پشدەر', 'پێنجوێن', 'شارەزوور', 'چەمچەماڵ', 'دەربەندیخان', 'ماوەت'],
+    'name': 'سلێمانی', // i18n-keep
+    'districts': ['ناوەندی شار', 'بازیان', 'تانجەرۆ', 'دوکان', 'ڕانیە', 'پشدەر', 'پێنجوێن', 'شارەزوور', 'چەمچەماڵ', 'دەربەندیخان', 'ماوەت'], // i18n-keep
   },
 ];
 
@@ -82,12 +82,12 @@ Map<String, dynamic> emptyPax({String name = '', String phone = ''}) {
       'members': name.isEmpty
           ? <dynamic>[]
           : <dynamic>[
-              <String, dynamic>{'id': 'm${shortId()}', 'name': first, 'initial': initial, 'kind': 'adult', 'relation': 'خاوەن ئەکاونت'},
+              <String, dynamic>{'id': 'm${shortId()}', 'name': first, 'initial': initial, 'kind': 'adult', 'relation': 'خاوەن ئەکاونت'}, // i18n-keep
             ],
       'guardians': name.isEmpty
           ? <dynamic>[]
           : <dynamic>[
-              <String, dynamic>{'name': '$first (تۆ)', 'initial': initial},
+              <String, dynamic>{'name': '$first (تۆ)', 'initial': initial}, // i18n-keep
             ],
     },
     'readNoticesAt': 0,

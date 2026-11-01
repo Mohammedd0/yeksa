@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'format.dart';
+import 'i18n.dart';
 
 class LocalSettings extends ChangeNotifier {
   static const _kTheme = 'yk.theme';
   static const _kScale = 'yk.textScale';
   static const _kDigits = 'yk.digits';
+  static const _kLang = 'yk.lang';
   static const _kOnboarded = 'yk.onboarded';
   static const _kNotify = 'yk.notify.';
 
@@ -22,6 +24,9 @@ class LocalSettings extends ChangeNotifier {
   /// 'ku' | 'en'
   String digits = 'ku';
 
+  /// زمانی ئەپ: 'ku' | 'ar' | 'en'
+  String lang = 'ku';
+
   /// ناساندنی سەرەتا بینراوە
   bool onboarded = false;
 
@@ -33,7 +38,9 @@ class LocalSettings extends ChangeNotifier {
       _p = await SharedPreferences.getInstance();
       theme = _p!.getString(_kTheme) ?? 'auto';
       textScale = _p!.getString(_kScale) ?? 'md';
-      digits = _p!.getString(_kDigits) ?? 'ku';
+      lang = _p!.getString(_kLang) ?? 'ku';
+      if (!['ku', 'ar', 'en'].contains(lang)) lang = 'ku';
+      digits = _p!.getString(_kDigits) ?? (lang == 'en' ? 'en' : 'ku');
       onboarded = _p!.getBool(_kOnboarded) ?? false;
       for (final k in notify.keys.toList()) {
         notify[k] = _p!.getBool('$_kNotify$k') ?? true;
@@ -42,6 +49,7 @@ class LocalSettings extends ChangeNotifier {
       // بێ بیرگە (بۆ نموونە لە هەندێک وێبگەڕ): بنەڕەت دەمێنێتەوە
     }
     Fmt.digits = digits;
+    L.lang = lang;
   }
 
   ThemeMode get themeMode => theme == 'dark'
@@ -65,12 +73,21 @@ class LocalSettings extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// گۆڕینی زمان: ژمارەکانیش دەبنە بنەڕەتی ئەو زمانە (ئینگلیزی 123، کوردی و عەرەبی ١٢٣)
+  void setLang(String v) {
+    if (v == lang) return;
+    lang = v;
+    L.lang = v;
+    _p?.setString(_kLang, v);
+    setDigits(v == 'en' ? 'en' : 'ku');
+  }
+
   void setDigits(String v) {
     digits = v;
     Fmt.digits = v;
     _p?.setString(_kDigits, v);
     notifyListeners();
-    // Fmt.n ـی هەموو پەڕەکان پەیوەست نییە بە ڕێکخستنەکانەوە، بۆیە هەموو پەڕە کراوەکان
+    // Fmt.n و tr ـی هەموو پەڕەکان پەیوەست نییە بە ڕێکخستنەکانەوە، بۆیە هەموو پەڕە کراوەکان
     // (لەوانە بەشەکانی تری شریتی خوارەوە) دووبارە دروست دەکرێنەوە تا ژمارەکان دەستبەجێ بگۆڕێن
     WidgetsBinding.instance.addPostFrameCallback((_) {
       void mark(Element e) {

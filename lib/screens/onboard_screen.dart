@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
+import '../core/i18n.dart';
 import '../core/settings.dart';
 import '../ui/empty_art.dart';
 import '../ui/theme.dart';
@@ -15,18 +16,19 @@ class _Onb {
   final List<List<String>> pills;
 }
 
-const _pages = [
-  _Onb('تەکسی مانگانە بۆ هەموو خێزان', 'یەک جار بەشداری بکە. هەموو ڕۆژێک شۆفێرێکی ناسراو لەکاتی خۆیدا دێت.', 'onbCal', [
-    ['car', '٧:٣٠ بەیانی'],
-    ['check', 'یەکشەممە تا پێنجشەممە'],
+// getter، بۆ ئەوەی لەگەڵ گۆڕینی زمان نوێ ببێتەوە
+List<_Onb> get _pages => [
+  _Onb(tr('تەکسی مانگانە بۆ هەموو خێزان'), tr('یەک جار بەشداری بکە. هەموو ڕۆژێک شۆفێرێکی ناسراو لەکاتی خۆیدا دێت.'), 'onbCal', [
+    ['car', tr('٧:٣٠ بەیانی')],
+    ['check', tr('یەکشەممە تا پێنجشەممە')],
   ]),
-  _Onb('بە لایڤ ببینە لە کوێیە', 'کاتێک منداڵەکەت سوار دەبێت و دەگات ئاگادار دەکرێیتەوە، و ڕێگاکە لەسەر نەخشە دەبینیت.', 'onbLive', [
-    ['bell', 'ئارام سوار بوو'],
-    ['clock', '٥ خولەکی ماوە'],
+  _Onb(tr('بە لایڤ ببینە لە کوێیە'), tr('کاتێک منداڵەکەت سوار دەبێت و دەگات ئاگادار دەکرێیتەوە، و ڕێگاکە لەسەر نەخشە دەبینیت.'), 'onbLive', [
+    ['bell', tr('ئارام سوار بوو')],
+    ['clock', tr('٥ خولەکی ماوە')],
   ]),
-  _Onb('شۆفێری پشکنراو، پیاو و ئافرەت', 'هەموو شۆفێرەکان پشکنینی پێشینەیان بۆ کراوە. بۆ ئافرەتان و منداڵان شۆفێری ئافرەت هەیە.', 'onbSafe', [
-    ['woman', 'شۆفێری ئافرەت'],
-    ['star', '٤.٩ هەڵسەنگاندن'],
+  _Onb(tr('شۆفێری پشکنراو، پیاو و ئافرەت'), tr('هەموو شۆفێرەکان پشکنینی پێشینەیان بۆ کراوە. بۆ ئافرەتان و منداڵان شۆفێری ئافرەت هەیە.'), 'onbSafe', [
+    ['woman', tr('شۆفێری ئافرەت')],
+    ['star', tr('٤.٩ هەڵسەنگاندن')],
   ]),
 ];
 
@@ -54,6 +56,8 @@ class _OnboardScreenState extends State<OnboardScreen> {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.of(context).padding.bottom;
+    final st = context.watch<LocalSettings>();
+    final pages = _pages;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -62,17 +66,22 @@ class _OnboardScreenState extends State<OnboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(mainAxisAlignment: MainAxisAlignment.end, children: [YkLink('تێپەڕاندن', onTap: _finish)]),
+              Row(children: [
+                // هەڵبژاردنی زمان پێش چوونەژوورەوە
+                YkLangPill(value: st.lang, onChanged: st.setLang),
+                const Spacer(),
+                YkLink(tr('تێپەڕاندن'), onTap: _finish),
+              ]),
               Expanded(
                 child: PageView.builder(
                   controller: _pc,
-                  itemCount: _pages.length,
+                  itemCount: pages.length,
                   onPageChanged: (i) => setState(() => _i = i),
-                  itemBuilder: (c, i) => _page(c, _pages[i]),
+                  itemBuilder: (c, i) => _page(c, pages[i]),
                 ),
               ),
               const SizedBox(height: 16),
-              YkButton(_i < _pages.length - 1 ? 'دواتر' : 'دەست پێبکە', large: true, block: true, onPressed: _next),
+              YkButton(_i < pages.length - 1 ? tr('دواتر') : tr('دەست پێبکە'), large: true, block: true, onPressed: _next),
             ],
           ),
         ),

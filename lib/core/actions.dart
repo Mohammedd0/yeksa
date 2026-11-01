@@ -48,19 +48,19 @@ extension YkActions on Cloud {
     final t0 = trips.first;
     final stops = stopsOf(t0);
     final names = stops.isEmpty ? '' : str(stops.first['riders']);
-    final what = trips.length > 1 ? 'چوون و هاتنەوە' : t0['dir'] == 'back' ? 'هاتنەوە' : 'چوون';
-    final text = 'ئەمڕۆ $names بۆ $what نایەن${reason.isNotEmpty ? '، $reason' : ''}';
+    final what = trips.length > 1 ? 'چوون و هاتنەوە' : t0['dir'] == 'back' ? 'هاتنەوە' : 'چوون'; // i18n-keep
+    final text = 'ئەمڕۆ $names بۆ $what نایەن${reason.isNotEmpty ? '، $reason' : ''}'; // i18n-keep
     final drivers = trips.map((t) => str(t['driverId'])).where((x) => x.isNotEmpty).toSet();
     for (final did in drivers) {
       await addSystemMessage(did, text);
       await addDNotice(did, {
         'kind': 'info',
-        'title': '$names ئەمڕۆ نایەن',
-        'body': '$what${reason.isNotEmpty ? '، $reason' : ''}، پێویست ناکات بڕۆیت',
+        'title': '$names ئەمڕۆ نایەن', // i18n-keep
+        'body': '$what${reason.isNotEmpty ? '، $reason' : ''}، پێویست ناکات بڕۆیت', // i18n-keep
         'link': 'today',
       });
     }
-    await addNotice(me!, {'kind': 'info', 'title': 'شۆفێر ئاگادار کرایەوە', 'body': '$names ئەمڕۆ بۆ $what نایەن'});
+    await addNotice(me!, {'kind': 'info', 'title': 'شۆفێر ئاگادار کرایەوە', 'body': '$names ئەمڕۆ بۆ $what نایەن'}); // i18n-keep
   }
 
   Future<void> markNoticesRead() => update('pax/$me', {'readNoticesAt': nowMs()});

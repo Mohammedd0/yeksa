@@ -1,6 +1,7 @@
 // ڕەشنووسی بەشداری نوێ (U.draft ـی وەشانی وێب): سێ هەنگاو، پاشان داواکاری دروست دەبێت
 import 'cloud.dart';
 import 'format.dart';
+import 'i18n.dart';
 import 'pricing.dart';
 import 'sel.dart';
 
@@ -114,7 +115,7 @@ class Draft {
 }
 
 /// ڕۆژە ئامادەکراوەکان: هەفتەی کاری هەرێم یەکشەممە تا پێنجشەممەیە
-const kDayPresets = [('1-5', 'یەکشەممە تا پێنجشەممە'), ('0-5', 'شەممە تا پێنجشەممە'), ('0-6', 'هەموو ڕۆژێک')];
+List<(String, String)> get kDayPresets => [('1-5', tr('یەکشەممە تا پێنجشەممە')), ('0-5', tr('شەممە تا پێنجشەممە')), ('0-6', tr('هەموو ڕۆژێک'))];
 
 List<bool> presetDays(String k) {
   final p = k.split('-').map(int.parse).toList();

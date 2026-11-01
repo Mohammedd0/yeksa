@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/pricing.dart';
 import '../core/request_actions.dart';
 import '../core/sel.dart';
@@ -18,16 +19,16 @@ import 'nav.dart';
 import 'subs_screen.dart' show requestStatus;
 
 /// پرسیاری پشتڕاستکردنەوە (TK.ask)
-Future<bool> askConfirm(BuildContext context, String text, {String yes = 'بەڵێ', bool danger = true}) async {
+Future<bool> askConfirm(BuildContext context, String text, {String? yes, bool danger = true}) async {
   final r = await showYkSheet<bool>(context, builder: (c) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text('دڵنیایت؟', style: Ts.h2(c)),
+      Text(tr('دڵنیایت؟'), style: Ts.h2(c)),
       const SizedBox(height: 6),
       Text(text, style: Ts.muted(c, size: 15)),
       const SizedBox(height: 16),
-      YkButton(yes, block: true, kind: danger ? BtnKind.danger : BtnKind.primary, onPressed: () => Navigator.pop(c, true)),
+      YkButton(yes ?? tr('بەڵێ'), block: true, kind: danger ? BtnKind.danger : BtnKind.primary, onPressed: () => Navigator.pop(c, true)),
       const SizedBox(height: 8),
-      YkButton('نەخێر', block: true, kind: BtnKind.ghost, onPressed: () => Navigator.pop(c, false)),
+      YkButton(tr('نەخێر'), block: true, kind: BtnKind.ghost, onPressed: () => Navigator.pop(c, false)),
     ]);
   });
   return r == true;
@@ -56,7 +57,7 @@ Future<void> pickOffer(BuildContext context, String reqId, String driverId) asyn
   final r = cloud.request(reqId);
   final o = asList(r?['offers']).map(asMap).where((x) => x['driverId'] == driverId).firstOrNull;
   if (r == null || o == null || r['status'] != 'open') return;
-  final d = cloud.driver(driverId) ?? {'name': 'شۆفێر'};
+  final d = cloud.driver(driverId) ?? {'name': tr('شۆفێر')};
   final price = o['price'] as num;
   final deal = refDealAmount(cloud, price);
   final ok = await showYkSheet<bool>(context, builder: (c) {
@@ -67,20 +68,20 @@ Future<void> pickOffer(BuildContext context, String reqId, String driverId) asyn
         );
     Text b(String s, {double size = 15}) => Text(s, textAlign: TextAlign.end, style: TextStyle(fontWeight: FontWeight.w700, fontSize: size, color: t.text));
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text('پەسەندکردنی ${str(d['name'])}', style: Ts.h2(c)),
+      Text(tr('پەسەندکردنی {0}', [str(d['name'])]), style: Ts.h2(c)),
       const SizedBox(height: 12),
       YkCard(
         child: Column(children: [
-          row('سەرنشین', b(str(r['riderNames']))),
-          row('ڕێگا', b('${str(r['from']).split('، ').first} ← ${str(r['to']).split('، ').first}', size: 14)),
-          row('کات', b(fmtSchedule(r))),
-          row('ڕۆژەکان', b(fmtDays(asList(r['days'])), size: 14)),
+          row(tr('سەرنشین'), b(str(r['riderNames']))),
+          row(tr('ڕێگا'), b('${str(r['from']).split('، ').first} ${L.rtl ? '←' : '→'} ${str(r['to']).split('، ').first}', size: 14)), // i18n-keep
+          row(tr('کات'), b(fmtSchedule(r))),
+          row(tr('ڕۆژەکان'), b(fmtDays(asList(r['days'])), size: 14)),
           const YkHr(),
-          row('نرخی مانگانە', Text(Fmt.money(price), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 19, color: t.brand))),
+          row(tr('نرخی مانگانە'), Text(Fmt.money(price), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 19, color: t.brand))),
           if (deal > 0) ...[
-            row('داشکاندنی بانگهێشتی هاوڕێ', Text(Fmt.n(Fmt.group(-deal)), style: TextStyle(fontWeight: FontWeight.w700, color: t.okText))),
+            row(tr('داشکاندنی بانگهێشتی هاوڕێ'), Text(Fmt.n(Fmt.group(-deal)), style: TextStyle(fontWeight: FontWeight.w700, color: t.okText))),
             row(
-              'یەکەم مانگ',
+              tr('یەکەم مانگ'),
               Text.rich(TextSpan(children: [
                 TextSpan(text: Fmt.n(Fmt.group(price)), style: TextStyle(decoration: TextDecoration.lineThrough, color: t.muted, fontWeight: FontWeight.w400)),
                 TextSpan(text: '  ${Fmt.money(price - deal)}'),
@@ -91,23 +92,25 @@ Future<void> pickOffer(BuildContext context, String reqId, String driverId) asyn
       ),
       const SizedBox(height: 10),
       Text(
-        '${cloud.walletOn ? 'پارەی مانگ پێش یەکەم گەشت لە جزدانەکەتەوە دەدرێت.' : 'پارەدان لە کۆتایی هەر مانگێک لە ڕێگەی ئەپەوە دەبێت.'} دەتوانیت هەر کاتێک بەشدارییەکە ڕابگریت.',
+        cloud.walletOn
+            ? tr('پارەی مانگ پێش یەکەم گەشت لە جزدانەکەتەوە دەدرێت. دەتوانیت هەر کاتێک بەشدارییەکە ڕابگریت.')
+            : tr('پارەدان لە کۆتایی هەر مانگێک لە ڕێگەی ئەپەوە دەبێت. دەتوانیت هەر کاتێک بەشدارییەکە ڕابگریت.'),
         style: Ts.muted(c, size: 12.8),
       ),
       const SizedBox(height: 14),
-      YkButton('پەسەندکردن و دەستپێکردن', block: true, onPressed: () => Navigator.pop(c, true)),
+      YkButton(tr('پەسەندکردن و دەستپێکردن'), block: true, onPressed: () => Navigator.pop(c, true)),
       const SizedBox(height: 8),
-      YkButton('پاشگەزبوونەوە', block: true, kind: BtnKind.ghost, onPressed: () => Navigator.pop(c, false)),
+      YkButton(tr('پاشگەزبوونەوە'), block: true, kind: BtnKind.ghost, onPressed: () => Navigator.pop(c, false)),
     ]);
   });
   if (ok != true || !context.mounted) return;
   final id = await cloud.chooseOffer(reqId, driverId);
   if (!context.mounted) return;
   if (id == null) {
-    toast(context, 'ئەم داواکارییە ئیتر کراوە نییە');
+    toast(context, tr('ئەم داواکارییە ئیتر کراوە نییە'));
     return;
   }
-  toast(context, 'بەشدارییەکەت چالاک کرا');
+  toast(context, tr('بەشدارییەکەت چالاک کرا'));
   openLink(context, 'subs');
 }
 
@@ -128,7 +131,7 @@ class _RequestScreenState extends State<RequestScreen> {
       await f();
       if (mounted) toast(context, msg);
     } catch (_) {
-      if (mounted) toast(context, 'هەڵەیەک ڕوویدا، دووبارە هەوڵ بدەرەوە');
+      if (mounted) toast(context, tr('هەڵەیەک ڕوویدا، دووبارە هەوڵ بدەرەوە'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -140,7 +143,7 @@ class _RequestScreenState extends State<RequestScreen> {
     final cloud = context.watch<Cloud>();
     final r = cloud.request(widget.id);
     if (r == null) {
-      return const Scaffold(body: YkScreen(children: [YkHeader('داواکاری'), YkEmpty(icon: 'megaphone', title: 'نەدۆزرایەوە')]));
+      return Scaffold(body: YkScreen(children: [YkHeader(tr('داواکاری')), YkEmpty(icon: 'megaphone', title: tr('نەدۆزرایەوە'))]));
     }
     final offers = asList(r['offers']).map(asMap).toList()..sort((a, b) => ((a['price'] as num?) ?? 0).compareTo((b['price'] as num?) ?? 0));
     final pending = offers.where((o) => o['status'] == 'pending').toList();
@@ -151,8 +154,8 @@ class _RequestScreenState extends State<RequestScreen> {
     if (status == 'open') {
       if (pending.isNotEmpty) {
         body.add(Row(children: [
-          Expanded(child: Text('ئەو شۆفێرانەی قبووڵیان کرد', style: Ts.h3(context))),
-          Text('هەرزانترین لە سەرەوە', style: Ts.muted(context, size: 12.8)),
+          Expanded(child: Text(tr('ئەو شۆفێرانەی قبووڵیان کرد'), style: Ts.h3(context))),
+          Text(tr('هەرزانترین لە سەرەوە'), style: Ts.muted(context, size: 12.8)),
         ]));
         final reco = recommendedOffer(cloud, pending);
         for (final o in pending) {
@@ -164,12 +167,12 @@ class _RequestScreenState extends State<RequestScreen> {
           child: Column(children: [
             IcoBox('hourglass', size: 64, iconSize: 32, bg: t.chip, color: t.muted),
             const SizedBox(height: 10),
-            Text('چاوەڕێی وەڵامی شۆفێرەکانین', style: Ts.h3(context), textAlign: TextAlign.center),
+            Text(tr('چاوەڕێی وەڵامی شۆفێرەکانین'), style: Ts.h3(context), textAlign: TextAlign.center),
             const SizedBox(height: 4),
             Text(
               all
-                  ? 'داواکارییەکەت بۆ هەموو شۆفێرە گونجاوەکان نیشان دراوە. کاتێک یەکێکیان قبووڵی بکات ئاگادار دەکرێیتەوە.'
-                  : 'داواکارییەکەت بۆ شۆفێرەکە نێردرا. کاتێک وەڵام بداتەوە ئاگادار دەکرێیتەوە.',
+                  ? tr('داواکارییەکەت بۆ هەموو شۆفێرە گونجاوەکان نیشان دراوە. کاتێک یەکێکیان قبووڵی بکات ئاگادار دەکرێیتەوە.')
+                  : tr('داواکارییەکەت بۆ شۆفێرەکە نێردرا. کاتێک وەڵام بداتەوە ئاگادار دەکرێیتەوە.'),
               textAlign: TextAlign.center,
               style: Ts.muted(context, size: 14),
             ),
@@ -179,16 +182,16 @@ class _RequestScreenState extends State<RequestScreen> {
         ));
       }
       if (!all) {
-        body.add(YkButton('بڵاوکردنەوە بۆ هەموو شۆفێرەکان',
+        body.add(YkButton(tr('بڵاوکردنەوە بۆ هەموو شۆفێرەکان'),
             icon: 'megaphone',
             kind: BtnKind.secondary,
             block: true,
             busy: _busy,
-            onPressed: () => _run(() => cloud.rebroadcast(widget.id), 'بۆ هەموو شۆفێرەکان بڵاو کرایەوە')));
+            onPressed: () => _run(() => cloud.rebroadcast(widget.id), tr('بۆ هەموو شۆفێرەکان بڵاو کرایەوە'))));
       }
-      body.add(YkButton('هەڵوەشاندنەوەی داواکاری', kind: BtnKind.ghost, block: true, onPressed: () async {
-        if (!await askConfirm(context, 'ئەم داواکارییە هەڵدەوەشێنرێتەوە.', yes: 'هەڵوەشاندنەوە')) return;
-        await _run(() => cloud.cancelRequest(widget.id), 'داواکارییەکە هەڵوەشێنرایەوە');
+      body.add(YkButton(tr('هەڵوەشاندنەوەی داواکاری'), kind: BtnKind.ghost, block: true, onPressed: () async {
+        if (!await askConfirm(context, tr('ئەم داواکارییە هەڵدەوەشێنرێتەوە.'), yes: tr('هەڵوەشاندنەوە'))) return;
+        await _run(() => cloud.cancelRequest(widget.id), tr('داواکارییەکە هەڵوەشێنرایەوە'));
       }));
     } else if (status == 'matched' && chosen != null) {
       final d = cloud.driver(chosen['driverId']);
@@ -198,31 +201,34 @@ class _RequestScreenState extends State<RequestScreen> {
           Row(children: [
             YkIcon('check', size: 22, color: t.okText, stroke: 2.6),
             const SizedBox(width: 8),
-            Expanded(child: Text('ڕێککەوتن لەگەڵ ${str(d?['name'])}', style: Ts.bold(context).copyWith(color: t.okText))),
+            Expanded(child: Text(tr('ڕێککەوتن لەگەڵ {0}', [str(d?['name'])]), style: Ts.bold(context).copyWith(color: t.okText))),
           ]),
-          Text.rich(TextSpan(children: [
-            const TextSpan(text: 'نرخی مانگانە: '),
-            TextSpan(text: Fmt.money(chosen['price'] as num), style: const TextStyle(fontWeight: FontWeight.w700)),
-            const TextSpan(text: '. گەشتەکان لە بەشی سەرەکی دەردەکەون.'),
-          ]), style: TextStyle(fontSize: 14, color: t.okText)),
+          Builder(builder: (_) {
+            final parts = tr('نرخی مانگانە: {0}. گەشتەکان لە بەشی سەرەکی دەردەکەون.').split('{0}');
+            return Text.rich(TextSpan(children: [
+              TextSpan(text: parts.first),
+              TextSpan(text: Fmt.money(chosen['price'] as num), style: const TextStyle(fontWeight: FontWeight.w700)),
+              TextSpan(text: parts.length > 1 ? parts[1] : ''),
+            ]), style: TextStyle(fontSize: 14, color: t.okText));
+          }),
         ]),
       ));
       if (d != null) body.add(DriverRow(d));
-      body.add(YkButton('بینینی بەشدارییەکان', block: true, onPressed: () => openLink(context, 'subs')));
+      body.add(YkButton(tr('بینینی بەشدارییەکان'), block: true, onPressed: () => openLink(context, 'subs')));
     } else {
       final why = r['closedReason'] == 'expired'
-          ? 'کاتی ئەم داواکارییە تەواو بوو و هیچ شۆفێرێک هەڵنەبژێردرا.'
+          ? tr('کاتی ئەم داواکارییە تەواو بوو و هیچ شۆفێرێک هەڵنەبژێردرا.')
           : r['closedReason'] == 'declined'
-              ? 'شۆفێرەکە نەیتوانی ئەم گەشتە وەربگرێت.'
-              : 'ئەم داواکارییە هەڵوەشێنرایەوە.';
+              ? tr('شۆفێرەکە نەیتوانی ئەم گەشتە وەربگرێت.')
+              : tr('ئەم داواکارییە هەڵوەشێنرایەوە.');
       body.add(YkCard(tone: CardTone.danger, child: Text(why, style: TextStyle(fontSize: 14, color: t.dangerText))));
-      body.add(YkButton('دووبارە بڵاوکردنەوە بۆ هەمووان',
-          icon: 'megaphone', block: true, busy: _busy, onPressed: () => _run(() => cloud.rebroadcast(widget.id), 'بۆ هەموو شۆفێرەکان بڵاو کرایەوە')));
+      body.add(YkButton(tr('دووبارە بڵاوکردنەوە بۆ هەمووان'),
+          icon: 'megaphone', block: true, busy: _busy, onPressed: () => _run(() => cloud.rebroadcast(widget.id), tr('بۆ هەموو شۆفێرەکان بڵاو کرایەوە'))));
     }
 
     return Scaffold(
       body: YkScreen(children: [
-        YkHeader('داواکاری', right: requestStatus(r)),
+        YkHeader(tr('داواکاری'), right: requestStatus(r)),
         YkCard(
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
@@ -234,15 +240,15 @@ class _RequestScreenState extends State<RequestScreen> {
             RequestTags(r),
             const YkHr(),
             Row(children: [
-              Expanded(child: Text('نرخی پێشنیارکراو', style: Ts.muted(context, size: 14))),
+              Expanded(child: Text(tr('نرخی پێشنیارکراو'), style: Ts.muted(context, size: 14))),
               Text(Fmt.money((r['price'] as num?) ?? 0), style: TextStyle(fontWeight: FontWeight.w700, color: t.brand)),
             ]),
             if (status == 'open')
               Row(children: [
-                Expanded(child: Text(all ? 'بڵاوکراوە بۆ هەمووان' : 'ڕاستەوخۆ بۆ ${str(cloud.driver(r['target'])?['name'])}', style: Ts.muted(context, size: 14))),
+                Expanded(child: Text(all ? tr('بڵاوکراوە بۆ هەمووان') : tr('ڕاستەوخۆ بۆ {0}', [str(cloud.driver(r['target'])?['name'])]), style: Ts.muted(context, size: 14))),
                 if (r['expiresAt'] is num) Text(fmtLeft(r['expiresAt'] as num), style: Ts.muted(context, size: 12.8)),
               ]),
-            if (str(r['note']).isNotEmpty) IconLine('chat', str(r['note'])),
+            if (str(r['note']).isNotEmpty) IconLine('chat', trData(str(r['note']))),
           ]),
         ),
         ...body,
@@ -263,14 +269,14 @@ class OfferCard extends StatelessWidget {
     final t = context.yk;
     final cloud = context.watch<Cloud>();
     final did = str(o['driverId']);
-    final d = cloud.driver(did) ?? {'id': did, 'name': 'شۆفێر', 'car': '', 'rating': 0, 'reviews': 0};
+    final d = cloud.driver(did) ?? {'id': did, 'name': tr('شۆفێر'), 'car': '', 'rating': 0, 'reviews': 0};
     final price = (o['price'] as num?) ?? 0;
     final diff = price - ((r['price'] as num?) ?? 0);
     num rating(Json x) => (cloud.driver(x['driverId'])?['rating'] as num?) ?? 0;
     final tags = <Widget>[
-      if (all.length > 1 && price == all.map((x) => (x['price'] as num?) ?? 0).reduce((a, b) => a < b ? a : b)) const YkBadge('هەرزانترین', tone: BadgeTone.ok),
-      if (all.length > 1 && ((d['rating'] as num?) ?? 0) == all.map(rating).reduce((a, b) => a > b ? a : b)) const YkBadge('باشترین هەڵسەنگاندن', tone: BadgeTone.note),
-      if (d['woman'] == true) const YkBadge('شۆفێری ئافرەت', tone: BadgeTone.woman),
+      if (all.length > 1 && price == all.map((x) => (x['price'] as num?) ?? 0).reduce((a, b) => a < b ? a : b)) YkBadge(tr('هەرزانترین'), tone: BadgeTone.ok),
+      if (all.length > 1 && ((d['rating'] as num?) ?? 0) == all.map(rating).reduce((a, b) => a > b ? a : b)) YkBadge(tr('باشترین هەڵسەنگاندن'), tone: BadgeTone.note),
+      if (d['woman'] == true) YkBadge(tr('شۆفێری ئافرەت'), tone: BadgeTone.woman),
     ];
     final deal = refDealAmount(cloud, price);
     void profile() => push(context, DriverScreen(id: did, reqId: str(r['id'])));
@@ -293,26 +299,26 @@ class OfferCard extends StatelessWidget {
                   Text.rich(TextSpan(children: [
                     TextSpan(text: Fmt.n(Fmt.group(price)), style: TextStyle(decoration: TextDecoration.lineThrough, color: t.muted, fontSize: 15, fontWeight: FontWeight.w400)),
                     TextSpan(text: ' ${Fmt.n(Fmt.group(price - deal))} '),
-                    TextSpan(text: 'دینار یەکەم مانگ', style: TextStyle(fontSize: 12.8, color: t.muted, fontWeight: FontWeight.w400)),
+                    TextSpan(text: tr('دینار یەکەم مانگ'), style: TextStyle(fontSize: 12.8, color: t.muted, fontWeight: FontWeight.w400)),
                   ]), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: t.text)),
                   Row(mainAxisSize: MainAxisSize.min, children: [
                     YkIcon('gift', size: 14, color: t.okText),
                     const SizedBox(width: 4),
-                    Flexible(child: Text('${Fmt.money(deal)} داشکاندنی بانگهێشتی هاوڕێ، یەکەم مانگ', style: TextStyle(fontSize: 12.8, color: t.okText))),
+                    Flexible(child: Text(tr('{0} داشکاندنی بانگهێشتی هاوڕێ، یەکەم مانگ', [Fmt.money(deal)]), style: TextStyle(fontSize: 12.8, color: t.okText))),
                   ]),
                 ] else
                   Text.rich(TextSpan(children: [
                     TextSpan(text: '${Fmt.n(Fmt.group(price))} '),
-                    TextSpan(text: 'دینار مانگانە', style: TextStyle(fontSize: 12.8, color: t.muted, fontWeight: FontWeight.w400)),
+                    TextSpan(text: tr('دینار مانگانە'), style: TextStyle(fontSize: 12.8, color: t.muted, fontWeight: FontWeight.w400)),
                   ]), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: t.text)),
                 if (diff != 0)
-                  Text(Fmt.n(diff < 0 ? '${Fmt.group(-diff)} کەمتر لە پێشنیارکراو' : '${Fmt.group(diff)} زیاتر لە پێشنیارکراو'),
+                  Text(Fmt.n(diff < 0 ? tr('{0} کەمتر لە پێشنیارکراو', [Fmt.group(-diff)]) : tr('{0} زیاتر لە پێشنیارکراو', [Fmt.group(diff)])),
                       style: TextStyle(fontSize: 12.8, color: diff < 0 ? t.okText : t.dangerText))
                 else
-                  Text('نرخی پێشنیارکراو', style: Ts.muted(context, size: 12.8)),
+                  Text(tr('نرخی پێشنیارکراو'), style: Ts.muted(context, size: 12.8)),
               ]),
             ),
-            Text(Fmt.n('${d['trips'] ?? 0} گەشت'), style: Ts.muted(context, size: 12.8)),
+            Text(Fmt.n(tr('{0} گەشت', [d['trips'] ?? 0])), style: Ts.muted(context, size: 12.8)),
           ]),
           if (tags.isNotEmpty) ...[const SizedBox(height: 8), Wrap(spacing: 6, runSpacing: 6, children: tags)],
           if (str(o['note']).isNotEmpty) ...[
@@ -325,11 +331,11 @@ class OfferCard extends StatelessWidget {
           ],
           const SizedBox(height: 10),
           Row(children: [
-            YkButton('پرۆفایل', small: true, kind: BtnKind.secondary, onPressed: profile),
+            YkButton(tr('پرۆفایل'), small: true, kind: BtnKind.secondary, onPressed: profile),
             const SizedBox(width: 8),
             Semantics(
               button: true,
-              label: 'نامە',
+              label: tr('نامە'),
               child: InkWell(
                 onTap: () => openLink(context, 'chat/$did'),
                 borderRadius: BorderRadius.circular(14),
@@ -343,7 +349,7 @@ class OfferCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Expanded(child: YkButton('هەڵبژاردنی $first', icon: 'check', small: true, block: true, onPressed: () => pickOffer(context, str(r['id']), did))),
+            Expanded(child: YkButton(tr('هەڵبژاردنی {0}', [first]), icon: 'check', small: true, block: true, onPressed: () => pickOffer(context, str(r['id']), did))),
           ]),
         ]),
       ),
@@ -357,7 +363,7 @@ class OfferCard extends StatelessWidget {
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               YkIcon('star', size: 13, color: t.amber, stroke: 1.5, fill: t.amber),
               const SizedBox(width: 4),
-              Text('پێشنیاری یەکسا', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: t.actText)),
+              Text(tr('پێشنیاری یەکسا'), style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: t.actText)),
             ]),
           ),
         ),

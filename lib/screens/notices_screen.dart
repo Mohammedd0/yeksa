@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../core/actions.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/sel.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
@@ -25,12 +26,12 @@ String noticeWhen(int at) {
   final now = DateTime.now();
   final mins = (now.millisecondsSinceEpoch - at) ~/ 60000;
   final day0 = DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
-  if (mins < 1) return 'ئێستا';
-  if (mins < 60) return Fmt.n('$mins خولەک لەمەوبەر');
-  if (at >= day0) return Fmt.n('${mins ~/ 60} کاتژمێر لەمەوبەر');
-  if (at >= day0 - 86400000) return 'دوێنێ، ${Fmt.clock(Fmt.hhmm(at))}';
+  if (mins < 1) return tr('ئێستا');
+  if (mins < 60) return Fmt.n(tr('{0} خولەک لەمەوبەر', [mins]));
+  if (at >= day0) return Fmt.n(tr('{0} کاتژمێر لەمەوبەر', [mins ~/ 60]));
+  if (at >= day0 - 86400000) return tr('دوێنێ، {0}', [Fmt.clock(Fmt.hhmm(at))]);
   final days = ((day0 - at) / 86400000).ceil();
-  if (days < 7) return Fmt.n('$days ڕۆژ لەمەوبەر');
+  if (days < 7) return Fmt.n(tr('{0} ڕۆژ لەمەوبەر', [days]));
   return Fmt.date(at);
 }
 
@@ -71,11 +72,11 @@ class _NoticesScreenState extends State<NoticesScreen> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
     final yest = today - 86400000;
-    final g = <String, List<Json>>{'نوێ': [], 'ئەمڕۆ': [], 'دوێنێ': [], 'پێشتر': []};
+    final g = <String, List<Json>>{'نوێ': [], 'ئەمڕۆ': [], 'دوێنێ': [], 'پێشتر': []}; // i18n-keep
     for (final n in list) {
       final at = ((n['at'] as num?) ?? 0).toInt();
       final fresh = at > _readAt && !_opened.contains(n['id']);
-      g[fresh ? 'نوێ' : at >= today ? 'ئەمڕۆ' : at >= yest ? 'دوێنێ' : 'پێشتر']!.add(n);
+      g[fresh ? 'نوێ' : at >= today ? 'ئەمڕۆ' : at >= yest ? 'دوێنێ' : 'پێشتر']!.add(n); // i18n-keep
     }
 
     Widget row(Json n, bool fresh, int count) {
@@ -105,7 +106,7 @@ class _NoticesScreenState extends State<NoticesScreen> {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
-                    Flexible(child: Text(Fmt.n(str(n['title'])), style: Ts.bold(context).copyWith(fontSize: 15.2))),
+                    Flexible(child: Text(Fmt.n(trData(str(n['title']))), style: Ts.bold(context).copyWith(fontSize: 15.2))),
                     // ئاگادارکردنەوەی وەک یەک کۆ دەکرێنەوە
                     if (count > 1) ...[
                       const SizedBox(width: 6),
@@ -116,7 +117,7 @@ class _NoticesScreenState extends State<NoticesScreen> {
                       ),
                     ],
                   ]),
-                  if (str(n['body']).isNotEmpty) Text(Fmt.n(str(n['body'])), style: Ts.muted(context, size: 14)),
+                  if (str(n['body']).isNotEmpty) Text(Fmt.n(trData(str(n['body']))), style: Ts.muted(context, size: 14)),
                   const SizedBox(height: 3),
                   Text(noticeWhen(((n['at'] as num?) ?? 0).toInt()),
                       style: TextStyle(fontSize: 12.8, color: fresh ? t.infoText : t.muted, fontWeight: fresh ? FontWeight.w700 : FontWeight.w400)),
@@ -124,7 +125,7 @@ class _NoticesScreenState extends State<NoticesScreen> {
               ),
               if (fresh)
                 Padding(
-                  padding: const EdgeInsets.only(top: 14, right: 8),
+                  padding: const EdgeInsetsDirectional.only(top: 14, end: 8),
                   child: Container(width: 10, height: 10, decoration: BoxDecoration(shape: BoxShape.circle, color: t.infoText)),
                 ),
             ]),
@@ -153,7 +154,7 @@ class _NoticesScreenState extends State<NoticesScreen> {
       }
       body.add(Padding(
         padding: const EdgeInsets.fromLTRB(4, 6, 4, 0),
-        child: Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: t.text)),
+        child: Text(tr(title), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: t.text)),
       ));
       body.add(Container(
         decoration: BoxDecoration(color: t.glass, borderRadius: BorderRadius.circular(Yk.rLg), border: Border.all(color: t.glassLine)),
@@ -161,7 +162,7 @@ class _NoticesScreenState extends State<NoticesScreen> {
         child: Column(children: [
           for (var i = 0; i < items.length; i++) ...[
             if (i > 0) Divider(height: 1, thickness: 1, color: t.line),
-            row(items[i], title == 'نوێ', counts[i]),
+            row(items[i], title == 'نوێ', counts[i]), // i18n-keep
           ],
         ]),
       ));
@@ -171,20 +172,20 @@ class _NoticesScreenState extends State<NoticesScreen> {
       body: YkScreen(
         onRefresh: context.read<Cloud>().refresh,
         children: [
-          YkHeader('ئاگادارکردنەوەکان',
-              right: g['نوێ']!.isEmpty
+          YkHeader(tr('ئاگادارکردنەوەکان'),
+              right: g['نوێ']!.isEmpty // i18n-keep
                   ? null
-                  : YkLink('هەمووی خوێندرایەوە', pill: true, onTap: () {
+                  : YkLink(tr('هەمووی خوێندرایەوە'), pill: true, onTap: () {
                       cloud.markNoticesRead();
                       setState(() => _readAt = nowMs());
                     })),
           YkSeg<String>(
-            options: const [('all', 'هەمووی'), ('trips', 'گەشت'), ('offers', 'داواکاری'), ('pay', 'پارەدان')],
+            options: [('all', tr('هەمووی')), ('trips', trc('گەشت', 'الرحلات', 'Trips')), ('offers', tr('داواکاری')), ('pay', trc('پارەدان', 'الدفع', 'Payments'))],
             value: _tab,
             onChanged: (v) => setState(() => _tab = v),
           ),
           if (list.isEmpty)
-            const YkEmpty(icon: 'bell', title: 'هیچ ئاگادارکردنەوەیەک نییە', text: 'کاتێک شتێکی نوێ ڕوو بدات لێرە دەردەکەوێت'),
+            YkEmpty(icon: 'bell', title: tr('هیچ ئاگادارکردنەوەیەک نییە'), text: tr('کاتێک شتێکی نوێ ڕوو بدات لێرە دەردەکەوێت')),
           ...body,
         ],
       ),

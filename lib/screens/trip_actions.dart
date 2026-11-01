@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../core/actions.dart';
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/sel.dart';
 import '../ui/theme.dart';
 import '../ui/widgets.dart';
@@ -22,26 +23,27 @@ void showSkipSheet(BuildContext context, String tripId) {
   var mode = 'this';
   var reason = '';
   var busy = false;
-  const reasons = ['نەخۆشە', 'پشووە', 'خۆمان دەیبەین', 'گەشتمان هەیە'];
+  // هۆکار بە کوردی بۆ شۆفێر هەڵدەگیرێت؛ تەنها پیشاندان وەردەگێڕدرێت
+  const reasons = ['نەخۆشە', 'پشووە', 'خۆمان دەیبەین', 'گەشتمان هەیە']; // i18n-keep
   final names = Fmt.names(cloud.names(asList(t['memberIds'])));
 
   showYkSheet(context, builder: (c) {
     return StatefulBuilder(builder: (c, setS) {
       final yk = c.yk;
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('$names ئەمڕۆ نایەن؟', style: Ts.h2(c)),
+        Text(tr('{0} ئەمڕۆ نایەن؟', [names]), style: Ts.h2(c)),
         const SizedBox(height: 4),
-        Text('شۆفێرەکە ئاگادار دەکرێتەوە و بۆ ئەم گەشتە نایەت.', style: Ts.muted(c, size: 14)),
+        Text(tr('شۆفێرەکە ئاگادار دەکرێتەوە و بۆ ئەم گەشتە نایەت.'), style: Ts.muted(c, size: 14)),
         if (pair != null) ...[
           const SizedBox(height: 12),
           YkSeg<String>(
-            options: [('this', t['dir'] == 'back' ? 'تەنها هاتنەوە' : 'تەنها چوون'), ('both', 'چوون و هاتنەوە')],
+            options: [('this', t['dir'] == 'back' ? tr('تەنها هاتنەوە') : tr('تەنها چوون')), ('both', tr('چوون و هاتنەوە'))],
             value: mode,
             onChanged: (v) => setS(() => mode = v),
           ),
         ],
         const SizedBox(height: 14),
-        Text('هۆکار (ئارەزوومەندانە)', style: TextStyle(fontSize: 13.4, fontWeight: FontWeight.w700, color: yk.muted)),
+        Text(tr('هۆکار (ئارەزوومەندانە)'), style: TextStyle(fontSize: 13.4, fontWeight: FontWeight.w700, color: yk.muted)),
         const SizedBox(height: 6),
         Wrap(spacing: 8, runSpacing: 8, children: [
           for (final r in reasons)
@@ -53,7 +55,7 @@ void showSkipSheet(BuildContext context, String tripId) {
                   color: reason == r ? yk.act : yk.chip,
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text(r, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: reason == r ? yk.actText : yk.text)),
+                child: Text(tr(r), style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: reason == r ? yk.actText : yk.text)),
               ),
             ),
         ]),
@@ -66,7 +68,7 @@ void showSkipSheet(BuildContext context, String tripId) {
                   final ids = [str(t['id']), if (mode == 'both' && pair != null) str(pair['id'])];
                   await cloud.skipTrips(ids, reason);
                   if (c.mounted) Navigator.pop(c);
-                  if (context.mounted) toast(context, 'شۆفێر ئاگادار کرایەوە');
+                  if (context.mounted) toast(context, tr('شۆفێر ئاگادار کرایەوە'));
                 },
           child: Container(
             height: 48,
@@ -74,11 +76,11 @@ void showSkipSheet(BuildContext context, String tripId) {
             decoration: BoxDecoration(color: yk.danger, borderRadius: BorderRadius.circular(Yk.rMd)),
             child: busy
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white))
-                : const Text('ناردن بۆ شۆفێر', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
+                : Text(tr('ناردن بۆ شۆفێر'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
           ),
         ),
         const SizedBox(height: 8),
-        YkButton('پاشگەزبوونەوە', kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
+        YkButton(tr('پاشگەزبوونەوە'), kind: BtnKind.ghost, block: true, onPressed: () => Navigator.pop(c)),
       ]);
     });
   });

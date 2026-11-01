@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 
 import '../core/cloud.dart';
 import '../core/format.dart';
+import '../core/i18n.dart';
 import '../core/live.dart';
 import '../core/maps_status.dart';
 import '../core/sel.dart';
@@ -134,16 +135,16 @@ class TripMap extends StatelessWidget {
             ),
           ),
           if (live)
-            Positioned(
+            PositionedDirectional(
               top: 10,
-              right: 10,
+              start: 10,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(color: t.card, borderRadius: BorderRadius.circular(999), boxShadow: t.shadow),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   const _LiveDot(),
                   const SizedBox(width: 6),
-                  Text('لایڤ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: t.text)),
+                  Text(tr('لایڤ'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: t.text)),
                 ]),
               ),
             ),

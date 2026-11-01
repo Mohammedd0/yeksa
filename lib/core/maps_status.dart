@@ -13,7 +13,7 @@ class MapsStatus {
     if (_started) return;
     _started = true;
     watch.installMapsWatch((why) {
-      debugPrint('Google Maps بار نەبوو: $why');
+      debugPrint('Google Maps بار نەبوو: $why'); // i18n-keep
       failed.value = true;
     });
   }
