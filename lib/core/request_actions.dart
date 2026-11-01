@@ -120,12 +120,6 @@ extension YkRequests on Cloud {
         }
       }
     }
-    await addNotice(uid, {
-      'kind': 'info',
-      'title': target == 'all' ? 'داواکارییەکەت بڵاو کرایەوە' : 'داواکارییەکەت نێردرا',
-      'body': target == 'all' ? 'کاتێک شۆفێرێک قبووڵی بکات ئاگادار دەکرێیتەوە' : 'بۆ ${str(driver(target)?['name']).isEmpty ? 'شۆفێر' : driver(target)!['name']}',
-      'link': 'requests',
-    });
     return ids;
   }
 
@@ -331,11 +325,6 @@ extension YkRequests on Cloud {
     final who = why == 'deleted' ? 'سەرنشینێک' : str(passenger['name']).split(' ').first;
     await addSystemMessage(did, '$who $reason ($names، ${x['to']})');
     await addDNotice(did, {'kind': 'info', 'title': '$who $reason', 'body': '$names، ${x['to']}، گەشتەکانی داهاتوو لابران'});
-    await addNotice(uid, {
-      'kind': 'info',
-      'title': why == 'change' ? 'شۆفێر گۆڕا' : 'بەشدارییەکە هەڵوەشێنرایەوە',
-      'body': '$names، ${str(driver(did)?['name'])} ئاگادار کرایەوە. گەشتە کراوەکان لە «گەشتەکانم» دەمێننەوە',
-    });
   }
 
   /* ---------------- گەشتی ڕۆژانە ---------------- */

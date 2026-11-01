@@ -26,7 +26,8 @@ class HomeScreen extends StatelessWidget {
     final t = context.yk;
     final cloud = context.watch<Cloud>();
     final allNews = cloud.newsFor('passenger');
-    final ads = allNews.where((n) => YkSel.newsKind(n) == 'ad').toList();
+    // بانەر تەنها ئەوانەن کە وێنەیان هەیە
+    final ads = allNews.where((n) => YkSel.newsKind(n) == 'ad' && str(n['image']).isNotEmpty).toList();
     final offerList = allNews.where((n) => YkSel.newsKind(n) == 'offer').toList();
     final openReqs = cloud.openRequests;
     final offers = openReqs.fold<int>(0, (n, r) => n + asList(r['offers']).where((o) => asMap(o)['status'] == 'pending').length);
@@ -54,7 +55,7 @@ class HomeScreen extends StatelessWidget {
             _BellButton(count: unread, onTap: () => push(context, const NoticesScreen())),
           ],
         ),
-        if (ads.isNotEmpty) NewsCarousel(items: ads, onOpen: (n) => openLink(context, 'news/${n['id']}')),
+        if (ads.isNotEmpty) NewsCarousel(items: ads),
         if (offers > 0)
           YkCard(
             tone: CardTone.note,

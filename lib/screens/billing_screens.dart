@@ -943,8 +943,10 @@ class _AmountHero extends StatelessWidget {
         const SizedBox(height: 4),
         FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text(amount == 0 ? '0' : Fmt.group(amount),
-              textDirection: TextDirection.ltr, style: TextStyle(fontFamily: 'Arial', fontSize: 52, fontWeight: FontWeight.w900, letterSpacing: -1, color: amount == 0 ? t.muted : t.text)),
+          // ژمارەکان پەیڕەوی ڕێکخستنی «ژمارەکان» دەکەن (کوردی یان ئینگلیزی)
+          child: Text(Fmt.n(amount == 0 ? '0' : Fmt.group(amount)),
+              textDirection: TextDirection.ltr,
+              style: TextStyle(fontFamily: Fmt.digits == 'en' ? 'Arial' : null, fontSize: 52, fontWeight: FontWeight.w900, letterSpacing: Fmt.digits == 'en' ? -1 : 0, color: amount == 0 ? t.muted : t.text)),
         ),
         Text(bottom ?? 'دینار', textAlign: TextAlign.center, style: Ts.muted(context, size: 14)),
       ]),
@@ -971,7 +973,7 @@ class _Keypad extends StatelessWidget {
               child: Center(
                 child: k == 'del'
                     ? YkIcon('backspace', size: 26, color: t.text)
-                    : Text(k, style: TextStyle(fontFamily: 'Arial', fontSize: 25, fontWeight: FontWeight.w600, color: t.text)),
+                    : Text(Fmt.n(k), style: TextStyle(fontFamily: Fmt.digits == 'en' ? 'Arial' : null, fontSize: 25, fontWeight: FontWeight.w600, color: t.text)),
               ),
             ),
           ),
@@ -1431,7 +1433,7 @@ class _RequestStatusScreenState extends State<RequestStatusScreen> {
           ),
         ),
         Column(children: [
-          Text(Fmt.group(amount), textDirection: TextDirection.ltr, style: TextStyle(fontFamily: 'Arial', fontSize: 32, fontWeight: FontWeight.w900, color: t.text)),
+          Text(Fmt.n(Fmt.group(amount)), textDirection: TextDirection.ltr, style: TextStyle(fontFamily: Fmt.digits == 'en' ? 'Arial' : null, fontSize: 32, fontWeight: FontWeight.w900, color: t.text)),
           Text(sub, textAlign: TextAlign.center, style: Ts.muted(context, size: 14)),
         ]),
         YkCard(

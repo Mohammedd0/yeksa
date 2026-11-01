@@ -533,7 +533,8 @@ class YkScreen extends StatefulWidget {
 }
 
 class _YkScreenState extends State<YkScreen> with SingleTickerProviderStateMixin {
-  final _scroll = ScrollController();
+  // keepScrollOffset: false: شوێنی سکرۆڵی پەڕەیەکی تر (PageStorage) لێرە دانانرێتەوە
+  final _scroll = ScrollController(keepScrollOffset: false);
   final _firstKey = GlobalKey();
   bool _bar = false;
 
@@ -599,6 +600,16 @@ class _YkScreenState extends State<YkScreen> with SingleTickerProviderStateMixin
     super.initState();
     _scroll.addListener(_sync);
     if (widget.withNav) ykScrollTop.addListener(_onTopSignal);
+    // لە وێبی ئایفۆن هەندێک جار پەڕە بە شوێنێکی سکرۆڵکراو دەکرێتەوە (خانەی نووسین و
+    // autofill). لە دوو چوارچێوەی یەکەمدا ئەگەر بەکارهێنەر دەستی لێ نەدابێت، دەگەڕێتەوە سەرەوە
+    void reset(_) {
+      if (!mounted || !_scroll.hasClients || _scroll.position.isScrollingNotifier.value) return;
+      if (_scroll.offset != 0) _scroll.jumpTo(0);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      reset(null);
+      WidgetsBinding.instance.addPostFrameCallback(reset);
+    });
   }
 
   // تەنها پەڕەی دیار (بەشەکانی تری IndexedStack تیکەریان ناچالاکە)
@@ -1040,24 +1051,45 @@ class YkSelect<T> extends StatelessWidget {
   }
 }
 
-class _SelectMenu<T> extends StatelessWidget {
+class _SelectMenu<T> extends StatefulWidget {
   const _SelectMenu({required this.anchor, required this.items, required this.value});
   final Rect anchor;
   final List<(T, String)> items;
   final T? value;
 
   @override
+  State<_SelectMenu<T>> createState() => _SelectMenuState<T>();
+}
+
+class _SelectMenuState<T> extends State<_SelectMenu<T>> {
+  static const rowH = 46.0;
+  ScrollController? _sc;
+
+  @override
+  void dispose() {
+    _sc?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final t = context.yk;
+    final items = widget.items, value = widget.value, anchor = widget.anchor;
     final mq = MediaQuery.of(context);
-    const rowH = 46.0;
     final w = (mq.size.width * .58).clamp(200.0, 300.0);
-    final h = rowH * items.length + 8;
-    // لە ناوەڕاستی خانەکە، بە شێوەیەک کە هەڵبژێردراوەکە لەسەر خانەکە بێت
+    // لیستی درێژ (بۆ نموونە گەڕەکەکان): بەرزی سنووردار دەبێت و سکرۆڵ دەکرێت
+    final minTop = mq.padding.top + 12;
+    final maxBottom = mq.size.height - mq.padding.bottom - 12;
+    final full = rowH * items.length + 8;
+    final h = math.min(full, maxBottom - minTop);
     final sel = items.indexWhere((it) => it.$1 == value);
-    var top = anchor.center.dy - 4 - rowH * (sel < 0 ? 0 : sel) - rowH / 2;
-    top = top.clamp(mq.padding.top + 8, mq.size.height - mq.padding.bottom - h - 8);
-    final left = (anchor.center.dx - w / 2).clamp(12.0, mq.size.width - w - 12);
+    // لە ناوەڕاستی خانەکە، بە شێوەیەک کە هەڵبژێردراوەکە لەسەر خانەکە بێت (ئەگەر جێی ببێتەوە)
+    final selOffset = rowH * (sel < 0 ? 0 : sel);
+    var top = anchor.center.dy - 4 - selOffset - rowH / 2;
+    top = math.max(minTop, math.min(top, maxBottom - h));
+    final left = math.max(12.0, math.min(anchor.center.dx - w / 2, mq.size.width - w - 12));
+    // ئەگەر لیستەکە سکرۆڵ دەکرێت، هەڵبژێردراوەکە دیار بێت
+    _sc ??= ScrollController(initialScrollOffset: full > h ? math.max(0.0, math.min(selOffset - h / 2 + rowH / 2, full - h)) : 0);
     return Stack(children: [
       Positioned(
         top: top,
@@ -1072,7 +1104,10 @@ class _SelectMenu<T> extends StatelessWidget {
             color: t.dark ? const Color(0xF22A2D33) : const Color(0xF7FAFAFA),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
             clipBehavior: Clip.antiAlias,
-            child: Padding(
+            child: SizedBox(
+              height: h,
+              child: SingleChildScrollView(
+              controller: _sc,
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 for (var i = 0; i < items.length; i++) ...[
@@ -1085,13 +1120,16 @@ class _SelectMenu<T> extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Row(textDirection: TextDirection.ltr, children: [
                           SizedBox(width: 26, child: items[i].$1 == value ? YkIcon('check', size: 18, color: t.text, stroke: 2.6) : null),
-                          Expanded(child: Text(items[i].$2, textAlign: TextAlign.left, style: TextStyle(fontSize: 17, color: t.text, fontWeight: FontWeight.w500))),
+                          // بەرزی هێڵەکە نەگۆڕە (rowH)، بۆیە ناوی درێژ تەنها یەک دێڕە و بە «…» کورت دەکرێتەوە،
+                          // نەک بشکێت و بچێتە سەر هێڵی دواتر
+                          Expanded(child: Text(items[i].$2, textAlign: TextAlign.left, maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 17, color: t.text, fontWeight: FontWeight.w500))),
                         ]),
                       ),
                     ),
                   ),
                 ],
               ]),
+            ),
             ),
           ),
         ),

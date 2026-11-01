@@ -78,7 +78,7 @@ class _NoticesScreenState extends State<NoticesScreen> {
       g[fresh ? 'نوێ' : at >= today ? 'ئەمڕۆ' : at >= yest ? 'دوێنێ' : 'پێشتر']!.add(n);
     }
 
-    Widget row(Json n, bool fresh) {
+    Widget row(Json n, bool fresh, int count) {
       final (ic, tone) = noticeIcon(n['kind']);
       final link = str(n['link']);
       final boxBg = tone == 'ok' ? t.okBg : t.silver;
@@ -104,7 +104,18 @@ class _NoticesScreenState extends State<NoticesScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(Fmt.n(str(n['title'])), style: Ts.bold(context).copyWith(fontSize: 15.2)),
+                  Row(children: [
+                    Flexible(child: Text(Fmt.n(str(n['title'])), style: Ts.bold(context).copyWith(fontSize: 15.2))),
+                    // ئاگادارکردنەوەی وەک یەک کۆ دەکرێنەوە
+                    if (count > 1) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
+                        decoration: BoxDecoration(color: t.silver, borderRadius: BorderRadius.circular(999), border: Border.all(color: t.silverLine)),
+                        child: Text(Fmt.n('×$count'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: t.text)),
+                      ),
+                    ],
+                  ]),
                   if (str(n['body']).isNotEmpty) Text(Fmt.n(str(n['body'])), style: Ts.muted(context, size: 14)),
                   const SizedBox(height: 3),
                   Text(noticeWhen(((n['at'] as num?) ?? 0).toInt()),
@@ -123,8 +134,23 @@ class _NoticesScreenState extends State<NoticesScreen> {
     }
 
     final body = <Widget>[];
-    g.forEach((title, items) {
-      if (items.isEmpty) return;
+    g.forEach((title, raw) {
+      if (raw.isEmpty) return;
+      // ئاگادارکردنەوەی هەمان ناونیشان و ناوەڕۆک لە یەک بەشدا یەک دێڕن (نوێترینیان)، لەگەڵ ژمارە
+      final items = <Json>[];
+      final counts = <int>[];
+      final index = <String, int>{};
+      for (final n in raw) {
+        final key = '${n['kind']}|${n['title']}|${n['body']}|${n['link']}';
+        final at = index[key];
+        if (at == null) {
+          index[key] = items.length;
+          items.add(n);
+          counts.add(1);
+        } else {
+          counts[at]++;
+        }
+      }
       body.add(Padding(
         padding: const EdgeInsets.fromLTRB(4, 6, 4, 0),
         child: Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: t.text)),
@@ -135,7 +161,7 @@ class _NoticesScreenState extends State<NoticesScreen> {
         child: Column(children: [
           for (var i = 0; i < items.length; i++) ...[
             if (i > 0) Divider(height: 1, thickness: 1, color: t.line),
-            row(items[i], title == 'نوێ'),
+            row(items[i], title == 'نوێ', counts[i]),
           ],
         ]),
       ));
@@ -145,7 +171,13 @@ class _NoticesScreenState extends State<NoticesScreen> {
       body: YkScreen(
         onRefresh: context.read<Cloud>().refresh,
         children: [
-          const YkHeader('ئاگادارکردنەوەکان'),
+          YkHeader('ئاگادارکردنەوەکان',
+              right: g['نوێ']!.isEmpty
+                  ? null
+                  : YkLink('هەمووی خوێندرایەوە', pill: true, onTap: () {
+                      cloud.markNoticesRead();
+                      setState(() => _readAt = nowMs());
+                    })),
           YkSeg<String>(
             options: const [('all', 'هەمووی'), ('trips', 'گەشت'), ('offers', 'داواکاری'), ('pay', 'پارەدان')],
             value: _tab,

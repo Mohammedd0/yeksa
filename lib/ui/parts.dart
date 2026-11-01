@@ -165,10 +165,10 @@ class NewsBanner extends StatelessWidget {
 }
 
 /// ڕێکلامەکانی سەرەوەی سەرەکی: بێ کۆتایی دەسوڕێنەوە (ui.carousel + bleed)
+/// بانەری سەرەوەی سەرەکی: تەنها وێنە، بێ نووسین و بێ کلیک
 class NewsCarousel extends StatefulWidget {
-  const NewsCarousel({super.key, required this.items, required this.onOpen});
+  const NewsCarousel({super.key, required this.items});
   final List<Json> items;
-  final ValueChanged<Json> onOpen;
   @override
   State<NewsCarousel> createState() => _NewsCarouselState();
 }
@@ -214,7 +214,7 @@ class _NewsCarouselState extends State<NewsCarousel> {
             onPageChanged: (i) => setState(() => _page = i % items.length),
             itemBuilder: (c, i) {
               final n = items[i % items.length];
-              return NewsBanner(n, radius: 0, onTap: () => widget.onOpen(n));
+              return SizedBox.expand(child: YkImage(str(n['image']), fit: BoxFit.cover));
             },
           ),
         ),

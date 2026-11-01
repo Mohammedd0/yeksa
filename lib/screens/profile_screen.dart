@@ -147,8 +147,12 @@ class ProfileScreen extends StatelessWidget {
           else
             YkListItem(icon: 'school', label: 'کۆدی قوتابخانە یان کۆمپانیا', onTap: () => _partnerCode(context)),
         ]),
-        YkButton('چوونەدەرەوە', icon: 'logout', kind: BtnKind.secondary, block: true, onPressed: () => context.read<AuthService>().logout()),
-        Text('یەکسا، وەشانی 1.0', textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
+        // ٢٠ پیکسڵ دوورتر لە کارتەکەی سەرەوە، تا بە هەڵە پەنجەی بەر نەکەوێت
+        Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: YkButton('چوونەدەرەوە', icon: 'logout', kind: BtnKind.secondary, block: true, onPressed: () => context.read<AuthService>().logout()),
+        ),
+        Text(Fmt.n('یەکسا، وەشانی 1٫0'), textAlign: TextAlign.center, style: Ts.muted(context, size: 12.8)),
       ],
     );
   }

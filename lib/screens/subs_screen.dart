@@ -449,13 +449,19 @@ class _StateBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.yk;
-    final fg = paused ? (t.dark ? const Color(0xFFFCA5A5) : const Color(0xFFB42318)) : (t.dark ? const Color(0xFF34D399) : const Color(0xFF047857));
-    final bg = paused ? const Color(0x26EF4444) : (t.dark ? const Color(0x2610B981) : const Color(0x1F10B981));
+    // چاوەڕێی پارەدانە: کرێمی و قاوەیی بە خاڵی پرتەقاڵی (.ts-state.due ی وێب)
+    final fg = due
+        ? (t.dark ? const Color(0xFFFCD34D) : const Color(0xFF92400E))
+        : paused
+            ? (t.dark ? const Color(0xFFFCA5A5) : const Color(0xFFB42318))
+            : (t.dark ? const Color(0xFF34D399) : const Color(0xFF047857));
+    final bg = due ? (t.dark ? const Color(0x26F5A623) : t.noteBg) : paused ? const Color(0x26EF4444) : (t.dark ? const Color(0x2610B981) : const Color(0x1F10B981));
+    final line = due ? (t.dark ? const Color(0x59F5A623) : t.noteLine) : fg.withValues(alpha: .35);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999), border: Border.all(color: fg.withValues(alpha: .35))),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999), border: Border.all(color: line)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: fg)),
+        Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: due ? t.amber : fg)),
         const SizedBox(width: 6),
         Text(due ? 'چاوەڕێی پارەدانە' : paused ? 'ڕاگیراوە' : 'چالاک', style: TextStyle(color: fg, fontWeight: FontWeight.w700, fontSize: 12.8)),
       ]),

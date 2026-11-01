@@ -32,6 +32,35 @@
   <title>yeksa</title>
   <link rel="manifest" href="manifest.json">
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjiamkor_esVx0GV7ZM7w1LEv4fyWZEHg&region=IQ"></script>
+  <style>
+    /* جووڵەی کرانەوەی یەکسا (هەمان playIntro ـی وێب). لە کاتی بارکردنی Flutter پیشان دەدرێت */
+    @font-face { font-family: YkNaskh; src: url("assets/assets/fonts/NotoNaskhArabic-Bold.ttf"); font-weight: 700; font-display: block; }
+    html, body { margin: 0; background: #FFFFFF; }
+    #intro { position: fixed; inset: 0; z-index: 9999; overflow: hidden; cursor: pointer; font-family: YkNaskh, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+    #intro .in-layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+    #intro .in-light { background: #FFFFFF; }
+    #intro .in-dark { background: #1C1C1E; clip-path: circle(0px at 50% 50%); }
+    #intro .ylogo { --yl-h: 58px; display: inline-flex; align-items: center; gap: calc(var(--yl-h) * .28); direction: rtl; }
+    #intro .in-light .ylogo { --yl-ink: #1C1C1E; --yl-gr: #8A8F98; --yl-bg: #FFFFFF; }
+    #intro .in-dark .ylogo { --yl-ink: #F2F2F7; --yl-gr: #8E95A2; --yl-bg: #1C1C1E; }
+    #intro .yl-mk { width: var(--yl-h); height: var(--yl-h); display: block; overflow: visible; }
+    #intro .yl-s { fill: none; stroke: var(--yl-ink); stroke-width: 15; stroke-linecap: round; stroke-linejoin: round; }
+    #intro .yl-d { fill: none; stroke: var(--yl-bg); stroke-width: 3.2; stroke-linecap: round; stroke-dasharray: 5 5; }
+    #intro .yl-p { fill: #F5A623; stroke: var(--yl-bg); stroke-width: 3.5; }
+    #intro .yl-p, #intro .in-ring { transform-box: fill-box; transform-origin: center; }
+    #intro .in-ring { fill: none; stroke: #F5A623; stroke-width: 3; opacity: 0; }
+    #intro .yl-vr { width: 1.5px; height: calc(var(--yl-h) * .94); border-radius: 1px; transform-origin: center; }
+    #intro .in-light .yl-vr { background: #E6E8EC; }
+    #intro .in-dark .yl-vr { background: rgba(255, 255, 255, .18); }
+    #intro .yl-tx { display: flex; flex-direction: column; align-items: flex-start; line-height: 1; gap: calc(var(--yl-h) * .12); }
+    #intro .yl-ku { font-weight: 700; font-size: calc(var(--yl-h) * .76); line-height: 1.15; color: transparent; -webkit-background-clip: text; background-clip: text;
+      background-image: linear-gradient(to left, var(--yl-ink) 0 56%, var(--yl-gr) 56% 100%); padding: 0 1px; }
+    #intro .yl-la { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-weight: 700; font-size: calc(var(--yl-h) * .27); letter-spacing: .32em; color: var(--yl-gr); direction: ltr; }
+    #intro .yl-la b, #intro .yl-la i { font-style: normal; display: inline-block; }
+    #intro .yl-la b { color: var(--yl-ink); font-weight: 800; }
+    #intro .yl-la i { color: var(--yl-gr); }
+    #intro .in-tag { position: absolute; bottom: calc(18% + env(safe-area-inset-bottom)); left: 0; right: 0; text-align: center; font-size: 14.4px; color: #9AA3B2; opacity: 0; direction: rtl; }
+  </style>
 </head>
 <body>
   <!--
@@ -42,6 +71,84 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
+  <div id="intro">
+    <div class="in-layer in-light">
+      <span class="ylogo in-logo" role="img" aria-label="یەکسا">
+          <svg class="yl-mk" viewBox="0 0 100 100" aria-hidden="true">
+            <path class="yl-s in-l" d="M24 14 L50 50"/><path class="yl-s in-r" d="M76 14 L50 50"/><path class="yl-s in-st" d="M50 50 L50 76"/>
+            <path class="yl-d in-d" d="M50 57 L50 71"/><circle class="in-ring" cx="50" cy="85" r="10"/><circle class="in-ring" cx="50" cy="85" r="10"/>
+            <circle class="yl-p in-p" cx="50" cy="85" r="10"/>
+          </svg>
+          <span class="yl-vr"></span>
+          <span class="yl-tx"><span class="yl-ku">یەکسا</span><span class="yl-la"><b>Y</b><b>E</b><b>K</b><i>S</i><i>A</i></span></span>
+        </span>
+    </div>
+    <div class="in-layer in-dark" aria-hidden="true">
+      <span class="ylogo in-logo" role="img" aria-label="یەکسا">
+          <svg class="yl-mk" viewBox="0 0 100 100" aria-hidden="true">
+            <path class="yl-s in-l" d="M24 14 L50 50"/><path class="yl-s in-r" d="M76 14 L50 50"/><path class="yl-s in-st" d="M50 50 L50 76"/>
+            <path class="yl-d in-d" d="M50 57 L50 71"/>
+            <circle class="yl-p in-p" cx="50" cy="85" r="10"/>
+          </svg>
+          <span class="yl-vr"></span>
+          <span class="yl-tx"><span class="yl-ku">یەکسا</span><span class="yl-la"><b>Y</b><b>E</b><b>K</b><i>S</i><i>A</i></span></span>
+        </span>
+      <div class="in-tag">هاتووچۆی مانگانە بۆ هەموو خێزان</div>
+    </div>
+  </div>
+  <script>
+    // جووڵەکە: دوو ڕێگا یەک دەگرن ← خاڵە پرتەقاڵییەکە دادەبەزێت ← «یەکسا» ڕوون دەبێتەوە ← بازنەی ڕەش.
+    // تا Flutter ئامادە نەبێت (flutter-first-frame) لاناچێت، بۆیە کاتی بارکردن دەشارێتەوە
+    (function () {
+      var el = document.getElementById('intro');
+      if (!el || !document.body.animate) { if (el) el.remove(); return; }
+      var flutterReady = false, animDone = false, gone = false;
+      var light = el.querySelector('.in-light');
+      var q = function (c) { return light.querySelector(c); };
+      var qa = function (c) { return Array.prototype.slice.call(light.querySelectorAll(c)); };
+      var anims = [];
+      var ease = 'cubic-bezier(.2,.8,.2,1)';
+      var A = function (n, kf, o) { anims.push(n.animate(kf, Object.assign({ fill: 'both', easing: ease }, o))); };
+      var mk = q('.yl-mk').getBoundingClientRect();
+      var cx = mk.left + mk.width * 0.5, cy = mk.top + mk.height * 0.85;
+      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var wipeAt = 2950, doneAt = 3900;
+      if (!reduce) {
+        A(q('.in-l'), [{ transform: 'translateX(-70px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 700 });
+        A(q('.in-r'), [{ transform: 'translateX(70px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 700 });
+        A(q('.yl-mk'), [{ transform: 'scale(1)' }, { transform: 'scale(1.07)', offset: 0.5 }, { transform: 'scale(1)' }], { duration: 260, delay: 640, easing: 'ease-out' });
+        var st = q('.in-st'), L = st.getTotalLength ? st.getTotalLength() : 26;
+        st.style.strokeDasharray = L;
+        A(st, [{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: 450, delay: 820, easing: 'cubic-bezier(.5,0,.3,1)' });
+        A(q('.in-p'), [{ transform: 'translateY(-35px)', opacity: 0 }, { transform: 'translateY(-35px)', opacity: 1, offset: 0.15 }, { transform: 'none', opacity: 1 }], { duration: 470, delay: 800, easing: 'cubic-bezier(.5,0,.3,1)' });
+        qa('.in-ring').forEach(function (r, i) { A(r, [{ transform: 'scale(1)', opacity: 0.6 }, { transform: 'scale(3.2)', opacity: 0 }], { duration: 700, delay: 1250 + i * 170, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'forwards' }); });
+        A(q('.in-d'), [{ opacity: 0 }, { opacity: 1 }], { duration: 250, delay: 1280 });
+        A(q('.yl-vr'), [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 420, delay: 1350 });
+        A(q('.yl-ku'), [{ opacity: 0, filter: 'blur(14px)', transform: 'scale(1.15)' }, { opacity: 1, filter: 'blur(0px)', transform: 'scale(1)' }], { duration: 750, delay: 1500 });
+        qa('.yl-la > *').forEach(function (c, i) { A(c, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 400, delay: 2150 + i * 60 }); });
+        A(q('.yl-la'), [{ letterSpacing: '.9em' }, { letterSpacing: '.32em' }], { duration: 600, delay: 2150 });
+      } else { wipeAt = 0; doneAt = 700; }
+      var dark = el.querySelector('.in-dark');
+      var r = Math.hypot(Math.max(cx, innerWidth - cx), Math.max(cy, innerHeight - cy)) + 10;
+      anims.push(dark.animate([{ clipPath: 'circle(0px at ' + cx + 'px ' + cy + 'px)' }, { clipPath: 'circle(' + r + 'px at ' + cx + 'px ' + cy + 'px)' }], { duration: reduce ? 1 : 900, delay: wipeAt, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'both' }));
+      anims.push(dark.querySelector('.in-tag').animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 550, delay: reduce ? 0 : 3600, easing: ease, fill: 'both' }));
+      var timer = setTimeout(function () { animDone = true; tryHide(); }, doneAt + 500);
+      function tryHide() {
+        if (gone || !animDone || !flutterReady) return;
+        gone = true;
+        var out = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 380, easing: 'ease', fill: 'forwards' });
+        out.onfinish = function () { el.remove(); };
+      }
+      // لێدان: جووڵەکە دەبڕێت (لایەری ڕەش دەمێنێتەوە تا Flutter ئامادە دەبێت)
+      el.addEventListener('click', function () {
+        clearTimeout(timer);
+        anims.forEach(function (a) { try { a.finish(); } catch (e) {} });
+        animDone = true;
+        tryHide();
+      });
+      window.addEventListener('flutter-first-frame', function () { flutterReady = true; tryHide(); });
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
   <script>
     // ئاگادارکردنەوەی مۆبایل (lib/core/web_notify_web.dart): service worker بۆ showNotification
