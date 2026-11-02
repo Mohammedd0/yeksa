@@ -8,11 +8,13 @@ import '../core/cloud.dart';
 import '../core/format.dart';
 import '../core/i18n.dart';
 import '../core/live.dart';
+import '../core/route_path.dart';
 import '../core/sel.dart';
 import '../core/trips.dart';
 import '../ui/help.dart';
 import '../ui/form_parts.dart';
 import '../ui/theme.dart';
+import '../ui/trip_map.dart' show RouteMap, RouteMark;
 import '../ui/widgets.dart';
 import '../ui/yk_icon.dart';
 import 'nav.dart';
@@ -290,6 +292,19 @@ class HistoryDetailScreen extends StatelessWidget {
       ));
     }
     ev.sort((x, y) => x.$1.compareTo(y.$1));
+    // ڕێگای ڕاستەقینە (تەنها بەشی خۆی: لە سوار بوونەوە تا دابەزین)
+    final path = decodePath(str(h['path']));
+    final gs = stops.where((x) => x['g'] is List && (x['g'] as List).length == 2).toList();
+    final marks = <RouteMark>[
+      for (var i = 0; i < gs.length; i++)
+        RouteMark(
+          ((gs[i]['g'] as List)[0] as num).toDouble(),
+          ((gs[i]['g'] as List)[1] as num).toDouble(),
+          kind: i == gs.length - 1 && gs.length > 1 ? 'end' : 'stop',
+          label: Fmt.n(i + 1),
+        ),
+    ];
+    final km = h['km'] is num ? (h['km'] as num).toDouble() : null;
     Widget stat(String big, String small) => Expanded(
           child: YkCard(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
@@ -316,6 +331,7 @@ class HistoryDetailScreen extends StatelessWidget {
             YkButton('', icon: 'chat', small: true, kind: BtnKind.secondary, onPressed: () => openLink(context, 'chat/$did')),
           ]),
         ),
+        if (path.length > 1) RouteMap(path: path, marks: marks, height: 280),
         if (h['absent'] == true)
           YkCard(
             tone: CardTone.danger,
@@ -331,6 +347,10 @@ class HistoryDetailScreen extends StatelessWidget {
             stat(_hm(last['doneAt']), tr('گەیشتن')),
             const SizedBox(width: 8),
             stat(Fmt.n(dur), tr('خولەک')),
+            if (km != null) ...[
+              const SizedBox(width: 8),
+              stat(Fmt.n(km.toStringAsFixed(1)), tr('کیلۆمەتر')),
+            ],
           ]),
         YkCard(
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

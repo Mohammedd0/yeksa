@@ -79,13 +79,14 @@ class _LoginScreenState extends State<LoginScreen> {
     final t = context.yk;
     final st = context.watch<LocalSettings>();
     return Scaffold(
-      body: AutofillGroup(
+      body: Stack(children: [
+        Positioned.fill(child: AutofillGroup(
         child: YkScreen(
           center: true,
           gap: 12,
           children: [
-            // هەڵبژاردنی زمان پێش چوونەژوورەوە
-            Align(alignment: AlignmentDirectional.centerEnd, child: YkLangPill(value: st.lang, onChanged: st.setLang)),
+            // جێی دوگمەی زمان (لە شاشەی کورت یان کاتێک کیبۆرد کراوەیە، دوگمەکە نەکەوێتە سەر لۆگۆ)
+            const SizedBox(height: 30),
             Column(children: [
               const YLogo.big(),
               const SizedBox(height: 20),
@@ -112,7 +113,14 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ],
         ),
-      ),
+      )),
+        // هەڵبژاردنی زمان: لە گۆشەی سەرەوەی پەڕەکە، پێش چوونەژوورەوە
+        PositionedDirectional(
+          top: MediaQuery.of(context).padding.top + 10,
+          end: 16,
+          child: YkLangPill(value: st.lang, onChanged: st.setLang),
+        ),
+      ]),
     );
   }
 }

@@ -16,6 +16,7 @@ import '../core/live.dart';
 import '../core/maps_status.dart';
 import '../core/sel.dart';
 import 'theme.dart';
+import 'yk_icon.dart';
 
 const kAmber = Color(0xFFF5A623);
 const kGreen = Color(0xFF22C55E);
@@ -469,4 +470,254 @@ class _TickerState extends State<LiveTicker> {
 
   @override
   Widget build(BuildContext context) => widget.builder(context);
+}
+
+/* ---------------- نەخشەی ڕێگای ڕاستەقینە (مێژووی گەشت) ---------------- */
+
+/// ڕەنگی ڕێگای ڕاستەقینە لەسەر نەخشەی مێژوو
+const kRouteGreen = Color(0xFF12A06C);
+
+/// خاڵێک لەسەر نەخشەی مێژوو: دەستپێکردن، وێستگەیەکی ژمارەدار، یان کۆتایی
+class RouteMark {
+  const RouteMark(this.lat, this.lng, {this.label = '', this.kind = 'stop'});
+  final double lat, lng;
+
+  /// ژمارەی وێستگە (هەمان ژمارەی لیستی ڕووداوەکان)
+  final String label;
+
+  /// 'start' | 'stop' | 'end'
+  final String kind;
+}
+
+/// نەخشەی ڕێگای ڕاستەقینەی شۆفێر: هێڵی سەوز، وێستگە ژمارەدارەکان و ئاڵای کۆتایی.
+/// [path] خاڵەکانی ڕێگا [lat, lng]. دوگمەی ⤢ نەخشەکە بە قەبارەی شاشە دەکاتەوە
+class RouteMap extends StatelessWidget {
+  const RouteMap({super.key, required this.path, this.marks = const [], this.height = 260, this.radius = Yk.rMd, this.full = false});
+  final List<List<double>> path;
+  final List<RouteMark> marks;
+  final double height;
+  final double radius;
+  final bool full;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.yk;
+    final map = ValueListenableBuilder<bool>(
+      valueListenable: MapsStatus.failed,
+      builder: (_, failed, __) => failed
+          ? CustomPaint(painter: _RoutePainter(path: path, marks: marks, t: t), size: Size.infinite)
+          : _RouteGMap(path: path, marks: marks, interactive: full),
+    );
+    final body = Stack(children: [
+      Positioned.fill(child: map),
+      PositionedDirectional(
+        top: 10,
+        start: 10,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          decoration: BoxDecoration(color: t.card, borderRadius: BorderRadius.circular(999), boxShadow: t.shadow),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Container(width: 7, height: 7, decoration: const BoxDecoration(color: kRouteGreen, shape: BoxShape.circle)),
+            const SizedBox(width: 6),
+            Text(tr('ڕێگای ڕاستەقینە'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: kRouteGreen)),
+          ]),
+        ),
+      ),
+      if (!full)
+        PositionedDirectional(
+          bottom: 10,
+          end: 10,
+          child: Material(
+            color: t.card,
+            borderRadius: BorderRadius.circular(10),
+            elevation: 1,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (c) => Scaffold(
+                  body: Stack(children: [
+                    Positioned.fill(child: RouteMap(path: path, marks: marks, radius: 0, full: true)),
+                    PositionedDirectional(
+                      top: MediaQuery.of(c).padding.top + 10,
+                      end: 12,
+                      child: Material(
+                        color: t.card,
+                        shape: const CircleBorder(),
+                        elevation: 2,
+                        child: IconButton(icon: YkIcon('x', size: 20, color: t.text), onPressed: () => Navigator.of(c).pop()),
+                      ),
+                    ),
+                  ]),
+                ),
+              )),
+              child: SizedBox(width: 36, height: 36, child: Center(child: YkIcon('expand', size: 18, color: t.text))),
+            ),
+          ),
+        ),
+    ]);
+    if (full) return body;
+    return ClipRRect(borderRadius: BorderRadius.circular(radius), child: SizedBox(height: height, child: body));
+  }
+}
+
+class _RouteGMap extends StatefulWidget {
+  const _RouteGMap({required this.path, required this.marks, required this.interactive});
+  final List<List<double>> path;
+  final List<RouteMark> marks;
+  final bool interactive;
+  @override
+  State<_RouteGMap> createState() => _RouteGMapState();
+}
+
+class _RouteGMapState extends State<_RouteGMap> {
+  Set<Marker> _markers = {};
+  GoogleMapController? _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _build();
+  }
+
+  Future<void> _build() async {
+    final ms = <Marker>{};
+    var i = 0;
+    for (final m in widget.marks) {
+      final end = m.kind == 'end', start = m.kind == 'start';
+      final icon = await _circleIcon(
+        key: 'rt${m.kind}${m.label}',
+        r: start ? 8 : 12,
+        fill: start ? Colors.white : end ? kAmber : kRouteGreen,
+        stroke: start ? const Color(0xFF1C1C1E) : Colors.white,
+        label: end ? '⚑' : m.label,
+        text: Colors.white,
+      );
+      ms.add(Marker(markerId: MarkerId('m${i++}'), position: LatLng(m.lat, m.lng), icon: icon, anchor: const Offset(.5, .5), consumeTapEvents: true));
+    }
+    if (mounted) setState(() => _markers = ms);
+  }
+
+  LatLngBounds? _bounds() {
+    final all = [...widget.path, ...widget.marks.map((m) => [m.lat, m.lng])];
+    if (all.isEmpty) return null;
+    var s = all.first[0], n = all.first[0], w = all.first[1], e = all.first[1];
+    for (final p in all) {
+      s = math.min(s, p[0]);
+      n = math.max(n, p[0]);
+      w = math.min(w, p[1]);
+      e = math.max(e, p[1]);
+    }
+    // ڕێگایەکی زۆر کورت: کەمێک فراوانتر
+    if (n - s < 0.002) {
+      s -= 0.001;
+      n += 0.001;
+    }
+    if (e - w < 0.002) {
+      w -= 0.001;
+      e += 0.001;
+    }
+    return LatLngBounds(southwest: LatLng(s, w), northeast: LatLng(n, e));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = context.yk.dark;
+    final pts = widget.path.map((p) => LatLng(p[0], p[1])).toList();
+    final b = _bounds();
+    final center = b == null ? const LatLng(35.56, 45.43) : LatLng((b.southwest.latitude + b.northeast.latitude) / 2, (b.southwest.longitude + b.northeast.longitude) / 2);
+    return GoogleMap(
+      initialCameraPosition: CameraPosition(target: center, zoom: 13),
+      style: dark ? kMapStyleDark : kMapStyleLight,
+      markers: _markers,
+      polylines: {
+        if (pts.length > 1) ...{
+          Polyline(polylineId: const PolylineId('halo'), points: pts, color: const Color(0xFF0B7A52).withValues(alpha: .3), width: 9, jointType: JointType.round),
+          Polyline(polylineId: const PolylineId('route'), points: pts, color: kRouteGreen, width: 5, jointType: JointType.round, startCap: Cap.roundCap, endCap: Cap.roundCap),
+        },
+      },
+      zoomControlsEnabled: false,
+      myLocationButtonEnabled: false,
+      mapToolbarEnabled: false,
+      compassEnabled: false,
+      rotateGesturesEnabled: false,
+      tiltGesturesEnabled: false,
+      scrollGesturesEnabled: widget.interactive,
+      zoomGesturesEnabled: widget.interactive,
+      onMapCreated: (c) {
+        _ctrl = c;
+        final bb = _bounds();
+        if (bb != null) {
+          Future.delayed(const Duration(milliseconds: 250), () {
+            if (mounted) _ctrl?.moveCamera(CameraUpdate.newLatLngBounds(bb, 44));
+          });
+        }
+      },
+    );
+  }
+}
+
+/// کاتێک Google Maps کار ناکات: ڕێگاکە بە شێوەیەکی سادە دەکێشرێت
+class _RoutePainter extends CustomPainter {
+  _RoutePainter({required this.path, required this.marks, required this.t});
+  final List<List<double>> path;
+  final List<RouteMark> marks;
+  final Yk t;
+
+  @override
+  void paint(Canvas c, Size size) {
+    c.drawRect(Offset.zero & size, Paint()..color = t.dark ? const Color(0xFF14213D) : const Color(0xFFF1EFEA));
+    final grid = Paint()
+      ..color = t.dark ? const Color(0x22FFFFFF) : const Color(0xFFFFFFFF)
+      ..strokeWidth = 5;
+    for (var x = 18.0; x < size.width; x += 38) {
+      c.drawLine(Offset(x, 0), Offset(x - 8, size.height), grid);
+    }
+    for (var y = 22.0; y < size.height; y += 34) {
+      c.drawLine(Offset(0, y), Offset(size.width, y + 6), grid);
+    }
+    final all = [...path, ...marks.map((m) => [m.lat, m.lng])];
+    if (all.isEmpty) return;
+    var s = all.first[0], n = all.first[0], w = all.first[1], e = all.first[1];
+    for (final p in all) {
+      s = math.min(s, p[0]);
+      n = math.max(n, p[0]);
+      w = math.min(w, p[1]);
+      e = math.max(e, p[1]);
+    }
+    const pad = 30.0;
+    final sx = (size.width - pad * 2) / math.max(e - w, 1e-6), sy = (size.height - pad * 2) / math.max(n - s, 1e-6);
+    final k = math.min(sx, sy);
+    final ox = (size.width - (e - w) * k) / 2, oy = (size.height - (n - s) * k) / 2;
+    Offset at(double lat, double lng) => Offset(ox + (lng - w) * k, oy + (n - lat) * k);
+    if (path.length > 1) {
+      final p = Path()..moveTo(at(path.first[0], path.first[1]).dx, at(path.first[0], path.first[1]).dy);
+      for (final q in path.skip(1)) {
+        final o = at(q[0], q[1]);
+        p.lineTo(o.dx, o.dy);
+      }
+      c.drawPath(p, Paint()
+        ..color = kRouteGreen
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 5
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round);
+    }
+    for (final m in marks) {
+      final o = at(m.lat, m.lng);
+      final end = m.kind == 'end', start = m.kind == 'start';
+      c.drawCircle(o, start ? 7 : 11, Paint()..color = start ? Colors.white : end ? kAmber : kRouteGreen);
+      c.drawCircle(o, start ? 7 : 11, Paint()
+        ..color = start ? const Color(0xFF1C1C1E) : Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3);
+      final label = end ? '⚑' : m.label;
+      if (label.isNotEmpty) {
+        final tp = TextPainter(text: TextSpan(text: label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white, fontFamily: kFont)), textDirection: TextDirection.ltr)..layout();
+        tp.paint(c, o - Offset(tp.width / 2, tp.height / 2));
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RoutePainter old) => old.path != path || old.marks != marks;
 }

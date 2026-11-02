@@ -26,11 +26,29 @@ class L {
 
 String _fill(String s, List<Object?> args) {
   if (args.isEmpty) return s;
-  return s.replaceAllMapped(RegExp(r'\{(\d+)\}'), (m) {
+  final out = s.replaceAllMapped(RegExp(r'\{(\d+)\}'), (m) {
     final i = int.parse(m[1]!);
     return i < args.length ? '${args[i] ?? ''}' : m[0]!;
   });
+  return L.en ? _enSingular(out) : out;
 }
+
+/// ئینگلیزی: «1 points» ← «1 point» (وشەی کۆ دوای ژمارەی ١)
+const Map<String, String> _enOne = {
+  'points': 'point', 'passengers': 'passenger', 'requests': 'request', 'ratings': 'rating', 'days': 'day',
+  'seats': 'seat', 'trips': 'trip', 'stops': 'stop', 'people': 'person', 'minutes': 'minute', 'hours': 'hour',
+  'riders': 'rider', 'members': 'member', 'messages': 'message', 'drivers': 'driver', 'routes': 'route',
+};
+final RegExp _enOneRe = RegExp(r'(^|[^\d.,])(1|١)((?: [a-z]+)?) ([a-z]+)\b');
+
+String _enSingular(String s) => s.replaceAllMapped(_enOneRe, (m) {
+      final a = m[3]!.trim(), b = m[4]!;
+      // «1 new requests» ← «1 new request»
+      if (_enOne[b] != null) return '${m[1]}${m[2]}${m[3]} ${_enOne[b]}';
+      // «1 days ago» ← «1 day ago»
+      if (a.isNotEmpty && _enOne[a] != null) return '${m[1]}${m[2]} ${_enOne[a]} $b';
+      return m[0]!;
+    });
 
 /// وەرگێڕانی دەقێکی ڕووکار. [ku] دەقی کوردییە (کلیل)، [args] بۆ {0}، {1}...
 String tr(String ku, [List<Object?> args = const []]) {

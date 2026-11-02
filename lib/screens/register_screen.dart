@@ -255,10 +255,10 @@ void showTerms(BuildContext context) {
           style: Ts.sm(c).copyWith(height: 2),
         ),
         // دەقی تەواوی فەرمی (هەمان لینکەکانی Google Play و App Store)
-        // عەرەبی و ئینگلیزی: وەشانی ئینگلیزی پەڕەکان (?lang=en)
+        // پەڕەکان بە هەمان زمانی ئەپ دەکرێنەوە (?lang=ar / ?lang=en)
         Wrap(spacing: 16, runSpacing: 4, children: [
-          YkLink(tr('مەرج و ڕێساکانی تەواو'), size: 13.6, onTap: () => launchUrl(Uri.parse('$kLegalBase/terms.html${L.ku ? '' : '?lang=en'}'), mode: LaunchMode.externalApplication)),
-          YkLink(tr('سیاسەتی تایبەتمەندی'), size: 13.6, onTap: () => launchUrl(Uri.parse('$kLegalBase/privacy.html${L.ku ? '' : '?lang=en'}'), mode: LaunchMode.externalApplication)),
+          YkLink(tr('مەرج و ڕێساکانی تەواو'), size: 13.6, onTap: () => launchUrl(Uri.parse('$kLegalBase/terms.html${L.ku ? '' : '?lang=${L.lang}'}'), mode: LaunchMode.externalApplication)),
+          YkLink(tr('سیاسەتی تایبەتمەندی'), size: 13.6, onTap: () => launchUrl(Uri.parse('$kLegalBase/privacy.html${L.ku ? '' : '?lang=${L.lang}'}'), mode: LaunchMode.externalApplication)),
         ]),
         const SizedBox(height: 12),
         YkButton(tr('تێگەیشتم'), block: true, onPressed: () => Navigator.pop(c)),

@@ -54,6 +54,7 @@ const Map<String, String> kIconPaths = {
   'tag': r'''<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>''',
   'send': r'''<path d="M3 3l18 7-7 3-3 7z"/><path d="m14 13-4-4"/>''',
   'x': r'''<path d="M6 6l12 12M18 6 6 18"/>''',
+  'expand': r'''<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>''',
   'trash': r'''<path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>''',
   'sun': r'''<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>''',
   'moon': r'''<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>''',
